@@ -1,0 +1,289 @@
+BuyNiger AI - COMPLETE Implementation Plan
+Deep Audit Summary
+Category	Exists	Implemented	Gap
+Database Tables	50+	22 models	30+ missing models
+Controllers	11	Partial	Many empty/incomplete
+Views	9 dirs	Partial	Many pages missing
+AI System	7 tables	0%	Not started
+Messaging	0 tables	0%	Not even in DB
+🔴 PHASE A: Critical Fixes (Shop Broken)
+A.1 Add to Cart Button
+Issue: Button on product detail page not working
+Tasks:
+ Debug JS event listener in 
+shop.blade.php
+ Verify CartController@add route works
+ Test AJAX response handling
+ Add success/error feedback
+A.2 Create Vendor Store Page
+Issue: "Visit Store" has no destination
+Tasks:
+ Create StoreController
+ Add route: GET /store/{slug}
+ Create view: shop/store.blade.php
+ Display vendor products, branding, contact
+A.3 Fix Product Images
+Issue: Images broken/not displaying
+Tasks:
+ Audit all Storage::url() calls
+ Fix APP_URL in .env
+ Update 
+ProductImage
+ accessor
+ Test across catalog, detail, cart
+A.4 Fix Wishlist Functionality
+**Model exists but no controller
+Tasks:
+ Create WishlistController
+ Add add/remove/list routes
+ Add wishlist heart button to product cards
+ Create customer wishlist page
+A.5 Fix Search (Navbar)
+Issue: Search in navbar may not work
+Tasks:
+ Verify form action URL
+ Test search results display
+ Add autocomplete (optional)
+🟠 PHASE B: Vendor Panel (Complete Rebuild)
+B.1 Dashboard
+ Real sales charts (daily/weekly/monthly)
+ Top products widget
+ Recent orders widget
+ Low stock alerts
+ AI insights placeholder
+B.2 Products Page
+ Full product list with filters
+ Status badges (active/draft/out of stock)
+ Bulk actions (delete, toggle status)
+ Search and sort
+B.3 Add/Edit Product
+ Complete form with all fields
+ Multiple image upload with reorder
+ Variants support (size, color)
+ Inventory tracking (SKU, quantity)
+ SEO fields (meta title, description)
+ Category and tag selection
+B.4 Inventory Management
+ Create InventoryController
+ Stock history log
+ Low stock alerts
+ Bulk stock update
+B.5 Orders
+ Full order list with filters
+ Order detail with items
+ Status update workflow
+ Print invoice
+ Export to CSV
+B.6 Analytics
+ Create analytics view
+ Sales charts
+ Top products
+ Customer stats
+ Traffic sources
+B.7 Store Settings
+ Logo and banner upload (working)
+ Store description
+ Business info
+ SEO settings
+ Social links
+B.8 Finances
+ Earnings overview
+ Transaction history
+ Payout requests
+ Bank account management
+B.9 Coupon Management
+ Create Coupon model
+ Create CouponController
+ CRUD for vendor coupons
+ Apply coupon at checkout
+🟡 PHASE C: Customer Features
+C.1 Dashboard
+ Order summary stats
+ Recent orders
+ Wishlist count
+ Saved addresses
+C.2 Wishlist Page
+ List wishlist items
+ Remove from wishlist
+ Move to cart
+C.3 Order Tracking
+ Order status timeline
+ Tracking number display
+ Delivery updates
+C.4 Reviews
+ Submit review (working)
+ Edit/delete own reviews
+ View all reviews given
+🔵 PHASE D: Messaging System (NEW)
+No tables exist - need migration
+
+D.1 Database
+ Create conversations table
+ Create messages table
+ Create migration
+D.2 Models
+ Conversation model
+ Message model
+D.3 Controller
+ MessageController
+ Start conversation
+ Send message
+ Get messages
+ Mark as read
+D.4 Views
+ Customer inbox
+ Vendor inbox
+ Chat window component
+ "Message Vendor" button on product/store pages
+D.5 Real-time (Optional)
+ Polling or Pusher integration
+🟣 PHASE E: Admin Panel (Currently Empty)
+All routes are closures returning static views!
+
+E.1 Admin Dashboard
+ Platform stats
+ Recent activity
+ Pending tasks
+E.2 User Management
+ List all users
+ Filter by role
+ Ban/suspend users
+ View user details
+E.3 Vendor Management
+ Approve/reject vendors
+ View vendor details
+ Suspend vendors
+ View vendor documents
+E.4 Product Moderation
+ List all products
+ Approve/reject products
+ Feature products
+E.5 Order Monitoring
+ All orders list
+ Filter and search
+ Override status
+E.6 Dispute Management
+ Handle complaints
+ Refund approval
+ Communication log
+⚫ PHASE F: Super Admin Panel
+F.1 Dashboard
+ Full platform analytics
+ Revenue charts
+ AI usage stats
+ System health
+F.2 System Settings
+ Currency configuration
+ Timezone
+ Language
+ Site name/logo
+F.3 Feature Toggles
+ Enable/disable features
+ Maintenance mode
+F.4 Payment Gateways
+ Configure Paystack
+ Configure Flutterwave
+ Test mode toggle
+ Commission settings
+F.5 Email Configuration
+ SMTP settings
+ Email templates
+ Test email
+F.6 AI Provider Configuration
+ Add/remove AI providers
+ Set API keys
+ Configure models
+ Cost tracking
+F.7 Audit Logs
+ View all actions
+ Filter by user/action
+ Export logs
+F.8 User Management
+ Create admins
+ Manage roles
+ View all users
+🤖 PHASE G: AI Modules (Mandatory)
+G.1 AI Provider Abstraction
+ Create AIProvider model
+ Create AIService
+ Multi-provider support
+ Automatic failover
+G.2 AI Action Logging
+ Create AIAction model
+ Log all AI decisions
+ Explainability layer
+G.3 AI COO Module
+ Daily store oversight
+ Inventory monitoring
+ Performance optimization
+G.4 AI CMO Module
+ Promotion suggestions
+ Pricing experiments
+ Campaign automation
+G.5 AI CRO Module
+ Customer chat handling
+ Complaint resolution
+ Churn prevention
+G.6 AI CFO Module
+ Revenue tracking
+ Fraud detection
+ Cash flow forecasting
+G.7 AI Supply Chain
+ Stock prediction
+ Reorder recommendations
+ Delivery optimization
+G.8 Emergency Kill Switch
+ Admin control to disable all AI
+📧 PHASE H: Notifications & Email
+H.1 In-App Notifications
+ Create 
+Notification
+ model
+ Notification bell in navbar
+ Mark as read
+ Notification list page
+H.2 Email Templates
+ Create EmailTemplate model
+ Template editor
+ Variable substitution
+H.3 Email Campaigns
+ Create EmailCampaign model
+ Campaign creation UI
+ Segmentation
+ Analytics
+📦 PHASE I: Additional Features
+I.1 Shipping Methods
+ Create ShippingMethod model
+ Admin shipping config
+ Checkout shipping selection
+I.2 Coupons System
+ Platform-wide coupons
+ Vendor coupons
+ Coupon code at checkout
+I.3 Contact Form
+ Create ContactMessage model
+ Contact us page
+ Admin message management
+I.4 Analytics System
+ Create AnalyticsEvent model
+ Create AnalyticsDaily model
+ Track page views
+ Track conversions
+Execution Order
+Phase A - Fix critical shop issues
+Phase B - Rebuild Vendor Panel
+Phase C - Complete Customer Features
+Phase D - Implement Messaging
+Phase E - Build Admin Panel
+Phase F - Complete Super Admin
+Phase G - Implement AI Modules
+Phase H - Notifications & Email
+Phase I - Additional Features
+Testing Approach
+For EACH item:
+
+I implement
+You test
+Report issues
+I fix before moving on
+Starting with Phase A.1: Fix Add to Cart Button
