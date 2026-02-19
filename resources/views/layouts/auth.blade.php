@@ -22,6 +22,10 @@
     
     <!-- Styles -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="shortcut icon" href="{{ asset('images/cropped-buy-niger-logo-main-3-1.png') }}" type="image/x-icon">
+    <style>
+        .auth-logo-img { height: 50px; width: auto; object-fit: contain; margin-bottom: 15px; }
+    </style>
     
     @stack('styles')
 </head>
@@ -32,7 +36,9 @@
             <div class="auth-box">
                 <!-- Logo -->
                 <div class="auth-logo">
-                    <h1><span class="text-gradient">Buy</span>Niger</h1>
+                    <a href="{{ route('home') }}">
+                        <img src="{{ asset('images/cropped-buy-niger-logo-main-3-1.png') }}" alt="BuyNiger" class="auth-logo-img">
+                    </a>
                     <p style="color: var(--secondary-500); font-size: 0.875rem; margin-top: 0.25rem;">AI-Powered Multi-Vendor Marketplace</p>
                 </div>
 

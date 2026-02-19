@@ -39,19 +39,42 @@ class StoreController extends Controller
     /**
      * Display vendor storefront.
      */
-    public function show($slug)
+    public function show(Request $request, $slug)
     {
         $vendor = Vendor::where('store_slug', $slug)
             ->where('status', 'approved')
             ->firstOrFail();
 
-        $products = Product::where('vendor_id', $vendor->id)
+        $query = Product::where('vendor_id', $vendor->id)
             ->where('status', 'active')
-            ->with('category', 'images')
-            ->latest()
-            ->paginate(12);
+            ->with('category', 'images');
 
-        $categories = $products->pluck('category')->unique('id')->filter();
+        // Search within store
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Category filter
+        if ($request->filled('category')) {
+            $query->whereHas('category', function($q) {
+                $q->where('slug', request('category'));
+            });
+        }
+
+        $products = $query->latest()->paginate(12);
+
+        // Get all categories that have products in this store (for filter list)
+        $categories = Product::where('vendor_id', $vendor->id)
+            ->where('status', 'active')
+            ->with('category')
+            ->get()
+            ->pluck('category')
+            ->unique('id')
+            ->filter();
 
         return view('shop.store', compact('vendor', 'products', 'categories'));
     }

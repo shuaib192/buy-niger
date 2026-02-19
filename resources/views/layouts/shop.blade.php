@@ -23,6 +23,7 @@
     <!-- Styles -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('css/shop.css') }}">
+    <link rel="shortcut icon" href="{{ asset('images/cropped-buy-niger-logo-main-3-1.png') }}" type="image/x-icon">
     
     @stack('styles')
 </head>
@@ -37,7 +38,7 @@
                 </button>
 
                 <a href="{{ route('home') }}" class="shop-logo">
-                    <span class="text-gradient">Buy</span>Niger
+                    <img src="{{ asset('images/cropped-buy-niger-logo-main-3-1.png') }}" alt="BuyNiger" class="logo-img">
                 </a>
 
                 <!-- Desktop Search -->
@@ -111,7 +112,9 @@
     <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
     <div class="mobile-drawer" id="mobileDrawer">
         <div class="drawer-header">
-            <span class="shop-logo"><span class="text-gradient">Buy</span>Niger</span>
+            <a href="{{ route('home') }}" class="shop-logo">
+                <img src="{{ asset('images/cropped-buy-niger-logo-main-3-1.png') }}" alt="BuyNiger" class="logo-img">
+            </a>
             <button id="closeDrawer"><i class="fas fa-times"></i></button>
         </div>
         <div class="drawer-content">
@@ -145,7 +148,7 @@
             <div class="footer-grid">
                 <div class="footer-brand">
                     <a href="/" class="shop-logo">
-                        <span class="text-gradient">Buy</span>Niger
+                        <img src="{{ asset('images/cropped-buy-niger-logo-main-3-1.png') }}" alt="BuyNiger" class="logo-img-footer">
                     </a>
                     <p>The first AI-powered multi-vendor marketplace in Nigeria. Connecting quality vendors with smart buyers.</p>
                 </div>
@@ -177,7 +180,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; {{ date('Y') }} BuyNiger. Built by Shuaibu Abdulmumin | P3 Consulting Limited</p>
+                <p>&copy; {{ date('Y') }} BuyNiger. Powered by P3Consulting Limited</p>
             </div>
         </div>
     </footer>

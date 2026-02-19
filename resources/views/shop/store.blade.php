@@ -68,12 +68,22 @@
         <div class="store-content">
             <!-- Sidebar Filters -->
             <aside class="store-sidebar">
+                <div class="filter-card mb-4">
+                    <h3>Search in Store</h3>
+                    <form action="{{ route('store.show', $vendor->store_slug) }}" method="GET" class="store-search-form">
+                        <div class="search-input-wrapper">
+                            <input type="text" name="search" placeholder="Search in this store..." value="{{ request('search') }}">
+                            <button type="submit"><i class="fas fa-search"></i></button>
+                        </div>
+                    </form>
+                </div>
+
                 <div class="filter-card">
                     <h3>Categories</h3>
                     <ul class="category-list">
-                        <li><a href="{{ route('store.show', $vendor->store_slug) }}" class="{{ !request('category') ? 'active' : '' }}">All Products</a></li>
+                        <li><a href="{{ route('store.show', $vendor->store_slug) }}{{ request('search') ? '?search='.request('search') : '' }}" class="{{ !request('category') ? 'active' : '' }}">All Products</a></li>
                         @foreach($categories as $cat)
-                            <li><a href="{{ route('store.show', $vendor->store_slug) }}?category={{ $cat->slug }}" class="{{ request('category') == $cat->slug ? 'active' : '' }}">{{ $cat->name }}</a></li>
+                            <li><a href="{{ route('store.show', $vendor->store_slug) }}?category={{ $cat->slug }}{{ request('search') ? '&search='.request('search') : '' }}" class="{{ request('category') == $cat->slug ? 'active' : '' }}">{{ $cat->name }}</a></li>
                         @endforeach
                     </ul>
                 </div>
@@ -82,7 +92,13 @@
             <!-- Products Grid -->
             <div class="store-products">
                 <div class="products-header">
-                    <h2>{{ request('category') ? 'Filtered Products' : 'All Products' }}</h2>
+                    <h2>
+                        @if(request('search'))
+                            Search results for "{{ request('search') }}"
+                        @else
+                            {{ request('category') ? 'Filtered Products' : 'All Products' }}
+                        @endif
+                    </h2>
                     <span class="product-count">{{ $products->total() }} items</span>
                 </div>
 
@@ -265,6 +281,50 @@
         .product-count {
             color: var(--secondary-500);
             font-size: 0.9rem;
+        }
+
+        .store-search-form {
+            position: relative;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input-wrapper input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 2px solid var(--secondary-100);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .search-input-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-input-wrapper button {
+            position: absolute;
+            right: 5px;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-500);
+            color: white;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .search-input-wrapper button:hover {
+            background: var(--primary-600);
+            transform: scale(1.05);
         }
 
         .empty-state {

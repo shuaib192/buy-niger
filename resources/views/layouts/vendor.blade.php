@@ -11,6 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Vendor Dashboard') - BuyNiger</title>
+    <link rel="shortcut icon" href="{{ asset('images/cropped-buy-niger-logo-main-3-1.png') }}" type="image/x-icon">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -95,6 +96,8 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+
+        .sidebar-logo-img { height: 38px; width: auto; object-fit: contain; }
 
         .sidebar-nav {
             flex: 1;
@@ -281,7 +284,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="/" class="sidebar-logo">
-                    <span class="text-gradient">Buy</span>Niger
+                    <img src="{{ asset('images/cropped-buy-niger-logo-main-3-1.png') }}" alt="BuyNiger" class="sidebar-logo-img">
                 </a>
             </div>
 
@@ -332,7 +335,9 @@
                 <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
                     <i class="fas fa-bars"></i>
                 </button>
-                <span class="sidebar-logo"><span class="text-gradient">Buy</span>Niger</span>
+                <a href="/" class="sidebar-logo">
+                    <img src="{{ asset('images/cropped-buy-niger-logo-main-3-1.png') }}" alt="BuyNiger" class="sidebar-logo-img">
+                </a>
                 <div></div>
             </div>
 

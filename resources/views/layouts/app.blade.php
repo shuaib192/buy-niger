@@ -24,6 +24,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+    <link rel="shortcut icon" href="{{ asset('images/cropped-buy-niger-logo-main-3-1.png') }}" type="image/x-icon">
     
     @stack('styles')
 </head>
@@ -33,7 +34,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="/" class="sidebar-logo">
-                    <span class="text-gradient">Buy</span>Niger
+                    <img src="{{ asset('images/cropped-buy-niger-logo-main-3-1.png') }}" alt="BuyNiger" class="sidebar-logo-img">
                 </a>
                 <button class="sidebar-toggle" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
@@ -119,7 +120,7 @@
 
             <!-- Footer -->
             <footer class="dashboard-footer">
-                <p>Built by Shuaibu Abdulmumin | Powered by P3 Consulting Limited</p>
+                <p>Powered by P3Consulting Limited</p>
             </footer>
         </main>
     </div>
