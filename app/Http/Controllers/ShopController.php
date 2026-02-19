@@ -223,5 +223,37 @@ class ShopController extends Controller
 
         return view('shop.track-order');
     }
+
+    /**
+     * Privacy Policy page.
+     */
+    public function privacy()
+    {
+        return view('shop.privacy');
+    }
+
+    /**
+     * Terms and Conditions page.
+     */
+    public function terms()
+    {
+        return view('shop.terms');
+    }
+
+    /**
+     * Vendor Policy page.
+     */
+    public function vendorPolicy()
+    {
+        return view('shop.vendor-policy');
+    }
+
+    /**
+     * Return and Refund Policy page.
+     */
+    public function refundPolicy()
+    {
+        return view('shop.refund-policy');
+    }
 }
 

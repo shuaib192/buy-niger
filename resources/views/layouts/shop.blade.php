@@ -165,17 +165,18 @@
                     <h4>Company</h4>
                     <ul>
                         <li><a href="{{ route('about') }}">About Us</a></li>
+                        <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
+                        <li><a href="{{ route('terms') }}">Terms & Conditions</a></li>
                         <li><a href="{{ route('contact') }}">Contact Us</a></li>
-                        <li><a href="{{ route('track.order') }}">Track Order</a></li>
-                        <li><a href="{{ route('catalog') }}">All Products</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
                     <h4>Vendor</h4>
                     <ul>
                         <li><a href="{{ route('register', ['role' => 3]) }}">Become a Vendor</a></li>
-                        <li><a href="#">Vendor Policy</a></li>
-                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="{{ route('vendor.policy') }}">Vendor Policy</a></li>
+                        <li><a href="{{ route('refund.policy') }}">Refund Policy</a></li>
+                        <li><a href="{{ route('track.order') }}">Track Order</a></li>
                     </ul>
                 </div>
             </div>

@@ -32,6 +32,12 @@ Route::get('/contact', [ShopController::class, 'contact'])->name('contact');
 Route::post('/contact', [ShopController::class, 'sendContact'])->name('contact.send');
 Route::match(['get', 'post'], '/track-order', [ShopController::class, 'trackOrder'])->name('track.order');
 
+// Policies
+Route::get('/privacy', [ShopController::class, 'privacy'])->name('privacy');
+Route::get('/terms', [ShopController::class, 'terms'])->name('terms');
+Route::get('/vendor-policy', [ShopController::class, 'vendorPolicy'])->name('vendor.policy');
+Route::get('/refund-policy', [ShopController::class, 'refundPolicy'])->name('refund.policy');
+
 // Catalog & Categories
 Route::get('/shop', [ShopController::class, 'catalog'])->name('catalog');
 Route::get('/category/{category}', [ShopController::class, 'catalog'])->name('category');
