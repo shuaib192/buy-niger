@@ -1148,7 +1148,7 @@ public function exportAnalytics(Request $request)
             return redirect()->route('vendor.dashboard')->with('error', 'You must complete KYC verification before adding products.');
         }
 
-        $categories = Category::whereJsonContains('types', 'product')->get();
+        $categories = Category::where('is_active', true)->get();
         return view('vendor.products.create', compact('categories'));
     }
 
