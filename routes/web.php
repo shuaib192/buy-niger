@@ -27,6 +27,10 @@ use App\Http\Controllers\MessageController;
 
 // Home
 Route::get('/', [ShopController::class, 'index'])->name('home');
+Route::get('/about', [ShopController::class, 'about'])->name('about');
+Route::get('/contact', [ShopController::class, 'contact'])->name('contact');
+Route::post('/contact', [ShopController::class, 'sendContact'])->name('contact.send');
+Route::match(['get', 'post'], '/track-order', [ShopController::class, 'trackOrder'])->name('track.order');
 
 // Catalog & Categories
 Route::get('/shop', [ShopController::class, 'catalog'])->name('catalog');
@@ -37,6 +41,7 @@ Route::get('/product/{slug}', [ShopController::class, 'product'])->name('product
 
 // Vendor Storefront
 use App\Http\Controllers\StoreController;
+Route::get('/stores', [StoreController::class, 'index'])->name('stores');
 Route::get('/store/{slug}', [StoreController::class, 'show'])->name('store.show');
 Route::get('/search/suggestions', [ShopController::class, 'suggestions'])->name('search.suggestions');
 
@@ -59,6 +64,7 @@ Route::post('/wishlist/move/{productId}', [WishlistController::class, 'moveToCar
 Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
+    Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.applyCoupon');
     Route::get('/order/confirmation/{order}', [CheckoutController::class, 'confirmation'])->name('checkout.confirmation');
     Route::get('/my-orders', [CheckoutController::class, 'orders'])->name('orders.index');
     Route::get('/order/{order}', [CheckoutController::class, 'orderDetail'])->name('orders.detail');
@@ -121,7 +127,14 @@ Route::middleware('guest')->group(function () {
     // Password Reset
     Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.email');
+    Route::get('/reset-password', [AuthController::class, 'showResetPassword'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
+
+// Email Verification (accessible without login)
+Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verification.show');
+Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verification.verify');
+Route::post('/verify-email/resend', [AuthController::class, 'resendVerificationCode'])->name('verification.resend');
 
 // Logout (requires auth)
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -153,6 +166,9 @@ Route::middleware(['auth', 'role:4'])->prefix('account')->name('customer.')->gro
     Route::get('/messages', [MessageController::class, 'indexCustomer'])->name('messages.index');
     Route::get('/messages/{id}', [MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{id}', [MessageController::class, 'send'])->name('messages.send');
+    
+    // Disputes
+    Route::post('/orders/{order}/dispute', [CustomerController::class, 'storeDispute'])->name('dispute.store');
 });
 
 /*
@@ -171,6 +187,7 @@ Route::middleware(['auth', 'role:3', 'vendor.approved'])->prefix('vendor')->name
 
     // Analytics
     Route::get('/analytics', [VendorController::class, 'analytics'])->name('analytics');
+    Route::get('/analytics/export', [VendorController::class, 'exportAnalytics'])->name('analytics.export');
 
     // Products
     Route::get('/products', [VendorController::class, 'products'])->name('products');
@@ -207,6 +224,7 @@ Route::middleware(['auth', 'role:3', 'vendor.approved'])->prefix('vendor')->name
 
     // Messaging
     Route::get('/messages', [MessageController::class, 'indexVendor'])->name('messages.index');
+    Route::post('/messages/start/{userId}', [MessageController::class, 'startConversationFromVendor'])->name('messages.start');
     Route::get('/messages/{id}', [MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{id}', [MessageController::class, 'send'])->name('messages.send');
 });
@@ -225,6 +243,7 @@ Route::middleware(['auth', 'role:2'])->prefix('admin')->name('admin.')->group(fu
     Route::get('/vendors', [SuperAdminController::class, 'vendors'])->name('vendors');
     Route::get('/vendors/{vendor}', [SuperAdminController::class, 'vendorShow'])->name('vendors.show');
     Route::post('/vendors/{vendor}/status', [SuperAdminController::class, 'updateVendorStatus'])->name('vendors.status');
+    Route::post('/vendors/{vendor}/kyc', [SuperAdminController::class, 'updateKycStatus'])->name('vendors.kyc');
 
     // Users
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
@@ -236,6 +255,9 @@ Route::middleware(['auth', 'role:2'])->prefix('admin')->name('admin.')->group(fu
     Route::get('/orders/{order}', [SuperAdminController::class, 'orderShow'])->name('orders.show');
     Route::post('/orders/{order}/status', [SuperAdminController::class, 'updateOrderStatus'])->name('orders.status');
 
+    // Export
+    Route::get('/users/export', [SuperAdminController::class, 'exportUsers'])->name('users.export');
+
     // Products
     Route::get('/products', [SuperAdminController::class, 'products'])->name('products');
     Route::post('/products/{product}/status', [SuperAdminController::class, 'updateProductStatus'])->name('products.status');
@@ -245,11 +267,14 @@ Route::middleware(['auth', 'role:2'])->prefix('admin')->name('admin.')->group(fu
     Route::get('/disputes', [SuperAdminController::class, 'disputes'])->name('disputes');
     Route::post('/disputes/{dispute}/update', [SuperAdminController::class, 'updateDisputeStatus'])->name('disputes.update');
 
-    // AI
-    // Restricted to Super Admin
-
-    // New Features
-    // Restricted to Super Admin
+    // Contact Messages
+    Route::get('/messages', [SuperAdminController::class, 'messages'])->name('messages');
+    
+    // Transactions
+    Route::get('/transactions', [SuperAdminController::class, 'transactions'])->name('transactions');
+    
+    // Order Tracking
+    Route::post('/track', [SuperAdminController::class, 'trackOrder'])->name('track');
 });
 
 /*
@@ -271,8 +296,12 @@ Route::middleware(['auth', 'role:1'])->prefix('superadmin')->name('superadmin.')
     Route::get('/vendors', [SuperAdminController::class, 'vendors'])->name('vendors');
     Route::get('/vendors/{vendor}', [SuperAdminController::class, 'vendorShow'])->name('vendors.show');
     Route::post('/vendors/{vendor}/status', [SuperAdminController::class, 'updateVendorStatus'])->name('vendors.status');
+    Route::post('/vendors/{vendor}/kyc', [SuperAdminController::class, 'updateKycStatus'])->name('vendors.kyc');
     Route::get('/payouts', [SuperAdminController::class, 'payouts'])->name('payouts');
     Route::post('/payouts/{id}/status', [SuperAdminController::class, 'updatePayoutStatus'])->name('payouts.status');
+
+    // Export
+    Route::get('/users/export', [SuperAdminController::class, 'exportUsers'])->name('users.export');
 
     // Product Moderation
     Route::get('/products', [SuperAdminController::class, 'products'])->name('products');
@@ -283,6 +312,7 @@ Route::middleware(['auth', 'role:1'])->prefix('superadmin')->name('superadmin.')
     Route::get('/orders', [SuperAdminController::class, 'orders'])->name('orders');
     Route::get('/orders/{order}', [SuperAdminController::class, 'orderShow'])->name('orders.show');
     Route::post('/orders/{order}/status', [SuperAdminController::class, 'updateOrderStatus'])->name('orders.status');
+    Route::post('/orders/track', [SuperAdminController::class, 'trackOrder'])->name('orders.track');
 
     // Dispute Management
     Route::get('/disputes', [SuperAdminController::class, 'disputes'])->name('disputes');

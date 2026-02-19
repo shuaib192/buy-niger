@@ -63,9 +63,14 @@
                 <table class="table table-hover mb-0">
                     <tbody>
                         @forelse($topProducts as $item)
+                        @if($item->product)
                         <tr>
                             <td style="width: 50px;">
+                                @if($item->product->primary_image_url)
                                 <img src="{{ $item->product->primary_image_url }}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
+                                @else
+                                <div style="width: 40px; height: 40px; border-radius: 4px; background: #f1f5f9; display:flex; align-items:center; justify-content:center;"><i class="fas fa-image" style="color:#cbd5e1;"></i></div>
+                                @endif
                             </td>
                             <td>
                                 <div class="font-bold small">{{ Str::limit($item->product->name, 20) }}</div>
@@ -75,6 +80,7 @@
                                 ₦{{ number_format($item->revenue, 2) }}
                             </td>
                         </tr>
+                        @endif
                         @empty
                         <tr>
                             <td colspan="3" class="text-center p-3 text-muted">No sales data yet.</td>

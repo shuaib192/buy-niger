@@ -10,6 +10,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ContactMessage;
 use Illuminate\Http\Request;
 
 class ShopController extends Controller
@@ -144,4 +145,83 @@ class ShopController extends Controller
             'categories' => $categories
         ]);
     }
+
+    /**
+     * About page.
+     */
+    public function about()
+    {
+        $vendorCount = \App\Models\Vendor::where('status', 'approved')->count();
+        $productCount = \App\Models\Product::where('status', 'active')->count();
+        $orderCount = \App\Models\Order::count();
+        return view('shop.about', compact('vendorCount', 'productCount', 'orderCount'));
+    }
+
+    /**
+     * Contact page.
+     */
+    public function contact()
+    {
+        return view('shop.contact');
+    }
+
+    /**
+     * Handle contact form submission.
+     */
+    public function sendContact(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:200',
+            'subject' => 'required|string|max:200',
+            'message' => 'required|string|max:2000',
+        ]);
+
+        // Save to database
+        ContactMessage::create($request->only(['name', 'email', 'subject', 'message']));
+
+        // Send email to admin
+        try {
+            \Illuminate\Support\Facades\Mail::raw(
+                "Name: {$request->name}\nEmail: {$request->email}\nSubject: {$request->subject}\n\nMessage:\n{$request->message}",
+                function ($mail) use ($request) {
+                    $mail->to(config('mail.from.address'))
+                         ->subject('BuyNiger Contact: ' . $request->subject)
+                         ->replyTo($request->email, $request->name);
+                }
+            );
+        } catch (\Exception $e) {
+            \Log::error('Contact form email failed: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Your message has been sent! We\'ll get back to you shortly.');
+    }
+
+    /**
+     * Public Order Tracking.
+     */
+    public function trackOrder(Request $request)
+    {
+        if ($request->isMethod('post')) {
+            $request->validate([
+                'order_number' => 'required|string',
+            ]);
+
+            $search = $request->order_number;
+
+            $order = \App\Models\Order::where('order_number', $search)
+                ->orWhere('shipping_address->tracking_id', $search)
+                ->with('items.product')
+                ->first();
+
+            if (!$order) {
+                return back()->with('error', 'Order not found. Please check your details and try again.');
+            }
+
+            return view('shop.track-order', compact('order'));
+        }
+
+        return view('shop.track-order');
+    }
 }
+

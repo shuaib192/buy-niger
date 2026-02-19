@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class AIChatSession extends Model
 {
     use HasFactory;
+    
+    protected $table = 'ai_chat_sessions';
     protected $fillable = [
         'user_id',
         'vendor_id',

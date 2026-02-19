@@ -12,6 +12,8 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Address;
+use App\Models\ShippingMethod;
+use App\Models\Coupon;
 use App\Models\Vendor;
 use App\Mail\OrderConfirmation;
 use App\Mail\NewOrderNotification;
@@ -58,8 +60,61 @@ class CheckoutController extends Controller
         $items = $cart->items()->with('product.category', 'product.vendor')->get();
         $addresses = Auth::user()->addresses ?? collect();
         $defaultAddress = $addresses->where('is_default', true)->first() ?? $addresses->first();
+        $shippingMethods = ShippingMethod::active()->get();
 
-        return view('shop.checkout', compact('cart', 'items', 'addresses', 'defaultAddress'));
+        // Calculate vendor delivery fee (sum of unique vendor fees in cart)
+        $vendorDeliveryFee = $items->pluck('product.vendor')
+            ->unique('id')
+            ->sum('delivery_fee');
+
+        return view('shop.checkout', compact('cart', 'items', 'addresses', 'defaultAddress', 'shippingMethods', 'vendorDeliveryFee'));
+    }
+
+    /**
+     * Apply coupon code (AJAX).
+     */
+    public function applyCoupon(Request $request)
+    {
+        $request->validate(['coupon_code' => 'required|string|max:50']);
+
+        $coupon = Coupon::where('code', strtoupper(trim($request->coupon_code)))->first();
+
+        if (!$coupon) {
+            return response()->json(['success' => false, 'message' => 'Invalid coupon code.'], 422);
+        }
+
+        if (!$coupon->isValid()) {
+            return response()->json(['success' => false, 'message' => 'This coupon has expired or reached its usage limit.'], 422);
+        }
+
+        $cart = $this->getCart();
+        if (!$cart) {
+            return response()->json(['success' => false, 'message' => 'Your cart is empty.'], 422);
+        }
+
+        // Check minimum spend
+        if ($coupon->min_spend && $cart->total < $coupon->min_spend) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Minimum spend of ₦' . number_format($coupon->min_spend) . ' required for this coupon.'
+            ], 422);
+        }
+
+        // Calculate discount
+        if ($coupon->type === 'percentage') {
+            $discount = round($cart->total * ($coupon->value / 100), 2);
+        } else {
+            $discount = min($coupon->value, $cart->total); // fixed amount, cap at cart total
+        }
+
+        return response()->json([
+            'success' => true,
+            'coupon_code' => $coupon->code,
+            'type' => $coupon->type,
+            'value' => $coupon->value,
+            'discount' => $discount,
+            'message' => 'Coupon applied! You save ₦' . number_format($discount),
+        ]);
     }
 
     /**
@@ -76,6 +131,8 @@ class CheckoutController extends Controller
             'address_line_1' => 'nullable|required_if:new_address,1|max:500',
             'city' => 'nullable|required_if:new_address,1|max:100',
             'state' => 'nullable|required_if:new_address,1|max:100',
+            'shipping_method_id' => 'required|exists:shipping_methods,id',
+            'coupon_code' => 'nullable|string|max:50',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -109,16 +166,46 @@ class CheckoutController extends Controller
             // Generate tracking ID
             $trackingId = $this->generateTrackingId();
 
+            // Calculate shipping cost based on method + vendor fees
+            $shippingMethod = ShippingMethod::findOrFail($request->shipping_method_id);
+
+            // Pickup = free; Door Delivery & Vendor Delivery = sum of vendor fees
+            if (strtolower($shippingMethod->name) === 'pickup') {
+                $shippingCost = 0;
+            } else {
+                // Sum delivery fees from all unique vendors in the cart
+                $vendorIds = $cart->items->pluck('product.vendor_id')->unique();
+                $shippingCost = Vendor::whereIn('id', $vendorIds)->sum('delivery_fee');
+            }
+
+            // Calculate coupon discount
+            $discount = 0;
+            $coupon = null;
+            $couponCode = null;
+            if ($request->coupon_code) {
+                $coupon = Coupon::where('code', strtoupper(trim($request->coupon_code)))->first();
+                if ($coupon && $coupon->isValid() && (!$coupon->min_spend || $cart->total >= $coupon->min_spend)) {
+                    $couponCode = $coupon->code;
+                    if ($coupon->type === 'percentage') {
+                        $discount = round($cart->total * ($coupon->value / 100), 2);
+                    } else {
+                        $discount = min($coupon->value, $cart->total);
+                    }
+                }
+            }
+
             // Create order
             $order = Order::create([
                 'order_number' => 'BN-' . strtoupper(Str::random(8)),
                 'user_id' => Auth::id(),
                 'address_id' => $address->id,
+                'shipping_method_id' => $shippingMethod->id,
                 'subtotal' => $cart->total,
-                'shipping_cost' => 0,
+                'shipping_cost' => $shippingCost,
                 'tax' => 0,
-                'discount' => 0,
-                'total' => $cart->total,
+                'discount' => $discount,
+                'coupon_code' => $couponCode,
+                'total' => $cart->total + $shippingCost - $discount,
                 'status' => 'pending',
                 'payment_status' => 'pending',
                 'notes' => $request->notes,
@@ -129,6 +216,7 @@ class CheckoutController extends Controller
                     'city' => $address->city,
                     'state' => $address->state,
                     'tracking_id' => $trackingId,
+                    'shipping_method' => $shippingMethod->name,
                 ],
             ]);
 
@@ -160,6 +248,19 @@ class CheckoutController extends Controller
                 $item->product->decrement('quantity', $item->quantity);
             }
 
+            // Record coupon usage
+            if ($coupon && $couponCode) {
+                DB::table('coupon_usages')->insert([
+                    'coupon_id' => $coupon->id,
+                    'user_id' => Auth::id(),
+                    'order_id' => $order->id,
+                    'discount_amount' => $discount,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $coupon->increment('used_count');
+            }
+
             // Clear cart
             $cart->items()->delete();
 
@@ -168,7 +269,7 @@ class CheckoutController extends Controller
             // Send emails (outside transaction)
             try {
                 // Send confirmation to customer
-                $order->load('items.product');
+                $order->load('items.product', 'items.vendor');
                 Mail::to(Auth::user()->email)->send(new OrderConfirmation($order));
 
                 // Send notifications to each vendor

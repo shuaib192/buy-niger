@@ -46,6 +46,26 @@
                 <p><strong>Last Login:</strong> {{ $user->last_login_at ? $user->last_login_at->diffForHumans() : 'Never' }}</p>
             </div>
         </div>
+
+        @if($user->vendor)
+        <div class="dashboard-card mb-4">
+            <div class="dashboard-card-header">
+                <h3>Vendor Profile</h3>
+            </div>
+            <div class="dashboard-card-body">
+                <p><strong>Store:</strong> {{ $user->vendor->store_name }}</p>
+                <div class="mb-3">
+                    <strong>KYC:</strong> 
+                    <span class="badge badge-{{ ($user->vendor->kyc_status == 'verified') ? 'success' : (($user->vendor->kyc_status == 'pending') ? 'warning' : 'secondary') }}">
+                        {{ ucfirst($user->vendor->kyc_status ?? 'Not Submitted') }}
+                    </span>
+                </div>
+                <a href="{{ route($prefix.'vendors.show', $user->vendor) }}" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="fas fa-store me-1"></i> Manage Vendor
+                </a>
+            </div>
+        </div>
+        @endif
     </div>
 
     <div class="col-8">

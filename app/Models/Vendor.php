@@ -46,15 +46,28 @@ class Vendor extends Model
         'facebook',
         'twitter',
         'instagram',
+        'delivery_fee',
+        'id_type',
+        'id_number',
+        'id_document_path',
+        'nin',
+        'bvn',
+        'cac_number',
+        'cac_document_path',
+        'kyc_status',
+        'kyc_rejection_reason',
+        'kyc_verified_at',
     ];
 
     protected $casts = [
         'commission_rate' => 'decimal:2',
         'total_sales' => 'decimal:2',
         'balance' => 'decimal:2',
+        'delivery_fee' => 'decimal:2',
         'rating' => 'decimal:2',
         'is_featured' => 'boolean',
         'approved_at' => 'datetime',
+        'kyc_verified_at' => 'datetime',
     ];
 
     // Relationships

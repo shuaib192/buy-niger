@@ -105,6 +105,47 @@
                     <h3><i class="fas fa-sticky-note mr-2"></i> Order Notes (Optional)</h3>
                     <textarea name="notes" class="form-control" rows="3" placeholder="Any special instructions for delivery...">{{ old('notes') }}</textarea>
                 </div>
+
+                <!-- Shipping Method Selection -->
+                <div class="checkout-section">
+                    <h3><i class="fas fa-truck mr-2"></i> Delivery Method</h3>
+                    <p class="section-hint">Choose how you'd like to receive your order</p>
+                    <div class="shipping-methods-grid">
+                        @foreach($shippingMethods as $index => $method)
+                        @php
+                            $isPickup = str_contains(strtolower($method->name), 'pickup');
+                            $methodCost = $isPickup ? 0 : $vendorDeliveryFee;
+                        @endphp
+                        <label class="shipping-card {{ $index === 0 ? 'selected' : '' }}">
+                            <input type="radio" name="shipping_method_id" value="{{ $method->id }}" data-cost="{{ $methodCost }}" {{ $index === 0 ? 'checked' : '' }}>
+                            <div class="shipping-card-inner">
+                                <div class="shipping-icon">
+                                    @if($isPickup)
+                                        <i class="fas fa-store"></i>
+                                    @elseif(str_contains(strtolower($method->name), 'vendor'))
+                                        <i class="fas fa-handshake"></i>
+                                    @else
+                                        <i class="fas fa-motorcycle"></i>
+                                    @endif
+                                </div>
+                                <div class="shipping-info">
+                                    <strong>{{ $method->name }}</strong>
+                                    <span class="shipping-desc">{{ $method->description }}</span>
+                                    <span class="shipping-eta"><i class="far fa-clock"></i> {{ $method->estimated_days }}</span>
+                                </div>
+                                <div class="shipping-price">
+                                    @if($methodCost > 0)
+                                        <span class="price-tag">₦{{ number_format($methodCost) }}</span>
+                                    @else
+                                        <span class="price-tag free">FREE</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <span class="shipping-check"><i class="fas fa-check"></i></span>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
             <!-- Right: Order Summary -->
@@ -113,6 +154,7 @@
                     <h3>Order Summary</h3>
                     <div class="summary-items">
                         @foreach($items as $item)
+                        @if($item->product)
                         <div class="summary-item">
                             <div class="item-image">
                                 @if($item->product->primary_image_url)
@@ -127,7 +169,18 @@
                                 <span class="item-price">₦{{ number_format(($item->product->sale_price ?? $item->product->price) * $item->quantity) }}</span>
                             </div>
                         </div>
+                        @endif
                         @endforeach
+                    </div>
+
+                    <!-- Coupon Code -->
+                    <div class="coupon-section">
+                        <div class="coupon-input-group">
+                            <input type="text" id="couponInput" placeholder="Enter coupon code" maxlength="50">
+                            <button type="button" id="applyCouponBtn" onclick="applyCoupon()">Apply</button>
+                        </div>
+                        <input type="hidden" name="coupon_code" id="couponCodeHidden" value="">
+                        <div id="couponMessage" class="coupon-message" style="display:none;"></div>
                     </div>
 
                     <div class="summary-totals">
@@ -135,13 +188,27 @@
                             <span>Subtotal</span>
                             <span>₦{{ number_format($cart->total) }}</span>
                         </div>
-                        <div class="summary-row">
+                        <div class="summary-row" id="shippingRow">
                             <span>Shipping</span>
-                            <span class="text-success">Free</span>
+                            <span id="shippingCostDisplay">
+                                @php
+                                    $firstIsPickup = isset($shippingMethods[0]) && str_contains(strtolower($shippingMethods[0]->name), 'pickup');
+                                    $initialShipping = $firstIsPickup ? 0 : $vendorDeliveryFee;
+                                @endphp
+                                @if($initialShipping > 0)
+                                    ₦{{ number_format($initialShipping) }}
+                                @else
+                                    <span class="text-success">Free</span>
+                                @endif
+                            </span>
+                        </div>
+                        <div class="summary-row discount-row" id="discountRow" style="display:none;">
+                            <span><i class="fas fa-tag"></i> Coupon</span>
+                            <span id="discountDisplay" class="text-success">-₦0</span>
                         </div>
                         <div class="summary-row total">
                             <span>Total</span>
-                            <span>₦{{ number_format($cart->total) }}</span>
+                            <span id="orderTotalDisplay">₦{{ number_format($cart->total + $initialShipping) }}</span>
                         </div>
                     </div>
 
@@ -417,6 +484,69 @@
         border: 1px solid #fecaca;
     }
 
+    .section-hint { font-size: 13px; color: var(--secondary-500); margin-bottom: 16px; }
+
+    /* Shipping Methods */
+    .shipping-methods-grid { display: flex; flex-direction: column; gap: 12px; }
+    .shipping-card {
+        display: flex; align-items: center; gap: 16px;
+        padding: 16px 18px; border: 2px solid var(--secondary-100);
+        border-radius: 16px; cursor: pointer; transition: all 0.2s; position: relative;
+    }
+    .shipping-card:hover { border-color: var(--primary-200); }
+    .shipping-card.selected, .shipping-card:has(input:checked) {
+        border-color: var(--primary-500); background: var(--primary-50);
+    }
+    .shipping-card input { display: none; }
+    .shipping-card-inner { flex: 1; display: flex; align-items: center; gap: 16px; }
+    .shipping-icon {
+        width: 44px; height: 44px; border-radius: 14px;
+        background: var(--secondary-50); display: flex; align-items: center;
+        justify-content: center; font-size: 18px; color: var(--secondary-500); flex-shrink: 0;
+    }
+    .shipping-card:has(input:checked) .shipping-icon {
+        background: var(--primary-100); color: var(--primary-600);
+    }
+    .shipping-info { flex: 1; }
+    .shipping-info strong { display: block; font-size: 15px; color: var(--secondary-900); margin-bottom: 2px; }
+    .shipping-desc { display: block; font-size: 12px; color: var(--secondary-500); }
+    .shipping-eta { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--secondary-400); margin-top: 4px; }
+    .shipping-price { flex-shrink: 0; }
+    .price-tag { font-size: 15px; font-weight: 800; color: var(--secondary-900); }
+    .price-tag.free { color: var(--success); }
+    .shipping-check {
+        width: 24px; height: 24px; border-radius: 50%;
+        background: var(--primary-500); color: white; display: none;
+        align-items: center; justify-content: center; font-size: 12px;
+        position: absolute; top: 12px; right: 12px;
+    }
+    .shipping-card:has(input:checked) .shipping-check { display: flex; }
+
+    /* Coupon */
+    .coupon-section { padding: 14px 0; border-bottom: 1px solid #f1f5f9; margin-bottom: 16px; }
+    .coupon-input-group { display: flex; gap: 8px; }
+    .coupon-input-group input {
+        flex: 1; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 12px;
+        font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+        background: #fafbfc; color: #0f172a; outline: none; transition: all 0.2s;
+    }
+    .coupon-input-group input:focus { border-color: var(--primary-500); background: white; }
+    .coupon-input-group input::placeholder { text-transform: none; letter-spacing: normal; font-weight: 500; color: #94a3b8; }
+    .coupon-input-group button {
+        padding: 10px 18px; background: #0f172a; color: white; border: none;
+        border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .coupon-input-group button:hover { background: #1e293b; }
+    .coupon-input-group button:disabled { opacity: 0.5; cursor: wait; }
+    .coupon-message { margin-top: 8px; font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 10px; }
+    .coupon-message.success { background: #ecfdf5; color: #059669; }
+    .coupon-message.error { background: #fef2f2; color: #dc2626; }
+    .coupon-applied { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; }
+    .coupon-applied .coupon-label { font-size: 13px; font-weight: 700; color: #059669; display: flex; align-items: center; gap: 6px; }
+    .coupon-applied .remove-coupon { background: none; border: none; color: #dc2626; font-size: 16px; cursor: pointer; padding: 0; line-height: 1; }
+    .discount-row span { color: #059669; font-weight: 700; }
+
+
     @media (max-width: 1024px) {
         .checkout-layout {
             grid-template-columns: 1fr;
@@ -454,6 +584,113 @@ function toggleNewAddress() {
             el.required = false;
         });
     }
+}
+
+// ---- State ----
+const subtotal = {{ $cart->total }};
+let currentShipping = {{ $initialShipping ?? 0 }};
+let currentDiscount = 0;
+
+function recalcTotal() {
+    const total = subtotal + currentShipping - currentDiscount;
+    document.getElementById('orderTotalDisplay').textContent = '₦' + total.toLocaleString('en-NG');
+}
+
+// ---- Shipping ----
+document.querySelectorAll('input[name="shipping_method_id"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        currentShipping = parseFloat(this.dataset.cost) || 0;
+        const shippingDisplay = document.getElementById('shippingCostDisplay');
+        if (currentShipping > 0) {
+            shippingDisplay.innerHTML = '₦' + currentShipping.toLocaleString('en-NG');
+        } else {
+            shippingDisplay.innerHTML = '<span class="text-success">Free</span>';
+        }
+        document.querySelectorAll('.shipping-card').forEach(c => c.classList.remove('selected'));
+        this.closest('.shipping-card').classList.add('selected');
+        recalcTotal();
+    });
+});
+
+// ---- Coupon ----
+function applyCoupon() {
+    const input = document.getElementById('couponInput');
+    const btn = document.getElementById('applyCouponBtn');
+    const msg = document.getElementById('couponMessage');
+    const code = input.value.trim();
+
+    if (!code) { input.focus(); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Checking...';
+    msg.style.display = 'none';
+
+    fetch('{{ route("checkout.applyCoupon") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({ coupon_code: code })
+    })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+        btn.disabled = false;
+        btn.textContent = 'Apply'; // Reset button text
+        msg.style.display = 'block';
+
+        if (ok && data.success) {
+            currentDiscount = data.discount;
+            document.getElementById('couponCodeHidden').value = data.coupon_code;
+            
+            // Show success
+            msg.className = 'coupon-message success';
+            msg.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+
+            // Replace input with applied state
+            const section = document.querySelector('.coupon-section');
+            section.innerHTML = `
+                <div class="coupon-applied">
+                    <span class="coupon-label"><i class="fas fa-tag"></i> ${data.coupon_code}</span>
+                    <button type="button" class="remove-coupon" onclick="removeCoupon()" title="Remove coupon">&times;</button>
+                </div>
+                <input type="hidden" name="coupon_code" id="couponCodeHidden" value="${data.coupon_code}">
+                <div id="couponMessage" class="coupon-message success" style="display:block;"><i class="fas fa-check-circle"></i> ${data.message}</div>
+            `;
+
+            // Show discount row
+            document.getElementById('discountRow').style.display = 'flex';
+            document.getElementById('discountDisplay').textContent = '-₦' + data.discount.toLocaleString('en-NG');
+            recalcTotal();
+        } else {
+            msg.className = 'coupon-message error';
+            msg.innerHTML = '<i class="fas fa-times-circle"></i> ' + (data.message || 'Invalid coupon code.');
+        }
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.textContent = 'Apply';
+        msg.style.display = 'block';
+        msg.className = 'coupon-message error';
+        msg.innerHTML = '<i class="fas fa-times-circle"></i> Something went wrong. Try again.';
+    });
+}
+
+function removeCoupon() {
+    currentDiscount = 0;
+    document.getElementById('discountRow').style.display = 'none';
+    
+    const section = document.querySelector('.coupon-section');
+    section.innerHTML = `
+        <div class="coupon-input-group">
+            <input type="text" id="couponInput" placeholder="Enter coupon code" maxlength="50">
+            <button type="button" id="applyCouponBtn" onclick="applyCoupon()">Apply</button>
+        </div>
+        <input type="hidden" name="coupon_code" id="couponCodeHidden" value="">
+        <div id="couponMessage" class="coupon-message" style="display:none;"></div>
+    `;
+    recalcTotal();
 }
 </script>
 @endsection

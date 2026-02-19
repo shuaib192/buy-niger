@@ -1,6 +1,15 @@
 @extends('layouts.app')
 
 @section('title', 'Order ' . $order->order_number)
+@section('page_title', 'Order ' . $order->order_number)
+
+@section('sidebar')
+    @include('superadmin.partials.sidebar')
+@endsection
+
+@php
+    $prefix = request()->is('admin*') ? 'admin.' : 'superadmin.';
+@endphp
 
 @section('content')
 <div class="container-fluid">

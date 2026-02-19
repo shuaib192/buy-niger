@@ -1,241 +1,278 @@
+{{-- 
+    BuyNiger AI - Multi-Vendor E-Commerce Platform
+    View: Vendor Coupons (Premium)
+--}}
 @extends('layouts.app')
 
-@section('title', 'Promotions & Coupons')
+@section('title', 'Coupons')
+@section('page_title', 'Coupon Manager')
 
 @section('sidebar')
     @include('vendor.partials.sidebar')
 @endsection
 
 @section('content')
-<div class="coupons-container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-5">
+<div class="coupons-page">
+    {{-- Page Header --}}
+    <div class="page-header-premium">
         <div>
-            <h1 class="h3 font-bold text-secondary-900 mb-1">Coupons & Promotions</h1>
-            <p class="text-secondary-500 mb-0">Create and manage discount codes to boost your store sales.</p>
+            <h1 class="page-title">Coupon Manager</h1>
+            <p class="page-subtitle">Create and manage discount coupons for your products.</p>
         </div>
-        <button class="btn btn-primary px-4 shadow-primary-200" data-bs-toggle="modal" data-bs-target="#createCouponModal">
-            <i class="fas fa-plus mr-2"></i> Create New Coupon
+        <button class="btn-primary-premium" id="showCreateForm">
+            <i class="fas fa-plus"></i> New Coupon
         </button>
     </div>
 
-    <div class="row">
-        @forelse($coupons as $coupon)
-            <div class="col-md-4 mb-4">
-                <div class="premium-coupon-card {{ $coupon->isValid() ? 'active' : 'inactive' }}">
-                    <div class="coupon-header d-flex justify-content-between align-items-center p-4">
-                        <div class="coupon-type-badge uppercase">{{ $coupon->type == 'percent' ? 'Percentage' : 'Fixed Amount' }}</div>
-                        <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input toggle-status" id="status{{ $coupon->id }}" {{ $coupon->is_active ? 'checked' : '' }} data-id="{{ $coupon->id }}">
-                            <label class="custom-control-label" for="status{{ $coupon->id }}"></label>
-                        </div>
-                    </div>
-                    
-                    <div class="coupon-body p-4 pt-0 text-center">
-                        <div class="discount-value mb-1">
-                            {{ $coupon->type == 'percent' ? $coupon->value . '%' : '₦' . number_format($coupon->value) }}
-                            <span class="off-text">OFF</span>
-                        </div>
-                        <div class="coupon-code-box mb-3">
-                            <span class="code">{{ $coupon->code }}</span>
-                            <button class="copy-btn" onclick="copyCode('{{ $coupon->code }}')" title="Copy Code">
-                                <i class="far fa-copy"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="coupon-details">
-                            <div class="detail-item d-flex justify-content-between mb-2">
-                                <span class="label">Min. Spend</span>
-                                <span class="val font-bold">₦{{ number_format($coupon->min_spend ?? 0) }}</span>
-                            </div>
-                            <div class="detail-item d-flex justify-content-between mb-2">
-                                <span class="label">Usage</span>
-                                <span class="val font-bold">{{ $coupon->used_count }} / {{ $coupon->usage_limit ?? '∞' }}</span>
-                            </div>
-                            <div class="detail-item d-flex justify-content-between">
-                                <span class="label">Expires</span>
-                                <span class="val font-bold {{ $coupon->expires_at && $coupon->expires_at->isPast() ? 'text-danger' : '' }}">
-                                    {{ $coupon->expires_at ? $coupon->expires_at->format('M d, Y') : 'Never' }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="coupon-footer p-3 border-top d-flex justify-content-center">
-                        <form action="{{ route('vendor.coupons.destroy', $coupon->id) }}" method="POST" onsubmit="return confirm('Delete this coupon?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-link text-danger text-xs font-bold uppercase letter-spacing-1">
-                                <i class="fas fa-trash-alt mr-1"></i> Delete Coupon
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        @empty
-            <div class="col-12">
-                <div class="text-center py-5 bg-white rounded-24 shadow-sm border">
-                    <div class="empty-icon-box mb-4">
-                        <i class="fas fa-ticket-alt"></i>
-                    </div>
-                    <h3 class="font-bold text-secondary-900 mb-2">No active coupons</h3>
-                    <p class="text-secondary-500 max-w-sm mx-auto mb-4">Reward your customers with discounts! Create your first coupon to drive more conversions.</p>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCouponModal">
-                        Create Coupon Now
-                    </button>
-                </div>
-            </div>
-        @endforelse
-    </div>
-</div>
-
-<!-- Create Coupon Modal -->
-<div class="modal fade" id="createCouponModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-24">
+    {{-- Create Coupon Form (hidden by default) --}}
+    <div class="premium-card mb-4" id="createCouponCard" style="display:none;">
+        <div class="card-header-premium bg-primary-subtle">
+            <h3><i class="fas fa-tag mr-2"></i>Create New Coupon</h3>
+        </div>
+        <div class="card-body-premium">
             <form action="{{ route('vendor.coupons.store') }}" method="POST">
                 @csrf
-                <div class="modal-header border-0 p-4 pb-0">
-                    <h5 class="font-bold text-secondary-900">Create New Coupon</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="row">
-                        <div class="col-md-12 mb-4">
-                            <label class="text-xs font-bold text-secondary-500 uppercase mb-2 d-block">Coupon Code</label>
-                            <div class="premium-input-wrapper">
-                                <i class="fas fa-tag text-secondary-400 mr-2"></i>
-                                <input type="text" name="code" class="form-control-premium" required placeholder="SUMMER2026" maxlength="20">
-                            </div>
-                            <small class="text-secondary-400 text-xs">Customers enter this code at checkout.</small>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="form-group-premium">
+                            <label>Coupon Code</label>
+                            <input type="text" name="code" class="form-input-premium" placeholder="e.g. SAVE20" required 
+                                   style="text-transform: uppercase;" maxlength="20">
+                            <small class="form-hint">Letters, numbers only. Max 20 chars.</small>
                         </div>
-                        
-                        <div class="col-6 mb-4">
-                            <label class="text-xs font-bold text-secondary-500 uppercase mb-2 d-block">Discount Type</label>
-                            <select name="type" class="form-control-premium custom-select" required>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group-premium">
+                            <label>Discount Type</label>
+                            <select name="type" class="form-select-premium" required>
                                 <option value="percent">Percentage (%)</option>
                                 <option value="fixed">Fixed Amount (₦)</option>
                             </select>
                         </div>
-                        
-                        <div class="col-6 mb-4">
-                            <label class="text-xs font-bold text-secondary-500 uppercase mb-2 d-block">Discount Value</label>
-                            <input type="number" name="value" class="form-control-premium bordered" required placeholder="10" min="0">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group-premium">
+                            <label>Value</label>
+                            <input type="number" name="value" class="form-input-premium" placeholder="e.g. 15" required min="0" step="0.01">
                         </div>
-
-                        <div class="col-6 mb-4">
-                            <label class="text-xs font-bold text-secondary-500 uppercase mb-2 d-block">Min. Spend (₦)</label>
-                            <input type="number" name="min_spend" class="form-control-premium bordered" placeholder="0" min="0">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group-premium">
+                            <label>Min. Spend (₦)</label>
+                            <input type="number" name="min_spend" class="form-input-premium" placeholder="Optional" min="0">
                         </div>
-                        
-                        <div class="col-6 mb-4">
-                            <label class="text-xs font-bold text-secondary-500 uppercase mb-2 d-block">Usage Limit</label>
-                            <input type="number" name="usage_limit" class="form-control-premium bordered" placeholder="Unlimited" min="1">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group-premium">
+                            <label>Usage Limit</label>
+                            <input type="number" name="usage_limit" class="form-input-premium" placeholder="Unlimited" min="1">
                         </div>
-
-                        <div class="col-12">
-                            <label class="text-xs font-bold text-secondary-500 uppercase mb-2 d-block">Expiry Date</label>
-                            <input type="date" name="expires_at" class="form-control-premium bordered">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group-premium">
+                            <label>Expires On</label>
+                            <input type="date" name="expires_at" class="form-input-premium">
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" class="btn btn-light bg-secondary-50 px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary px-5 shadow-primary-200">Launch Coupon</button>
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn-primary-premium"><i class="fas fa-check mr-2"></i>Create Coupon</button>
+                    <button type="button" class="btn-outline-premium" id="cancelCreate">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
+
+    {{-- Success / Error Alerts --}}
+    @if(session('success'))
+        <div class="alert-premium alert-success mb-4">
+            <i class="fas fa-check-circle"></i> {{ session('success') }}
+        </div>
+    @endif
+    @if($errors->any())
+        <div class="alert-premium alert-error mb-4">
+            <i class="fas fa-exclamation-circle"></i> {{ $errors->first() }}
+        </div>
+    @endif
+
+    {{-- Coupons Grid --}}
+    @if($coupons->count() > 0)
+        <div class="coupons-grid">
+            @foreach($coupons as $coupon)
+                <div class="coupon-card {{ $coupon->is_active ? '' : 'coupon-inactive' }}">
+                    <div class="coupon-left">
+                        <div class="coupon-value-badge">
+                            @if($coupon->type == 'percent')
+                                <span class="big-value">{{ intval($coupon->value) }}</span>
+                                <span class="big-unit">%</span>
+                            @else
+                                <span class="big-unit" style="font-size:14px;">₦</span>
+                                <span class="big-value" style="font-size:24px;">{{ number_format($coupon->value) }}</span>
+                            @endif
+                        </div>
+                        <span class="coupon-type-label">{{ $coupon->type == 'percent' ? 'Percentage' : 'Fixed' }}</span>
+                    </div>
+                    <div class="coupon-right">
+                        <div class="coupon-code-text">{{ $coupon->code }}</div>
+                        <div class="coupon-meta-list">
+                            @if($coupon->min_spend)
+                                <span class="coupon-meta"><i class="fas fa-shopping-cart"></i> Min ₦{{ number_format($coupon->min_spend) }}</span>
+                            @endif
+                            @if($coupon->usage_limit)
+                                <span class="coupon-meta"><i class="fas fa-users"></i> {{ $coupon->times_used ?? 0 }}/{{ $coupon->usage_limit }}</span>
+                            @else
+                                <span class="coupon-meta"><i class="fas fa-infinity"></i> Unlimited</span>
+                            @endif
+                            @if($coupon->expires_at)
+                                <span class="coupon-meta {{ \Carbon\Carbon::parse($coupon->expires_at)->isPast() ? 'text-danger' : '' }}">
+                                    <i class="far fa-calendar"></i> {{ \Carbon\Carbon::parse($coupon->expires_at)->format('M d, Y') }}
+                                </span>
+                            @endif
+                        </div>
+                        <div class="coupon-actions">
+                            <button class="toggle-btn {{ $coupon->is_active ? 'active' : '' }}" 
+                                    onclick="toggleCoupon({{ $coupon->id }}, this)"
+                                    title="{{ $coupon->is_active ? 'Deactivate' : 'Activate' }}">
+                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                            </button>
+                            <form action="{{ route('vendor.coupons.destroy', $coupon->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this coupon?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="delete-btn" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @else
+        <div class="premium-card">
+            <div class="empty-state-premium">
+                <div class="empty-icon"><i class="fas fa-ticket-alt"></i></div>
+                <h4>No coupons yet</h4>
+                <p>Create your first coupon to offer discounts to your customers.</p>
+                <button class="btn-primary-premium mt-3" onclick="document.getElementById('showCreateForm').click()">
+                    <i class="fas fa-plus mr-2"></i>Create Your First Coupon
+                </button>
+            </div>
+        </div>
+    @endif
 </div>
 
 <style>
-    .rounded-24 { border-radius: 24px; }
-    .font-bold { font-weight: 700; }
-    .uppercase { text-transform: uppercase; }
-    .letter-spacing-1 { letter-spacing: 0.1em; }
-    
-    .premium-coupon-card {
-        background: white;
-        border-radius: 24px;
-        border: 1px solid #f1f5f9;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03);
-        transition: all 0.3s ease;
-        overflow: hidden;
-        position: relative;
+    .coupons-page { animation: fadeInUp 0.4s ease; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .page-header-premium { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+    .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 4px; letter-spacing: -0.02em; }
+    .page-subtitle { color: #64748b; font-size: 14px; margin: 0; font-weight: 500; }
+
+    .btn-primary-premium { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: #0066FF; color: white; border: none; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(0,102,255,0.25); text-decoration: none; }
+    .btn-primary-premium:hover { background: #0052cc; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,102,255,0.35); }
+    .btn-outline-premium { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: white; color: #475569; border: 1px solid #e2e8f0; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+    .btn-outline-premium:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+    /* Cards */
+    .premium-card { background: white; border: 1px solid #f1f5f9; border-radius: 20px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.03); }
+    .card-header-premium { padding: 18px 24px; border-bottom: 1px solid #f1f5f9; }
+    .card-header-premium h3 { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; display: flex; align-items: center; }
+    .card-body-premium { padding: 24px; }
+    .bg-primary-subtle { background: #f0f7ff; }
+
+    /* Form */
+    .form-group-premium { margin-bottom: 0; }
+    .form-group-premium label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 8px; }
+    .form-select-premium, .form-input-premium { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-weight: 600; background: #fafbfc; color: #0f172a; outline: none; transition: all 0.2s; }
+    .form-select-premium:focus, .form-input-premium:focus { border-color: #0066FF; background: white; box-shadow: 0 0 0 3px rgba(0,102,255,0.1); }
+    .form-hint { font-size: 11px; color: #94a3b8; margin-top: 4px; display: block; }
+    .g-3 > * { padding: 0.5rem; }
+
+    /* Alerts */
+    .alert-premium { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 14px; font-size: 14px; font-weight: 600; animation: slideDown 0.3s ease; }
+    .alert-success { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    .alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    @keyframes slideDown { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: translateY(0); } }
+
+    /* Coupon Grid */
+    .coupons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; }
+
+    .coupon-card { display: flex; background: white; border: 1px solid #f1f5f9; border-radius: 20px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.03); transition: all 0.3s ease; }
+    .coupon-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    .coupon-card.coupon-inactive { opacity: 0.55; }
+    .coupon-card.coupon-inactive:hover { opacity: 0.75; }
+
+    .coupon-left { flex-shrink: 0; width: 110px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 10px; position: relative; }
+    .coupon-left::after { content: ''; position: absolute; right: -8px; top: 0; bottom: 0; width: 16px; background: radial-gradient(circle at 0 12px, transparent 8px, white 8px); background-size: 16px 24px; }
+    .coupon-value-badge { display: flex; align-items: baseline; gap: 2px; color: white; }
+    .big-value { font-size: 34px; font-weight: 800; line-height: 1; }
+    .big-unit { font-size: 18px; font-weight: 700; opacity: 0.8; }
+    .coupon-type-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+    .coupon-right { flex-grow: 1; padding: 16px 20px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+    .coupon-code-text { font-size: 18px; font-weight: 800; color: #0f172a; font-family: 'JetBrains Mono', 'Fira Code', monospace; letter-spacing: 0.1em; }
+    .coupon-meta-list { display: flex; flex-wrap: wrap; gap: 12px; }
+    .coupon-meta { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #64748b; font-weight: 500; }
+    .coupon-meta i { font-size: 11px; color: #94a3b8; }
+    .text-danger { color: #dc2626 !important; }
+
+    .coupon-actions { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+
+    /* Toggle Switch */
+    .toggle-btn { background: none; border: none; cursor: pointer; padding: 0; }
+    .toggle-track { display: block; width: 40px; height: 22px; background: #cbd5e1; border-radius: 12px; position: relative; transition: background 0.3s; }
+    .toggle-btn.active .toggle-track { background: #22c55e; }
+    .toggle-thumb { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: white; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.15); transition: transform 0.3s; }
+    .toggle-btn.active .toggle-thumb { transform: translateX(18px); }
+
+    .delete-btn { width: 32px; height: 32px; border-radius: 10px; border: 1px solid #fecaca; background: #fef2f2; color: #ef4444; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+    .delete-btn:hover { background: #fee2e2; border-color: #f87171; color: #dc2626; }
+
+    /* Empty State */
+    .empty-state-premium { text-align: center; padding: 60px 20px; }
+    .empty-icon { width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px; color: #94a3b8; }
+    .empty-state-premium h4 { font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .empty-state-premium p { color: #94a3b8; font-size: 14px; max-width: 360px; margin: 0 auto; }
+
+    @media (max-width: 768px) {
+        .page-header-premium { flex-direction: column; align-items: flex-start; }
+        .coupons-grid { grid-template-columns: 1fr; }
+        .coupon-left { width: 90px; padding: 14px 8px; }
+        .big-value { font-size: 26px; }
     }
-    .premium-coupon-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px -8px rgba(0, 0, 0, 0.08); }
-    
-    .premium-coupon-card.inactive { opacity: 0.7; grayscale: 1; }
-    
-    .coupon-type-badge {
-        font-size: 10px;
-        font-weight: 800;
-        color: #64748b;
-        background: #f1f5f9;
-        padding: 4px 10px;
-        border-radius: 20px;
-    }
-    
-    .discount-value { font-size: 36px; font-weight: 900; color: #0066FF; line-height: 1; }
-    .discount-value .off-text { font-size: 14px; font-weight: 700; color: #64748b; margin-left: -5px; }
-    
-    .coupon-code-box {
-        display: inline-flex;
-        align-items: center;
-        background: #eff6ff;
-        border: 2px dashed #0066FF;
-        padding: 8px 16px;
-        border-radius: 12px;
-    }
-    .coupon-code-box .code { font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #1e3a8a; letter-spacing: 0.05em; font-size: 18px; margin-right: 10px; }
-    .copy-btn { border: none; background: none; color: #0066FF; font-size: 14px; cursor: pointer; padding: 0; outline: none; }
-    
-    .detail-item .label { font-size: 12px; color: #94a3b8; font-weight: 500; }
-    .detail-item .val { font-size: 13px; color: #334155; }
-    
-    .empty-icon-box {
-        width: 100px;
-        height: 100px;
-        background: #eff6ff;
-        color: #0066FF;
-        font-size: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-    }
-    
-    .premium-input-wrapper { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; padding: 5px 15px; }
-    .form-control-premium { border: none; background: transparent; padding: 10px 0; font-weight: 700; font-size: 15px; width: 100%; outline: none; }
-    .form-control-premium.bordered { border: 1px solid #e2e8f0; border-radius: 12px; padding-left: 15px; background: #f8fafc; }
-    .form-control-premium:focus { border-color: #0066FF; background: white; }
-    
-    .shadow-primary-200 { box-shadow: 0 4px 14px 0 rgba(0, 102, 255, 0.3); }
 </style>
 
 <script>
-    function copyCode(code) {
-        navigator.clipboard.writeText(code).then(() => {
-            alert('Coupon code copied to clipboard!');
-        });
-    }
-
-    document.querySelectorAll('.toggle-status').forEach(toggle => {
-        toggle.addEventListener('change', function() {
-            const id = this.dataset.id;
-            const active = this.checked ? 1 : 0;
-            
-            fetch(`{{ route('vendor.coupons.toggle', '') }}/${id}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ active })
-            }).then(response => {
-                if(!response.ok) this.checked = !this.checked;
-            });
-        });
+    document.getElementById('showCreateForm').addEventListener('click', function() {
+        const card = document.getElementById('createCouponCard');
+        card.style.display = card.style.display === 'none' ? 'block' : 'none';
+        if (card.style.display === 'block') {
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     });
+
+    document.getElementById('cancelCreate').addEventListener('click', function() {
+        document.getElementById('createCouponCard').style.display = 'none';
+    });
+
+    function toggleCoupon(id, btn) {
+        const isActive = btn.classList.contains('active');
+        fetch(`{{ url('/vendor/coupons') }}/${id}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ active: !isActive })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                btn.classList.toggle('active');
+                btn.closest('.coupon-card').classList.toggle('coupon-inactive');
+            }
+        })
+        .catch(err => console.error(err));
+    }
 </script>
 @endsection

@@ -113,6 +113,55 @@
                 </div>
             </div>
         </div>
+
+        <!-- Dispute Section -->
+        @if(!in_array($order->status, ['pending', 'cancelled']))
+            <div class="detail-card mt-3">
+                <h3>Need Help?</h3>
+                <p class="text-sm mb-3">If you have an issue with this order, you can open a dispute.</p>
+                <button class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#disputeModal">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> Open Dispute
+                </button>
+            </div>
+
+            <!-- Dispute Modal -->
+            <div class="modal fade" id="disputeModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="{{ route('customer.dispute.store', $order->id) }}" method="POST">
+                            @csrf
+                            <div class="modal-header">
+                                <h5 class="modal-title">Open Dispute</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Subject</label>
+                                    <input type="text" name="subject" class="form-control" required placeholder="e.g. Item not received">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Priority</label>
+                                    <select name="priority" class="form-select" required>
+                                        <option value="low">Low - Minor issue</option>
+                                        <option value="medium" selected>Medium - Normal issue</option>
+                                        <option value="high">High - Urgent issue</option>
+                                        <option value="critical">Critical - Major problem</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea name="description" class="form-control" rows="4" required placeholder="Describe your issue in detail..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">Submit Dispute</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 

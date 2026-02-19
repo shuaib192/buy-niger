@@ -17,6 +17,7 @@
             <!-- Cart Items -->
             <div class="cart-items">
                 @foreach($items as $item)
+                @if($item->product)
                 <div class="cart-item" data-item-id="{{ $item->id }}">
                     <div class="cart-item-image">
                         @if($item->product->primary_image_url)
@@ -45,6 +46,7 @@
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
+                @endif
                 @endforeach
             </div>
 

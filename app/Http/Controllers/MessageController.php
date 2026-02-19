@@ -55,6 +55,33 @@ class MessageController extends Controller
     }
 
     /**
+     * Vendor: Start or open conversation with a customer.
+     */
+    public function startConversationFromVendor(Request $request, $userId)
+    {
+        $vendor = Auth::user()->vendor;
+        if (!$vendor) abort(403);
+
+        $user = \App\Models\User::findOrFail($userId);
+        $subject = $request->subject ?? 'Vendor Inquiry';
+
+        $conversation = Conversation::where('user_id', $user->id)
+            ->where('vendor_id', $vendor->id)
+            ->first();
+
+        if (!$conversation) {
+            $conversation = Conversation::create([
+                'user_id' => $user->id,
+                'vendor_id' => $vendor->id,
+                'subject' => $subject,
+                'last_message_at' => now(),
+            ]);
+        }
+
+        return redirect()->route('vendor.messages.show', $conversation->id);
+    }
+
+    /**
      * Customer: List all conversations.
      */
     public function indexCustomer()

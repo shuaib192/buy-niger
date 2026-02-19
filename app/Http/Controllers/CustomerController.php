@@ -162,4 +162,29 @@ class CustomerController extends Controller
 
         return back()->with('success', 'Default address updated!');
     }
+
+    public function storeDispute(Request $request, Order $order)
+    {
+        // Ensure user owns order
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'subject' => 'required|string|max:255',
+            'description' => 'required|string',
+            'priority' => 'required|in:low,medium,high,critical',
+        ]);
+
+        \App\Models\Dispute::create([
+            'user_id' => Auth::id(),
+            'order_id' => $order->id,
+            'subject' => $request->subject,
+            'description' => $request->description,
+            'priority' => $request->priority,
+            'status' => 'open',
+        ]);
+
+        return back()->with('success', 'Dispute opened successfully. Our team will review it shortly.');
+    }
 }

@@ -102,10 +102,8 @@ class SystemSeeder extends Seeder
 
         // Default shipping methods
         $shippingMethods = [
-            ['name' => 'Standard Delivery', 'description' => 'Delivery within 3-5 business days', 'base_cost' => 1500.00, 'estimated_days' => '3-5 days'],
-            ['name' => 'Express Delivery', 'description' => 'Delivery within 1-2 business days', 'base_cost' => 3500.00, 'estimated_days' => '1-2 days'],
-            ['name' => 'Same Day Delivery', 'description' => 'Delivery within hours (Lagos only)', 'base_cost' => 5000.00, 'estimated_days' => 'Same day'],
-            ['name' => 'Pickup Station', 'description' => 'Pick up from nearest station', 'base_cost' => 500.00, 'estimated_days' => '2-3 days'],
+            ['name' => 'Pickup', 'description' => 'Pick up your order from the vendor\'s location for free', 'base_cost' => 0.00, 'estimated_days' => '1 day'],
+            ['name' => 'Vendor Shipping', 'description' => 'Vendor ships/waybills your order to you. Delivery fee set by vendor.', 'base_cost' => 0.00, 'estimated_days' => '2-5 days'],
         ];
 
         foreach ($shippingMethods as $method) {
@@ -208,8 +206,39 @@ class SystemSeeder extends Seeder
         $templates = [
             [
                 'name' => 'welcome',
-                'subject' => 'Welcome to BuyNiger!',
-                'body' => '<h1>Welcome, {customer_name}!</h1><p>Thank you for joining BuyNiger. Start shopping now!</p>',
+                'subject' => 'Welcome to BuyNiger! 🎉',
+                'body' => '
+<div style="max-width:600px;margin:0 auto;font-family:Inter,Arial,sans-serif;background:#f8fafc;">
+    <div style="background:linear-gradient(135deg,#0f172a,#1e40af);padding:40px 32px;text-align:center;border-radius:0 0 24px 24px;">
+        <h1 style="color:white;font-size:28px;margin:0 0 4px;">Buy<span style="color:#60a5fa;">Niger</span></h1>
+        <p style="color:rgba(255,255,255,0.6);font-size:12px;margin:0;">AI-Powered Marketplace</p>
+    </div>
+    <div style="padding:36px 32px;">
+        <div style="text-align:center;margin-bottom:28px;">
+            <div style="width:64px;height:64px;background:linear-gradient(135deg,#10b981,#059669);border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+                <span style="color:white;font-size:28px;">✓</span>
+            </div>
+            <h2 style="font-size:22px;color:#1e293b;margin:0 0 8px;">Welcome, {customer_name}!</h2>
+            <p style="color:#64748b;font-size:15px;margin:0;">Your account has been created successfully.</p>
+        </div>
+        <div style="background:white;border-radius:16px;padding:24px;border:1px solid #e2e8f0;margin-bottom:24px;">
+            <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 16px;">You&rsquo;re now part of Nigeria&rsquo;s smartest marketplace. Here&rsquo;s what you can do:</p>
+            <table width="100%" style="border-collapse:collapse;">
+                <tr><td style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:14px;color:#1e293b;">🛍️ <strong>Shop</strong> thousands of products from trusted vendors</td></tr>
+                <tr><td style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:14px;color:#1e293b;">📦 <strong>Track</strong> your orders in real-time</td></tr>
+                <tr><td style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:14px;color:#1e293b;">💬 <strong>Chat</strong> directly with vendors</td></tr>
+                <tr><td style="padding:10px 0;font-size:14px;color:#1e293b;">⭐ <strong>Review</strong> products and help the community</td></tr>
+            </table>
+        </div>
+        <div style="text-align:center;margin-bottom:24px;">
+            <a href="http://127.0.0.1:8000/shop" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;padding:14px 36px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px;">Start Shopping Now →</a>
+        </div>
+        <p style="text-align:center;color:#94a3b8;font-size:13px;margin:0;">Your login email: <strong>{email}</strong></p>
+    </div>
+    <div style="text-align:center;padding:24px;border-top:1px solid #e2e8f0;">
+        <p style="color:#94a3b8;font-size:12px;margin:0;">© 2026 BuyNiger. Built by Shuaibu Abdulmumin | P3 Consulting Limited</p>
+    </div>
+</div>',
                 'variables' => json_encode(['customer_name', 'email']),
             ],
             [

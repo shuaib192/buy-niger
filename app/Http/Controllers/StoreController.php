@@ -15,6 +15,28 @@ use Illuminate\Http\Request;
 class StoreController extends Controller
 {
     /**
+     * List all vendor stores.
+     */
+    public function index(Request $request)
+    {
+        $query = Vendor::where('status', 'approved')
+            ->with('user');
+
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('store_name', 'like', "%{$search}%")
+                  ->orWhere('store_description', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%");
+            });
+        }
+
+        $stores = $query->latest()->paginate(12);
+
+        return view('shop.stores', compact('stores'));
+    }
+
+    /**
      * Display vendor storefront.
      */
     public function show($slug)

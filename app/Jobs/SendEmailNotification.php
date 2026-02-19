@@ -77,21 +77,24 @@ class SendEmailNotification implements ShouldQueue
             Log::info("Email sent to {$this->recipientEmail} using template {$this->templateName}");
 
         } catch (\Exception $e) {
-            // Log failure
-            DB::table('email_logs')->insert([
-                'user_id' => $this->userId,
-                'email' => $this->recipientEmail,
-                'subject' => 'Failed to send',
-                'template' => $this->templateName,
-                'campaign_id' => $this->campaignId,
-                'status' => 'failed',
-                'error_message' => $e->getMessage(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            // Log failure but don't re-throw (prevents crashing page on sync queue)
+            try {
+                DB::table('email_logs')->insert([
+                    'user_id' => $this->userId,
+                    'email' => $this->recipientEmail,
+                    'subject' => 'Failed to send',
+                    'template' => $this->templateName,
+                    'campaign_id' => $this->campaignId,
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } catch (\Exception $logError) {
+                // email_logs table may not exist
+            }
 
             Log::error("Email failed to {$this->recipientEmail}: " . $e->getMessage());
-            throw $e;
         }
     }
 

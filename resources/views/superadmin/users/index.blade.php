@@ -16,7 +16,12 @@
         <div class="dashboard-card">
             <div class="dashboard-card-header">
                 <div class="d-flex justify-content-between align-items-center w-100">
-                    <h3>All Users</h3>
+                    <div class="d-flex align-items-center gap-3">
+                        <h3>All Users</h3>
+                        <a href="{{ route($prefix.'users.export', request()->all()) }}" class="btn btn-success btn-sm">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </a>
+                    </div>
                     <form action="{{ route($prefix.'users') }}" method="GET" class="d-flex gap-2">
                         <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
                             <option value="">All Roles</option>

@@ -18,6 +18,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Dispute;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 
@@ -110,7 +111,10 @@ class SuperAdminController extends Controller
         ]);
 
         $oldStatus = $vendor->status;
-        $vendor->update(['status' => $request->status]);
+        $vendor->update([
+            'status' => $request->status,
+            'approved_at' => $request->status === 'approved' ? now() : $vendor->approved_at,
+        ]);
 
         // Log the action
         AuditLog::create([
@@ -124,9 +128,207 @@ class SuperAdminController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        // Dispatch events would go here (already created in EDA phase)
+        // Send notification + email to vendor
+        $user = $vendor->user;
+        $this->sendVendorStatusNotification($user, $vendor, $request->status, $request->reason);
 
-        return back()->with('success', "Vendor status updated to {$request->status}.");
+        return back()->with('success', "Vendor status updated to {$request->status}. Notification & email sent.");
+    }
+
+    /**
+     * Approve or reject vendor KYC.
+     */
+    public function updateKycStatus(Request $request, Vendor $vendor)
+    {
+        $request->validate([
+            'status' => 'required|in:verified,rejected',
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $oldKyc = $vendor->kyc_status;
+
+        $vendor->update([
+            'kyc_status' => $request->status,
+            'kyc_verified_at' => $request->status === 'verified' ? now() : null,
+        ]);
+
+        // Log the action
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'update_kyc_status',
+            'model_type' => 'Vendor',
+            'model_id' => $vendor->id,
+            'old_values' => ['kyc_status' => $oldKyc],
+            'new_values' => ['kyc_status' => $request->status, 'reason' => $request->reason],
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        // Send in-app notification
+        $user = $vendor->user;
+        if ($request->status === 'verified') {
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'kyc_verified',
+                'title' => '🎉 KYC Verified!',
+                'message' => 'Congratulations! Your identity has been verified. You can now publish products and receive payouts.',
+                'action_url' => route('vendor.dashboard'),
+            ]);
+        } else {
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'kyc_rejected',
+                'title' => '⚠️ KYC Rejected',
+                'message' => 'Your KYC verification was rejected. Reason: ' . ($request->reason ?? 'Not specified') . '. Please re-submit your documents.',
+                'action_url' => route('vendor.settings'),
+            ]);
+        }
+
+        // Send email notification
+        $this->sendKycEmail($user, $vendor, $request->status, $request->reason);
+
+        $label = $request->status === 'verified' ? 'verified' : 'rejected';
+        return back()->with('success', "Vendor KYC has been {$label}. Notification & email sent.");
+    }
+
+    /**
+     * Send KYC status email to vendor.
+     */
+    protected function sendKycEmail($user, $vendor, $status, $reason = null)
+    {
+        try {
+            if ($status === 'verified') {
+                $subject = 'BuyNiger — Your KYC Has Been Verified! ✅';
+                $iconBg = '#22c55e';
+                $icon = '✓';
+                $heading = 'Identity Verified!';
+                $bodyText = "Great news, <strong>{$user->name}</strong>! Your identity verification (KYC) for <strong>{$vendor->store_name}</strong> has been approved. You now have full access to publish products and receive payouts.";
+                $ctaText = 'Go to Dashboard';
+                $ctaUrl = route('vendor.dashboard');
+                $ctaBg = '#22c55e';
+            } else {
+                $subject = 'BuyNiger — KYC Verification Update';
+                $iconBg = '#ef4444';
+                $icon = '✗';
+                $heading = 'KYC Not Approved';
+                $reasonText = $reason ? "<br><br><strong>Reason:</strong> {$reason}" : '';
+                $bodyText = "Hello <strong>{$user->name}</strong>, unfortunately your KYC verification for <strong>{$vendor->store_name}</strong> was not approved at this time.{$reasonText}<br><br>Please review your documents and re-submit them.";
+                $ctaText = 'Update KYC Documents';
+                $ctaUrl = route('vendor.settings');
+                $ctaBg = '#ef4444';
+            }
+
+            $emailBody = '
+            <div style="font-family:\'Segoe UI\',Roboto,sans-serif;max-width:480px;margin:0 auto;padding:40px 20px;">
+                <div style="text-align:center;margin-bottom:32px;">
+                    <div style="width:64px;height:64px;background:'.$iconBg.';border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+                        <span style="color:white;font-size:28px;font-weight:bold;">'.$icon.'</span>
+                    </div>
+                    <h2 style="margin:0;color:#1e293b;font-size:22px;">'.$heading.'</h2>
+                </div>
+                <p style="color:#475569;font-size:15px;line-height:1.7;">'.$bodyText.'</p>
+                <div style="text-align:center;margin:32px 0;">
+                    <a href="'.$ctaUrl.'" style="display:inline-block;background:'.$ctaBg.';color:white;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:700;font-size:15px;">'.$ctaText.'</a>
+                </div>
+                <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;">
+                <p style="color:#94a3b8;font-size:12px;text-align:center;">BuyNiger — Multi-Vendor Marketplace</p>
+            </div>';
+
+            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($user, $subject, $emailBody) {
+                $message->to($user->email)
+                    ->subject($subject)
+                    ->html($emailBody);
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('KYC email failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send vendor status notification + email.
+     */
+    protected function sendVendorStatusNotification($user, $vendor, $status, $reason = null)
+    {
+        // In-app notification
+        $notifData = match($status) {
+            'approved' => [
+                'type' => 'vendor_approved',
+                'title' => '🎉 Store Approved!',
+                'message' => "Congratulations! Your store \"{$vendor->store_name}\" has been approved. You can now start listing products and selling on BuyNiger.",
+                'url' => route('vendor.dashboard'),
+            ],
+            'rejected' => [
+                'type' => 'vendor_rejected',
+                'title' => '❌ Store Application Rejected',
+                'message' => 'Your vendor application was not approved.' . ($reason ? " Reason: {$reason}" : '') . ' Please contact support for more details.',
+                'url' => route('contact'),
+            ],
+            'suspended' => [
+                'type' => 'vendor_suspended',
+                'title' => '⚠️ Store Suspended',
+                'message' => 'Your store has been suspended.' . ($reason ? " Reason: {$reason}" : '') . ' Please contact support to resolve this.',
+                'url' => route('contact'),
+            ],
+        };
+
+        Notification::create([
+            'user_id' => $user->id,
+            'type' => $notifData['type'],
+            'title' => $notifData['title'],
+            'message' => $notifData['message'],
+            'action_url' => $notifData['url'],
+        ]);
+
+        // Email
+        try {
+            $emailConfig = match($status) {
+                'approved' => [
+                    'subject' => 'BuyNiger — Your Store Has Been Approved! 🎉',
+                    'iconBg' => '#22c55e', 'icon' => '✓',
+                    'heading' => 'Store Approved!',
+                    'body' => "Great news, <strong>{$user->name}</strong>! Your store <strong>{$vendor->store_name}</strong> has been approved. You can now start listing products and selling on BuyNiger.",
+                    'ctaText' => 'Go to Dashboard', 'ctaUrl' => route('vendor.dashboard'), 'ctaBg' => '#22c55e',
+                ],
+                'rejected' => [
+                    'subject' => 'BuyNiger — Vendor Application Update',
+                    'iconBg' => '#ef4444', 'icon' => '✗',
+                    'heading' => 'Application Not Approved',
+                    'body' => "Hello <strong>{$user->name}</strong>, unfortunately your vendor application for <strong>{$vendor->store_name}</strong> was not approved." . ($reason ? "<br><br><strong>Reason:</strong> {$reason}" : '') . '<br><br>Please contact our support team for more details.',
+                    'ctaText' => 'Contact Support', 'ctaUrl' => route('contact'), 'ctaBg' => '#ef4444',
+                ],
+                'suspended' => [
+                    'subject' => 'BuyNiger — Store Suspension Notice',
+                    'iconBg' => '#f59e0b', 'icon' => '⚠',
+                    'heading' => 'Store Suspended',
+                    'body' => "Hello <strong>{$user->name}</strong>, your store <strong>{$vendor->store_name}</strong> has been suspended." . ($reason ? "<br><br><strong>Reason:</strong> {$reason}" : '') . '<br><br>Please contact our support team to resolve this.',
+                    'ctaText' => 'Contact Support', 'ctaUrl' => route('contact'), 'ctaBg' => '#f59e0b',
+                ],
+            };
+
+            $emailBody = '
+            <div style="font-family:Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:40px 20px;">
+                <div style="text-align:center;margin-bottom:32px;">
+                    <div style="width:64px;height:64px;background:'.$emailConfig['iconBg'].';border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+                        <span style="color:white;font-size:28px;font-weight:bold;">'.$emailConfig['icon'].'</span>
+                    </div>
+                    <h2 style="margin:0;color:#1e293b;font-size:22px;">'.$emailConfig['heading'].'</h2>
+                </div>
+                <p style="color:#475569;font-size:15px;line-height:1.7;">'.$emailConfig['body'].'</p>
+                <div style="text-align:center;margin:32px 0;">
+                    <a href="'.$emailConfig['ctaUrl'].'" style="display:inline-block;background:'.$emailConfig['ctaBg'].';color:white;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:700;font-size:15px;">'.$emailConfig['ctaText'].'</a>
+                </div>
+                <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;">
+                <p style="color:#94a3b8;font-size:12px;text-align:center;">BuyNiger — Multi-Vendor Marketplace</p>
+            </div>';
+
+            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($user, $emailConfig, $emailBody) {
+                $message->to($user->email)
+                    ->subject($emailConfig['subject'])
+                    ->html($emailBody);
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Vendor status email failed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -421,12 +623,63 @@ class SuperAdminController extends Controller
      */
     public function updateAiSettings(Request $request)
     {
-        // For MVP, we might save these to the ai_providers table or system_settings
-        // Assuming we update ai_providers based on the form input
-        // This requires parsing the specific input names like 'settings[ai_gemini_key]'
+        $settings = $request->input('settings', []);
         
-        // Simplified: just redirect back with success for now, logic to be wired to Models if needed
-        return back()->with('success', 'AI Settings updated successfully.');
+        // Gemini
+        if (!empty($settings['ai_gemini_key']) && $settings['ai_gemini_key'] !== '••••••••••') {
+            \App\Models\AIProvider::updateOrCreate(
+                ['name' => 'gemini'],
+                [
+                    'display_name' => 'Google Gemini',
+                    'credentials' => ['api_key' => $settings['ai_gemini_key']],
+                    'model' => $settings['ai_gemini_model'] ?? 'gemini-pro',
+                    'is_active' => isset($settings['ai_gemini_active']),
+                    'priority' => 2
+                ]
+            );
+        } elseif (isset($settings['ai_gemini_active'])) {
+            \App\Models\AIProvider::where('name', 'gemini')->update(['is_active' => true]);
+        } else {
+            \App\Models\AIProvider::where('name', 'gemini')->update(['is_active' => false]);
+        }
+
+        // OpenAI
+        if (!empty($settings['ai_openai_key']) && $settings['ai_openai_key'] !== '••••••••••') {
+            \App\Models\AIProvider::updateOrCreate(
+                ['name' => 'openai'],
+                [
+                    'display_name' => 'OpenAI GPT-4',
+                    'credentials' => ['api_key' => $settings['ai_openai_key']],
+                    'model' => 'gpt-4',
+                    'is_active' => isset($settings['ai_openai_active']),
+                    'priority' => 1
+                ]
+            );
+        } elseif (isset($settings['ai_openai_active'])) {
+            \App\Models\AIProvider::where('name', 'openai')->update(['is_active' => true]);
+        } else {
+            \App\Models\AIProvider::where('name', 'openai')->update(['is_active' => false]);
+        }
+
+        // Groq
+        if (!empty($settings['ai_groq_key']) && $settings['ai_groq_key'] !== '••••••••••') {
+            \App\Models\AIProvider::updateOrCreate(
+                ['name' => 'groq'],
+                [
+                    'display_name' => 'Groq Llama',
+                    'credentials' => ['api_key' => $settings['ai_groq_key']],
+                    'model' => $settings['ai_groq_model'] ?? 'llama-3.3-70b-versatile',
+                    'is_active' => isset($settings['ai_groq_active']),
+                    'priority' => 3
+                ]
+            );
+        } elseif (isset($settings['ai_groq_active'])) {
+            \App\Models\AIProvider::where('name', 'groq')->update(['is_active' => true]);
+        } else {
+            \App\Models\AIProvider::where('name', 'groq')->update(['is_active' => false]);
+        }
+
+        return back()->with('success', 'AI Settings saved successfully!');
     }
 
     /**
@@ -453,5 +706,92 @@ class SuperAdminController extends Controller
     {
         $logs = AuditLog::with('user')->latest()->paginate(50);
         return view('superadmin.audit.index', compact('logs'));
+    }
+
+    public function messages()
+    {
+        $messages = \App\Models\ContactMessage::latest()->paginate(15);
+        return view('superadmin.messages.index', compact('messages'));
+    }
+
+    public function transactions()
+    {
+        // Fetch completed orders (income) - eager load relationships to avoid N+1
+        $orders = \App\Models\Order::where('payment_status', 'paid')
+            ->orderBy('created_at', 'desc')
+            ->with('user') 
+            ->get()
+            ->map(function ($order) {
+                return (object)[
+                    'id' => $order->id,
+                    'type' => 'income',
+                    'reference' => 'Order #' . $order->order_number,
+                    'amount' => $order->total,
+                    'status' => 'completed',
+                    'date' => $order->created_at,
+                    'user' => $order->user ? $order->user->name : 'Unknown User', // Handle potential null user
+                    'description' => 'Payment from customer',
+                    'related_model' => $order
+                ];
+            });
+
+        // Fetch vendor payouts (expense)
+        $payouts = \App\Models\VendorPayout::where('status', 'completed')
+            ->orderBy('processed_at', 'desc')
+            ->with('vendor')
+            ->get()
+            ->map(function ($payout) {
+                return (object)[
+                    'id' => $payout->id,
+                    'type' => 'expense',
+                    'reference' => 'Payout #' . ($payout->reference ?? 'N/A'),
+                    'amount' => $payout->amount,
+                    'status' => 'completed',
+                    'date' => $payout->processed_at,
+                    'user' => $payout->vendor ? $payout->vendor->store_name : 'Unknown Vendor',
+                    'description' => 'Payout to vendor',
+                    'related_model' => $payout
+                ];
+            });
+
+        // Merge and sort
+        $transactions = $orders->concat($payouts)->sortByDesc('date');
+        
+        // Paginate manually
+        $page = request()->get('page', 1);
+        $perPage = 20;
+        $sliced = $transactions->slice(($page - 1) * $perPage, $perPage)->values();
+        
+        $paginatedTransactions = new \Illuminate\Pagination\LengthAwarePaginator(
+            $sliced,
+            $transactions->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return view('superadmin.transactions.index', compact('paginatedTransactions'));
+    }
+
+    public function trackOrder(Request $request)
+    {
+        $request->validate([
+            'order_number' => 'required|string',
+        ]);
+
+        $search = $request->order_number;
+
+        // Search by Order Number OR Tracking ID (inside JSON)
+        $order = \App\Models\Order::where('order_number', $search)
+            ->orWhere('shipping_address->tracking_id', $search)
+            ->first();
+
+        if ($order) {
+            // Determine prefix based on route
+            $prefix = request()->is('admin/*') ? 'admin.' : 'superadmin.';
+            return redirect()->route($prefix . 'orders.show', $order->id);
+        }
+
+        return back()->with('error', 'Order not found with that ID or Tracking Number.');
     }
 }

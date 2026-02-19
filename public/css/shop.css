@@ -141,6 +141,28 @@ button {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
+/* Navbar Nav Links */
+.navbar-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.navbar-nav-links a {
+    color: var(--secondary-600);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.navbar-nav-links a:hover {
+    color: var(--primary-600);
+    background: var(--primary-50);
+}
+
 /* Navbar Actions */
 .navbar-actions {
     display: flex;

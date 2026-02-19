@@ -48,6 +48,13 @@
                     </form>
                 </div>
 
+                <div class="navbar-nav-links desktop-only">
+                    <a href="{{ route('catalog') }}">Shop</a>
+                    <a href="{{ route('stores') }}">Stores</a>
+                    <a href="{{ route('about') }}">About</a>
+                    <a href="{{ route('contact') }}">Contact</a>
+                </div>
+
                 <div class="navbar-actions">
                     <!-- Mobile Search Button -->
                     <button class="nav-icon-btn mobile-only" id="mobileSearchBtn">
@@ -110,6 +117,9 @@
         <div class="drawer-content">
             <a href="{{ route('home') }}" class="drawer-link"><i class="fas fa-home"></i> Home</a>
             <a href="{{ route('catalog') }}" class="drawer-link"><i class="fas fa-th-large"></i> Shop All</a>
+            <a href="{{ route('stores') }}" class="drawer-link"><i class="fas fa-store"></i> Stores</a>
+            <a href="{{ route('about') }}" class="drawer-link"><i class="fas fa-info-circle"></i> About Us</a>
+            <a href="{{ route('contact') }}" class="drawer-link"><i class="fas fa-envelope"></i> Contact</a>
             <a href="{{ route('cart.index') }}" class="drawer-link"><i class="fas fa-shopping-cart"></i> Cart</a>
             @auth
                 <a href="{{ route('vendor.dashboard') }}" class="drawer-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
@@ -149,12 +159,12 @@
                     </ul>
                 </div>
                 <div class="footer-links">
-                    <h4>Support</h4>
+                    <h4>Company</h4>
                     <ul>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="#">Shipping Policy</a></li>
-                        <li><a href="#">Returns</a></li>
-                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="{{ route('about') }}">About Us</a></li>
+                        <li><a href="{{ route('contact') }}">Contact Us</a></li>
+                        <li><a href="{{ route('track.order') }}">Track Order</a></li>
+                        <li><a href="{{ route('catalog') }}">All Products</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">

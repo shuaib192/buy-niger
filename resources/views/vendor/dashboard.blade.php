@@ -21,6 +21,13 @@
         </div>
     @endif
 
+    @if(($vendor->kyc_status ?? 'not_submitted') !== 'verified')
+        <div class="alert alert-danger">
+            <i class="fas fa-shield-alt"></i>
+            <span><strong>KYC Verification Required:</strong> You must complete your Identity Verification to publish products and receive payouts. <a href="{{ route('vendor.settings') }}" style="color:inherit;text-decoration:underline;"><strong>Complete KYC Now</strong></a></span>
+        </div>
+    @endif
+
     <!-- Stats Grid -->
     <div class="row mb-5">
         <div class="col-md-3">
@@ -124,6 +131,7 @@
                             </thead>
                             <tbody>
                                 @forelse($topProducts as $item)
+                                    @if($item->product)
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center">
@@ -137,6 +145,7 @@
                                         <td>₦{{ number_format($item->total_revenue) }}</td>
                                         <td><a href="{{ route('vendor.products.edit', $item->product_id) }}" class="btn btn-sm btn-outline-secondary">Edit</a></td>
                                     </tr>
+                                    @endif
                                 @empty
                                     <tr><td colspan="4" class="text-center py-4">No sales data yet.</td></tr>
                                 @endforelse
@@ -201,6 +210,42 @@
 
         <!-- Sidebar Column -->
         <div class="dashboard-sidebar col-4">
+            <!-- Share Your Store Link -->
+            @if($vendor && $vendor->store_slug)
+            <div class="dashboard-card mb-4" style="border:2px solid #dbeafe; background:linear-gradient(135deg,#eff6ff,#f0f9ff);">
+                <div class="dashboard-card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div style="width:36px;height:36px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-right:10px;flex-shrink:0;">
+                            <i class="fas fa-share-alt" style="color:white;font-size:14px;"></i>
+                        </div>
+                        <div>
+                            <h4 style="margin:0;font-size:13px;font-weight:700;color:#1e293b;">Share Your Store</h4>
+                            <p style="margin:0;font-size:11px;color:#64748b;">Get more customers from social media</p>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:12px;">
+                        <input type="text" id="storeUrl" readonly value="{{ url('/store/' . $vendor->store_slug) }}" style="width:100%;padding:9px 12px;background:white;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;color:#334155;font-weight:500;margin-bottom:8px;">
+                        <button onclick="copyStoreLink()" id="copyBtn" style="width:100%;padding:9px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+                            <i class="fas fa-copy"></i> Copy Store Link
+                        </button>
+                    </div>
+
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                        <a href="https://wa.me/?text=Check%20out%20my%20store%20on%20BuyNiger!%20{{ urlencode(url('/store/' . $vendor->store_slug)) }}" target="_blank" style="flex:1;min-width:70px;display:flex;align-items:center;justify-content:center;gap:4px;padding:7px 6px;background:#25d366;color:white;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url('/store/' . $vendor->store_slug)) }}" target="_blank" style="flex:1;min-width:70px;display:flex;align-items:center;justify-content:center;gap:4px;padding:7px 6px;background:#1877f2;color:white;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;">
+                            <i class="fab fa-facebook-f"></i> Facebook
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?text=Check%20out%20my%20store%20on%20BuyNiger!&url={{ urlencode(url('/store/' . $vendor->store_slug)) }}" target="_blank" style="flex:1;min-width:70px;display:flex;align-items:center;justify-content:center;gap:4px;padding:7px 6px;background:#0f172a;color:white;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;">
+                            <i class="fab fa-twitter"></i> Twitter
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- AI Insight (Enhanced) -->
             <div class="premium-ai-card mb-4">
                 <div class="card-content p-4">
@@ -433,6 +478,21 @@
                 }
             }
         });
+    </script>
+
+    <script>
+        function copyStoreLink() {
+            const input = document.getElementById('storeUrl');
+            const btn = document.getElementById('copyBtn');
+            input.select();
+            document.execCommand('copy');
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            btn.style.background = '#10b981';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                btn.style.background = '#3b82f6';
+            }, 2000);
+        }
     </script>
     @endpush
 @endsection

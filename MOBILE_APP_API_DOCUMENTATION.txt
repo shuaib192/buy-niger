@@ -1,0 +1,1074 @@
+================================================================================
+                    BUYNIGER MOBILE APP — API & SCREENS DOCUMENTATION
+                    Complete Developer Reference for Mobile App Build
+                    Generated: February 19, 2026
+================================================================================
+
+TABLE OF CONTENTS
+=================
+1. PLATFORM OVERVIEW
+2. AUTHENTICATION & SECURITY
+3. API ENDPOINTS (Grouped by Module)
+4. DATA MODELS
+5. MOBILE APP SCREENS LIST
+6. SCREEN-TO-API MAPPING
+7. NOTES FOR MOBILE DEVELOPERS
+
+================================================================================
+1. PLATFORM OVERVIEW
+================================================================================
+
+BuyNiger is a multi-vendor e-commerce platform built with:
+- Backend: Laravel (PHP 8.1+)
+- Database: MySQL 10.50
+- Auth: Laravel Sanctum (token-based API auth)
+- Payments: Paystack integration
+- Base URL: https://your-domain.com (replace with production URL)
+
+The platform has 3 user roles:
+- CUSTOMER: Browse, buy, review products
+- VENDOR: Manage store, products, orders, analytics
+- SUPERADMIN: Full platform management
+
+The mobile app should target Customers and Vendors primarily (SuperAdmin
+can remain web-only).
+
+================================================================================
+2. AUTHENTICATION & SECURITY
+================================================================================
+
+API Authentication: Laravel Sanctum (Bearer Token)
+
+IMPORTANT HEADERS (every API request):
+- Accept: application/json
+- Content-Type: application/json
+- Authorization: Bearer {token}   (for authenticated routes)
+- X-CSRF-TOKEN: {token}           (for web-based requests only)
+
+Token Flow:
+1. User registers or logs in → server returns a Sanctum token
+2. Store token securely on device (Keychain/Keystore)
+3. Attach token to every request as Bearer token
+4. On 401 response, redirect to login screen
+
+Sanctum CSRF Cookie Endpoint:
+GET /sanctum/csrf-cookie
+
+================================================================================
+3. API ENDPOINTS (Grouped by Module)
+================================================================================
+
+NOTE: BuyNiger currently uses web routes. For the mobile app, you will need
+to create corresponding API routes (prefix: /api/v1/). Below is the complete
+list of all existing endpoints and the recommended API equivalents.
+
+--------------------------------------------------------------------------------
+3.1 AUTHENTICATION
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+POST    /register                       Register new customer account       No
+POST    /login                          Login (email + password)            No
+POST    /logout                         Logout, invalidate token            Yes
+POST    /vendor/register                Register as vendor (store app)      No
+GET     /verify-email                   Show email verification page        No
+POST    /verify-email                   Verify OTP code                     No
+POST    /verify-email/resend            Resend verification OTP             No
+GET     /forgot-password                Show forgot password form           No
+POST    /forgot-password                Send reset link/OTP                 No
+GET     /reset-password                 Show reset password form            No
+POST    /reset-password                 Reset password with token           No
+
+Request/Response Examples:
+
+  POST /register
+  Body: {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "SecurePass123",
+    "password_confirmation": "SecurePass123",
+    "phone": "08012345678"
+  }
+  Response: {
+    "success": true,
+    "message": "Account created. Verify your email.",
+    "redirect": "/verify-email?email=john@example.com"
+  }
+
+  POST /login
+  Body: {
+    "email": "john@example.com",
+    "password": "SecurePass123"
+  }
+  Response: {
+    "success": true,
+    "token": "1|abc123...",
+    "user": { "id": 1, "name": "John", "role": "customer", ... }
+  }
+
+  POST /verify-email
+  Body: {
+    "email": "john@example.com",
+    "otp": "482910"
+  }
+  Response: {
+    "success": true,
+    "message": "Email verified successfully."
+  }
+
+  POST /vendor/register
+  Body: {
+    "name": "Jane Vendor",
+    "email": "vendor@shop.com",
+    "password": "VendorPass123",
+    "password_confirmation": "VendorPass123",
+    "phone": "07098765432",
+    "store_name": "Jane's Fashion",
+    "store_description": "Premium clothing and accessories",
+    "address": "123 Lagos Street",
+    "city": "Lagos",
+    "state": "Lagos"
+  }
+
+--------------------------------------------------------------------------------
+3.2 SHOP / CATALOG (Public)
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /                               Homepage (featured, categories)     No
+GET     /shop                           Catalog with filters & search       No
+GET     /product/{slug}                 Product detail page                 No
+GET     /category/{slug}                Category products listing           No
+GET     /search/suggestions             Live search suggestions             No
+GET     /stores                         All vendor stores listing           No
+GET     /store/{slug}                   Individual vendor store page        No
+
+Query Parameters for /shop:
+  ?q=keyword          - Search query
+  ?category=slug      - Filter by category
+  ?min_price=1000     - Min price filter
+  ?max_price=50000    - Max price filter
+  ?sort=price_asc     - Sort: price_asc, price_desc, newest, popular
+  ?page=1             - Pagination
+
+Response Example for /shop:
+  {
+    "products": [
+      {
+        "id": 1,
+        "name": "Premium T-Shirt",
+        "slug": "premium-t-shirt",
+        "price": 5000,
+        "compare_price": 7500,
+        "images": ["path/to/img1.jpg", "path/to/img2.jpg"],
+        "category": { "id": 1, "name": "Clothing", "slug": "clothing" },
+        "vendor": { "id": 1, "store_name": "Jane's Fashion" },
+        "rating": 4.5,
+        "review_count": 12,
+        "in_stock": true
+      }
+    ],
+    "pagination": { "total": 150, "per_page": 20, "current_page": 1 }
+  }
+
+Response Example for /product/{slug}:
+  {
+    "id": 1,
+    "name": "Premium T-Shirt",
+    "slug": "premium-t-shirt",
+    "description": "High quality cotton...",
+    "price": 5000,
+    "compare_price": 7500,
+    "images": ["img1.jpg", "img2.jpg"],
+    "category": { "id": 1, "name": "Clothing" },
+    "vendor": { "id": 1, "store_name": "Jane's Fashion", "slug": "janes-fashion" },
+    "variants": [
+      { "id": 1, "name": "Size", "value": "M", "price_modifier": 0 },
+      { "id": 2, "name": "Size", "value": "L", "price_modifier": 500 }
+    ],
+    "reviews": [
+      { "id": 1, "user": "John", "rating": 5, "comment": "Great!", "date": "..." }
+    ],
+    "avg_rating": 4.5,
+    "review_count": 12,
+    "stock": 25,
+    "related_products": [ ... ]
+  }
+
+--------------------------------------------------------------------------------
+3.3 CART
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /cart                           View cart contents                  Yes
+POST    /cart/add                       Add item to cart                    Yes
+POST    /cart/update                    Update item quantity                Yes
+DELETE  /cart/remove/{id}               Remove item from cart               Yes
+POST    /cart/coupon                    Apply coupon code                   Yes
+
+Request Examples:
+
+  POST /cart/add
+  Body: {
+    "product_id": 1,
+    "quantity": 2,
+    "variant_id": null   (optional)
+  }
+
+  POST /cart/update
+  Body: {
+    "cart_item_id": 1,
+    "quantity": 3
+  }
+
+  POST /cart/coupon
+  Body: {
+    "coupon_code": "SAVE20"
+  }
+
+Response for GET /cart:
+  {
+    "items": [
+      {
+        "id": 1,
+        "product": { "id": 1, "name": "...", "price": 5000, "image": "..." },
+        "quantity": 2,
+        "subtotal": 10000,
+        "variant": null
+      }
+    ],
+    "subtotal": 10000,
+    "discount": 0,
+    "shipping": 1500,
+    "total": 11500,
+    "coupon": null,
+    "item_count": 2
+  }
+
+--------------------------------------------------------------------------------
+3.4 CHECKOUT & PAYMENT
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /checkout                       Show checkout page                  Yes
+POST    /checkout                       Process checkout                    Yes
+GET     /payment/callback               Paystack payment callback           Yes
+POST    /webhook/paystack               Paystack webhook (server-only)      No
+
+Request for POST /checkout:
+  {
+    "shipping_address": {
+      "name": "John Doe",
+      "phone": "08012345678",
+      "address": "123 Main Street",
+      "city": "Lagos",
+      "state": "Lagos"
+    },
+    "payment_method": "paystack",      // or "cod" (cash on delivery)
+    "notes": "Please deliver before 5pm"
+  }
+
+Response:
+  {
+    "success": true,
+    "order_id": 12345,
+    "payment_url": "https://paystack.com/pay/abc123",  // redirect user here
+    "reference": "BN-20260219-ABC123"
+  }
+
+For Paystack Mobile Integration:
+  - Use Paystack Mobile SDK (Flutter/React Native)
+  - Initialize with the reference returned from checkout
+  - On success, call /payment/callback?reference=BN-20260219-ABC123
+
+--------------------------------------------------------------------------------
+3.5 ORDERS (Customer)
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /orders                         My order history                    Yes
+GET     /orders/{id}                    Order detail                        Yes
+GET     /track-order                    Track order by ID/reference         No
+POST    /track-order                    Submit tracking query               No
+
+Response for GET /orders:
+  {
+    "orders": [
+      {
+        "id": 12345,
+        "reference": "BN-20260219-ABC123",
+        "status": "delivered",
+        "total": 11500,
+        "items": [
+          { "product": "Premium T-Shirt", "quantity": 2, "subtotal": 10000 }
+        ],
+        "created_at": "2026-02-19T10:00:00Z"
+      }
+    ]
+  }
+
+Possible Order Statuses:
+  pending → processing → shipped → delivered
+                                 → cancelled
+
+--------------------------------------------------------------------------------
+3.6 REVIEWS
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+POST    /product/{slug}/review          Submit product review               Yes
+
+Request:
+  {
+    "rating": 5,           (1-5)
+    "comment": "Great quality product, fast delivery!"
+  }
+
+--------------------------------------------------------------------------------
+3.7 WISHLIST
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /wishlist                       View wishlist                       Yes
+POST    /wishlist/add                   Add to wishlist                     Yes
+DELETE  /wishlist/{productId}           Remove from wishlist                Yes
+POST    /wishlist/move/{productId}      Move to cart                        Yes
+
+Request for POST /wishlist/add:
+  {
+    "product_id": 1
+  }
+
+--------------------------------------------------------------------------------
+3.8 ADDRESSES
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /addresses                      List saved addresses                Yes
+POST    /addresses                      Add new address                     Yes
+PUT     /addresses/{id}                 Update address                      Yes
+DELETE  /addresses/{id}                 Delete address                      Yes
+
+Request:
+  {
+    "name": "Home",
+    "phone": "08012345678",
+    "address": "123 Main Street",
+    "city": "Lagos",
+    "state": "Lagos",
+    "is_default": true
+  }
+
+--------------------------------------------------------------------------------
+3.9 NOTIFICATIONS
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /notifications                  List user notifications             Yes
+POST    /notifications/{id}/read        Mark as read                        Yes
+POST    /notifications/read-all         Mark all as read                    Yes
+
+Response:
+  {
+    "notifications": [
+      {
+        "id": "uuid",
+        "type": "order_update",
+        "title": "Order Shipped!",
+        "message": "Your order #12345 has been shipped.",
+        "action_url": "/orders/12345",
+        "read_at": null,
+        "created_at": "2026-02-19T10:00:00Z"
+      }
+    ],
+    "unread_count": 3
+  }
+
+--------------------------------------------------------------------------------
+3.10 USER PROFILE
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /profile                        Get user profile                    Yes
+POST    /profile                        Update profile                      Yes
+POST    /profile/avatar                 Upload profile picture              Yes
+POST    /profile/password               Change password                     Yes
+
+Request for POST /profile:
+  {
+    "name": "John Doe",
+    "phone": "08012345678"
+  }
+
+  POST /profile/avatar (multipart/form-data):
+    avatar: [file]
+
+  POST /profile/password:
+  {
+    "current_password": "OldPass123",
+    "password": "NewPass456",
+    "password_confirmation": "NewPass456"
+  }
+
+================================================================================
+3.11 VENDOR PANEL ENDPOINTS (Vendor Role Only)
+================================================================================
+
+All vendor routes require auth + vendor role.
+Prefix: /vendor/
+
+--------------------------------------------------------------------------------
+3.11.1 VENDOR DASHBOARD
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /vendor/dashboard               Dashboard overview (stats)          Vendor
+
+Response:
+  {
+    "stats": {
+      "total_revenue": 250000,
+      "total_orders": 48,
+      "total_products": 15,
+      "pending_orders": 3,
+      "this_month_revenue": 85000
+    },
+    "recent_orders": [ ... ],
+    "top_products": [ ... ],
+    "revenue_chart": { "labels": [...], "values": [...] }
+  }
+
+--------------------------------------------------------------------------------
+3.11.2 VENDOR PRODUCTS
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /vendor/products                List vendor's products              Vendor
+GET     /vendor/products/create         Create product form data            Vendor
+POST    /vendor/products                Create new product                  Vendor
+GET     /vendor/products/{id}/edit      Get product for editing             Vendor
+PUT     /vendor/products/{id}           Update product                      Vendor
+DELETE  /vendor/products/{id}           Delete product                      Vendor
+POST    /vendor/products/bulk           Bulk action (delete/deactivate)     Vendor
+
+Request for POST /vendor/products (multipart/form-data):
+  {
+    "name": "Premium T-Shirt",
+    "description": "High quality cotton t-shirt",
+    "price": 5000,
+    "compare_price": 7500,
+    "category_id": 1,
+    "stock": 50,
+    "sku": "TS-001",
+    "weight": 0.3,
+    "images[]": [file1, file2, file3],     (up to 5 images)
+    "tags": "clothing,premium,cotton",
+    "status": "active"
+  }
+
+--------------------------------------------------------------------------------
+3.11.3 VENDOR ORDERS
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /vendor/orders                  List vendor's orders                Vendor
+GET     /vendor/orders/{id}             Order detail                        Vendor
+POST    /vendor/orders/{id}/status      Update order status                 Vendor
+GET     /vendor/orders/export           Export orders report                Vendor
+
+Request for POST /vendor/orders/{id}/status:
+  {
+    "status": "shipped"     // pending, processing, shipped, delivered, cancelled
+  }
+
+--------------------------------------------------------------------------------
+3.11.4 VENDOR INVENTORY
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /vendor/inventory               View inventory levels               Vendor
+POST    /vendor/inventory/update-stock  Update product stock                Vendor
+
+Request:
+  {
+    "product_id": 1,
+    "stock": 100,
+    "reason": "Restocked from supplier"
+  }
+
+--------------------------------------------------------------------------------
+3.11.5 VENDOR ANALYTICS
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /vendor/analytics               Full analytics dashboard            Vendor
+GET     /vendor/analytics/export        Export analytics as Excel           Vendor
+
+Query Parameters:
+  ?period=7       Last 7 Days
+  ?period=30      Last 30 Days (default)
+  ?period=90      Last 90 Days
+  ?period=365     Last 12 Months
+  ?period=all     All Time
+
+Response:
+  {
+    "period": "30",
+    "periodLabel": "Last 30 Days",
+    "totalRevenue": 250000,
+    "totalOrders": 48,
+    "totalProducts": 15,
+    "totalCustomers": 32,
+    "avgOrderValue": 5208,
+    "conversionRate": 3.2,
+    "revenueGrowth": 12.5,       // vs previous period (%)
+    "ordersGrowth": 8.2,
+    "customersGrowth": 15.0,
+    "chartLabels": ["Feb 01", "Feb 02", ...],
+    "chartValues": [5000, 12000, ...],
+    "chartOrders": [2, 4, ...],
+    "topProducts": [ ... ],
+    "revenueByCategory": [ ... ],
+    "ordersByStatus": { "pending": 3, "delivered": 40, ... },
+    "recentOrders": [ ... ],
+    "insights": [
+      {
+        "type": "success",
+        "icon": "fa-chart-line",
+        "title": "Strong Revenue Growth",
+        "text": "Your revenue grew by 12.5% compared to the previous period."
+      }
+    ]
+  }
+
+--------------------------------------------------------------------------------
+3.11.6 VENDOR COUPONS
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /vendor/coupons                 List vendor coupons                 Vendor
+POST    /vendor/coupons                 Create coupon                       Vendor
+POST    /vendor/coupons/toggle/{id}     Enable/disable coupon               Vendor
+DELETE  /vendor/coupons/{id}            Delete coupon                       Vendor
+
+Request for POST /vendor/coupons:
+  {
+    "code": "SAVE20",
+    "type": "percentage",          // percentage or fixed
+    "value": 20,
+    "min_order_amount": 5000,
+    "max_uses": 100,
+    "expires_at": "2026-03-31"
+  }
+
+--------------------------------------------------------------------------------
+3.11.7 VENDOR FINANCES & PAYOUTS
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /vendor/finances                View earnings & payout history      Vendor
+POST    /vendor/payouts/request         Request payout withdrawal           Vendor
+
+Request for POST /vendor/payouts/request:
+  {
+    "amount": 50000,
+    "bank_name": "GTBank",
+    "account_number": "0123456789",
+    "account_name": "Jane Doe"
+  }
+
+--------------------------------------------------------------------------------
+3.11.8 VENDOR MESSAGES
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /vendor/messages                List conversations                  Vendor
+POST    /vendor/messages/start/{userId} Start new conversation              Vendor
+GET     /vendor/messages/{id}           View conversation                   Vendor
+POST    /vendor/messages/{id}           Send message                        Vendor
+
+Request for POST /vendor/messages/{id}:
+  {
+    "body": "Hello! Your order is being processed."
+  }
+
+--------------------------------------------------------------------------------
+3.11.9 VENDOR PROFILE & SETTINGS
+--------------------------------------------------------------------------------
+
+METHOD  ENDPOINT                        DESCRIPTION                         AUTH
+------  --------                        -----------                         ----
+GET     /vendor/profile                 View vendor profile                 Vendor
+POST    /vendor/profile                 Update vendor profile               Vendor
+GET     /vendor/settings                View vendor settings                Vendor
+POST    /vendor/settings                Update vendor settings              Vendor
+
+Request for POST /vendor/profile:
+  {
+    "store_name": "Jane's Fashion",
+    "store_description": "Premium clothing",
+    "phone": "07098765432",
+    "address": "123 Lagos Street",
+    "city": "Lagos",
+    "state": "Lagos",
+    "logo": [file],                    (multipart/form-data)
+    "banner": [file]                   (multipart/form-data)
+  }
+
+================================================================================
+3.12 SUPERADMIN ENDPOINTS (SuperAdmin Role Only)
+================================================================================
+
+NOTE: SuperAdmin features are recommended to remain WEB-ONLY.
+Included here for reference only.
+
+METHOD  ENDPOINT                                DESCRIPTION
+------  --------                                -----------
+GET     /superadmin/dashboard                   Admin dashboard stats
+GET     /superadmin/analytics                   Platform-wide analytics
+GET     /superadmin/users                       Manage all users
+GET     /superadmin/users/{user}                User detail
+POST    /superadmin/users/{user}/ban            Ban/unban user
+GET     /superadmin/users/export                Export users list
+GET     /superadmin/users/roles                 User roles management
+GET     /superadmin/vendors                     Manage vendors
+GET     /superadmin/vendors/{vendor}            Vendor detail
+POST    /superadmin/vendors/{vendor}/status      Approve/reject/suspend vendor
+POST    /superadmin/vendors/{vendor}/kyc         KYC verification
+GET     /superadmin/products                    All products
+POST    /superadmin/products/{id}/status         Approve/reject product
+POST    /superadmin/products/{id}/feature        Feature a product
+GET     /superadmin/orders                      All orders
+GET     /superadmin/orders/{order}              Order detail
+POST    /superadmin/orders/{order}/status        Update order status
+POST    /superadmin/orders/track                Track an order
+GET     /superadmin/payouts                     Payout requests
+POST    /superadmin/payouts/{id}/status          Approve/reject payout
+GET     /superadmin/disputes                    Customer disputes
+POST    /superadmin/disputes/{id}/update         Resolve dispute
+GET     /superadmin/audit-logs                  Activity audit logs
+GET     /superadmin/settings                    Platform settings
+POST    /superadmin/settings                    Update settings
+GET     /superadmin/settings/email              Email settings
+GET     /superadmin/settings/payments           Payment settings
+CRUD    /superadmin/email-templates             Email templates
+CRUD    /superadmin/email-campaigns             Email campaigns
+GET     /superadmin/ai                          AI management console
+POST    /superadmin/ai/kill-switch              AI emergency kill switch
+GET     /superadmin/ai/settings                 AI settings
+POST    /superadmin/ai/settings                 Update AI settings
+
+================================================================================
+4. DATA MODELS
+================================================================================
+
+The platform uses the following 38 database models:
+
+USER MODELS:
+  User              - id, name, email, password, phone, role, avatar_url, 
+                      email_verified_at, remember_token
+  Address           - id, user_id, name, phone, address, city, state, 
+                      is_default
+
+VENDOR MODELS:
+  Vendor            - id, user_id, store_name, store_slug, description,
+                      logo, banner, phone, address, city, state, status,
+                      kyc_status, kyc_verified_at, approved_at, total_sales,
+                      commission_rate
+  VendorBankDetail  - id, vendor_id, bank_name, account_number, account_name
+  VendorDocument    - id, vendor_id, type, file_path, status
+  VendorPayout      - id, vendor_id, amount, status, reference, 
+                      bank_name, account_number, processed_at
+
+PRODUCT MODELS:
+  Product           - id, vendor_id, category_id, name, slug, description,
+                      price, compare_price, stock, sku, weight, images,
+                      status, is_featured, views
+  ProductImage      - id, product_id, path, position
+  ProductVariant    - id, product_id, name, value, price_modifier, stock
+  Category          - id, name, slug, icon, image, parent_id, position
+  Tag               - id, name, slug
+  PriceHistory      - id, product_id, old_price, new_price
+  StockHistory      - id, product_id, old_stock, new_stock, reason
+
+ORDER MODELS:
+  Order             - id, user_id, reference, status, subtotal, shipping,
+                      discount, total, shipping_address (JSON), notes,
+                      payment_method, payment_status, paid_at
+  OrderItem         - id, order_id, product_id, vendor_id, quantity,
+                      price, subtotal, status
+
+CART MODELS:
+  Cart              - id, user_id, session_id
+  CartItem          - id, cart_id, product_id, quantity, variant_id
+
+COMMERCE:
+  Coupon            - id, vendor_id, code, type, value, min_order_amount,
+                      max_uses, used_count, expires_at, is_active
+  Review            - id, user_id, product_id, rating, comment
+  Wishlist          - id, user_id, product_id
+  Dispute           - id, order_id, user_id, vendor_id, type, description,
+                      status, resolution
+  ShippingMethod    - id, name, description, price, estimated_days
+
+MESSAGING:
+  Conversation      - id, user_id, vendor_id
+  Message           - id, conversation_id, sender_id, body, read_at
+  Notification      - id, user_id, type, title, message, action_url, read_at
+
+PLATFORM ADMIN:
+  AuditLog          - id, user_id, action, model_type, model_id, details
+  SystemSetting     - id, key, value, group
+  EmailTemplate     - id, name, slug, subject, body
+  EmailCampaign     - id, name, subject, body, recipient_type, status
+  ContactMessage    - id, name, email, subject, message, status
+  Role              - id, name, slug, permissions
+  Permission        - id, name, slug, group
+  FeatureToggle     - id, key, enabled, description
+
+AI MODELS:
+  AIAction          - id, type, input, output, model, tokens
+  AIChatSession     - id, user_id, title
+  AIChatMessage     - id, session_id, role, content
+  AIEmergencyStatus - id, is_active, killed_at
+  AIProvider        - id, name, model, api_key, is_active
+
+================================================================================
+5. MOBILE APP SCREENS LIST
+================================================================================
+
+Total screens to build: ~55 screens across 3 roles
+
+--------------------------------------------------------------------------------
+5.1 COMMON SCREENS (All Users)
+--------------------------------------------------------------------------------
+
+#   SCREEN NAME                     DESCRIPTION
+--  -----------                     -----------
+1.  Splash Screen                   App loading with BuyNiger logo animation
+2.  Onboarding                      3-slide intro (Browse → Buy → Track)
+3.  Login                           Email + password, social login buttons
+4.  Register (Customer)             Name, email, phone, password
+5.  Register (Vendor)               Extended form: store name, desc, address
+6.  Email Verification              6-digit OTP input with resend button
+7.  Forgot Password                 Email input to send reset link
+8.  Reset Password                  New password + confirmation
+
+--------------------------------------------------------------------------------
+5.2 CUSTOMER SCREENS (Bottom Tab Navigation)
+--------------------------------------------------------------------------------
+
+TAB 1: HOME
+#   SCREEN NAME                     DESCRIPTION
+--  -----------                     -----------
+9.  Home                            Hero banner, categories row, featured 
+                                    products, trending, deals of the day
+10. Search Results                  Product grid with filters sidebar/sheet
+11. Category Products               Products filtered by category
+12. Product Detail                  Images carousel, price, description,
+                                    variants, reviews, add-to-cart, vendor info
+13. Store Page                      Vendor's store: banner, products, about
+14. All Stores                      Browse all vendor stores
+
+TAB 2: CATEGORIES
+15. Categories Grid                 All categories with icons/images
+16. Sub-Category Products           Products within a sub-category
+
+TAB 3: CART
+17. Cart                            List of cart items, quantities, subtotal,
+                                    coupon input, checkout button
+18. Checkout                        Shipping address, payment method,
+                                    order summary, place order
+19. Payment Webview                 Paystack payment gateway (WebView)
+20. Order Confirmation              Success screen with order ID & summary
+
+TAB 4: ORDERS
+21. My Orders                       List of all orders with status chips
+22. Order Detail                    Full order breakdown: items, tracking,
+                                    delivery address, payment info
+23. Track Order                     Visual timeline: ordered → shipped → 
+                                    delivered
+
+TAB 5: PROFILE / ACCOUNT
+24. My Profile                      Name, email, phone, avatar
+25. Edit Profile                    Edit name, phone, upload avatar
+26. Change Password                 Current + new password form
+27. My Addresses                    List of saved addresses
+28. Add/Edit Address                Address form
+29. Wishlist                        Saved products grid with move-to-cart
+30. My Reviews                      Reviews I've written
+31. Notifications                   All notifications with unread indicator
+32. Contact Support                 Contact form or chat
+33. Settings                        App preferences: language, currency,
+                                    push notifications toggle, dark mode
+34. About / Help                    App info, FAQ, terms, privacy
+
+MODAL / OVERLAY SCREENS:
+35. Filter Sheet                    Price range, category, rating, sort
+36. Review Form                     Star rating + comment textarea
+37. Coupon Input                    Enter & apply coupon code
+
+--------------------------------------------------------------------------------
+5.3 VENDOR SCREENS (Bottom Tab Navigation)
+--------------------------------------------------------------------------------
+
+VENDOR TAB 1: DASHBOARD
+#   SCREEN NAME                     DESCRIPTION
+--  -----------                     -----------
+38. Vendor Dashboard                Revenue card, orders card, products card,
+                                    recent orders list, mini chart
+39. Analytics                       Full analytics: KPI cards, revenue chart,
+                                    order status pie, top products, AI insights
+                                    Period tabs: 7d / 30d / 90d / 1yr / All
+
+VENDOR TAB 2: PRODUCTS
+40. Product List                    Grid/list of vendor's products, search,
+                                    bulk actions
+41. Add Product                     Multi-step form: info → images → pricing
+                                    → variants → publish
+42. Edit Product                    Pre-filled product form
+43. Inventory Management            Stock levels list with quick edit
+
+VENDOR TAB 3: ORDERS
+44. Vendor Orders                   All orders with status tabs (pending,
+                                    processing, shipped, delivered)
+45. Vendor Order Detail             Order info + update status button
+46. Export Orders                   Download orders report
+
+VENDOR TAB 4: STORE
+47. Store Profile                   Store name, logo, banner, description
+48. Edit Store Profile              Update store info + upload images
+49. Coupons                         List, create, toggle, delete coupons
+50. Create/Edit Coupon              Coupon form: code, type, value, expiry
+
+VENDOR TAB 5: MORE
+51. Finances                        Earnings overview, payout history,
+                                    request payout
+52. Payout Request                  Amount, bank details form
+53. Messages                        Customer conversations list
+54. Conversation                    Chat view with message bubbles
+55. Vendor Settings                 Business settings, notification prefs
+
+================================================================================
+6. SCREEN-TO-API MAPPING
+================================================================================
+
+This section maps each screen to the API endpoints it needs:
+
+SCREEN                          API CALLS NEEDED
+------                          ----------------
+Splash Screen                   → GET /sanctum/csrf-cookie
+                                → Check stored token validity
+
+Login                           → POST /login
+Register (Customer)             → POST /register
+Register (Vendor)               → POST /vendor/register
+Email Verification              → POST /verify-email
+                                → POST /verify-email/resend
+Forgot Password                 → POST /forgot-password
+Reset Password                  → POST /reset-password
+
+Home                            → GET / (homepage data)
+                                → GET /shop?featured=1
+Search Results                  → GET /shop?q=keyword&sort=...
+                                → GET /search/suggestions?q=...
+Category Products               → GET /category/{slug}
+Product Detail                  → GET /product/{slug}
+Store Page                      → GET /store/{slug}
+All Stores                      → GET /stores
+
+Cart                            → GET /cart
+                                → POST /cart/update
+                                → DELETE /cart/remove/{id}
+                                → POST /cart/coupon
+Add to Cart                     → POST /cart/add
+Checkout                        → GET /checkout
+                                → POST /checkout
+Order Confirmation              → GET /orders/{id}
+
+My Orders                       → GET /orders
+Order Detail                    → GET /orders/{id}
+Track Order                     → POST /track-order
+
+Wishlist                        → GET /wishlist
+                                → DELETE /wishlist/{id}
+                                → POST /wishlist/move/{id}
+Add to Wishlist                 → POST /wishlist/add
+
+My Profile                      → GET /profile
+Edit Profile                    → POST /profile
+                                → POST /profile/avatar
+Change Password                 → POST /profile/password
+
+Addresses                       → GET /addresses
+                                → POST /addresses
+                                → PUT /addresses/{id}
+                                → DELETE /addresses/{id}
+
+Notifications                   → GET /notifications
+                                → POST /notifications/{id}/read
+                                → POST /notifications/read-all
+
+Vendor Dashboard                → GET /vendor/dashboard
+Vendor Analytics                → GET /vendor/analytics?period=30
+                                → GET /vendor/analytics/export?period=30
+Vendor Products                 → GET /vendor/products
+Add/Edit Product                → POST /vendor/products
+                                → PUT /vendor/products/{id}
+                                → DELETE /vendor/products/{id}
+Inventory                       → GET /vendor/inventory
+                                → POST /vendor/inventory/update-stock
+
+Vendor Orders                   → GET /vendor/orders
+Vendor Order Detail             → GET /vendor/orders/{id}
+                                → POST /vendor/orders/{id}/status
+Export Orders                   → GET /vendor/orders/export
+
+Store Profile                   → GET /vendor/profile
+Edit Store                      → POST /vendor/profile
+
+Coupons                         → GET /vendor/coupons
+Create Coupon                   → POST /vendor/coupons
+Toggle/Delete Coupon            → POST /vendor/coupons/toggle/{id}
+                                → DELETE /vendor/coupons/{id}
+
+Finances                        → GET /vendor/finances
+Request Payout                  → POST /vendor/payouts/request
+
+Messages                        → GET /vendor/messages
+Conversation                    → GET /vendor/messages/{id}
+                                → POST /vendor/messages/{id}
+
+Vendor Settings                 → GET /vendor/settings
+                                → POST /vendor/settings
+
+================================================================================
+7. NOTES FOR MOBILE DEVELOPERS
+================================================================================
+
+7.1 TECHNOLOGY RECOMMENDATIONS
+------------------------------
+- Framework:      Flutter (cross-platform) or React Native
+- State Mgmt:     Flutter: Riverpod / BLoC | RN: Redux / Zustand
+- HTTP Client:    Flutter: Dio | RN: Axios
+- Auth Storage:   Flutter: flutter_secure_storage | RN: Keychain/Keystore
+- Push Notifs:    Firebase Cloud Messaging (FCM)
+- Payment:        Paystack Mobile SDK
+- Image Upload:   Multipart form data with compression
+- Caching:        Cache product listings, categories locally
+
+7.2 API VERSIONING
+-------------------
+All mobile API routes should be prefixed: /api/v1/
+This allows backward compatibility when the API evolves.
+
+7.3 PAGINATION
+--------------
+All list endpoints support pagination:
+  ?page=1&per_page=20
+
+Response format:
+  {
+    "data": [...],
+    "meta": {
+      "current_page": 1,
+      "last_page": 5,
+      "per_page": 20,
+      "total": 100
+    }
+  }
+
+7.4 ERROR HANDLING
+------------------
+Standard error response format:
+  {
+    "success": false,
+    "message": "Validation failed",
+    "errors": {
+      "email": ["The email field is required."],
+      "password": ["Password must be at least 8 characters."]
+    }
+  }
+
+HTTP Status Codes:
+  200 - Success
+  201 - Created
+  400 - Bad Request
+  401 - Unauthorized (token expired/invalid)
+  403 - Forbidden (wrong role)
+  404 - Not Found
+  419 - CSRF Token Mismatch
+  422 - Validation Error
+  429 - Too Many Requests (rate limited)
+  500 - Server Error
+
+7.5 IMAGE HANDLING
+------------------
+- Product images are stored at: /storage/products/{vendor_id}/
+- User avatars at: /storage/avatars/
+- Vendor logos at: /storage/vendors/logos/
+- Vendor banners at: /storage/vendors/banners/
+- Full URL: https://your-domain.com/storage/products/1/image.jpg
+
+Upload Requirements:
+  - Max file size: 5MB per image
+  - Formats: JPEG, PNG, WebP
+  - Products: Up to 5 images
+  - Always compress before uploading from mobile
+
+7.6 REAL-TIME FEATURES (Future)
+-------------------------------
+For real-time notifications and chat, consider:
+  - Laravel WebSockets / Pusher for real-time events
+  - Firebase for push notifications
+  - Socket.IO for live chat
+
+7.7 OFFLINE SUPPORT
+-------------------
+Consider caching these locally:
+  - Categories list
+  - User profile data
+  - Cart items (sync on reconnection)
+  - Product browsing history
+  - Saved addresses
+
+7.8 DEEP LINKING
+----------------
+Support deep links for:
+  - Product: buyniger://product/{slug}
+  - Store: buyniger://store/{slug}
+  - Order: buyniger://orders/{id}
+  - Category: buyniger://category/{slug}
+
+7.9 TESTING
+-----------
+  - Base URL for dev: http://127.0.0.1:8000
+  - Test accounts:
+    Customer: test@example.com / password
+    Vendor: vendor@example.com / password
+    Admin: admin@buyniger.com / admin001
+
+================================================================================
+END OF DOCUMENTATION
+Total API Endpoints: 90+
+Total Mobile Screens: ~55
+Total Data Models: 38
+================================================================================

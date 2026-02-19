@@ -50,6 +50,119 @@
             </div>
         </div>
 
+        <div class="dashboard-card mb-4">
+            <div class="dashboard-card-header">
+                <h3>KYC Verification</h3>
+                @php
+                    $kycStatus = $vendor->kyc_status ?? 'not_submitted';
+                    $kycBadge = match($kycStatus) {
+                        'verified' => 'success',
+                        'pending' => 'warning',
+                        'rejected' => 'danger',
+                        default => 'secondary',
+                    };
+                @endphp
+                <span class="badge badge-{{ $kycBadge }}">
+                    {{ ucfirst(str_replace('_', ' ', $kycStatus)) }}
+                </span>
+            </div>
+            <div class="dashboard-card-body">
+                @if($kycStatus === 'not_submitted')
+                    <p class="text-muted text-center py-3">Vendor has not submitted KYC details yet.</p>
+                @else
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">ID Type</label>
+                            <p class="fw-bold">{{ ucwords(str_replace('_', ' ', $vendor->id_type)) }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">ID Number</label>
+                            <p class="fw-bold">{{ $vendor->id_number }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">NIN</label>
+                            <p class="fw-bold">{{ $vendor->nin ?? 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">BVN</label>
+                            <p class="fw-bold">{{ $vendor->bvn ?? 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">CAC Number</label>
+                            <p class="fw-bold">{{ $vendor->cac_number ?? 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Verification Date</label>
+                            <p class="fw-bold">{{ $vendor->kyc_verified_at ? $vendor->kyc_verified_at->format('M d, Y H:i') : 'Pending' }}</p>
+                        </div>
+                    </div>
+
+                    <h6 class="mb-3 border-bottom pb-2">Uploaded Documents</h6>
+                    <div class="row g-3 mb-4">
+                        @if($vendor->id_document_path)
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded bg-light">
+                                <i class="fas fa-id-card fa-2x text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">ID Document</h6>
+                                    <a href="{{ Storage::url($vendor->id_document_path) }}" target="_blank" class="small text-decoration-none">View Document</a>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        
+                        @if($vendor->cac_document_path)
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded bg-light">
+                                <i class="fas fa-file-contract fa-2x text-info me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">CAC Certificate</h6>
+                                    <a href="{{ Storage::url($vendor->cac_document_path) }}" target="_blank" class="small text-decoration-none">View Certificate</a>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+
+                    @if($kycStatus === 'verified')
+                    <hr>
+                    <div class="alert alert-success d-flex align-items-center gap-2 mb-0">
+                        <i class="fas fa-check-circle fa-lg"></i>
+                        <div>
+                            <strong>KYC Verified</strong> — This vendor's identity has been verified on {{ $vendor->kyc_verified_at ? $vendor->kyc_verified_at->format('M d, Y') : 'N/A' }}.
+                        </div>
+                    </div>
+                    @elseif($kycStatus === 'pending' || $kycStatus === 'rejected')
+                    <hr>
+                    <h6 class="mb-3">Verification Actions</h6>
+                    <div class="d-flex gap-2">
+                        <form action="{{ route($prefix.'vendors.kyc', $vendor) }}" method="POST" class="w-50">
+                            @csrf
+                            <input type="hidden" name="status" value="verified">
+                            <button type="submit" class="btn btn-success w-100" onclick="return confirm('Are you sure you want to verify this vendor\'s identity? This will also approve their account if pending.')">
+                                <i class="fas fa-check-circle me-1"></i> Approve KYC
+                            </button>
+                        </form>
+                        
+                        <button type="button" class="btn btn-danger w-50" onclick="document.getElementById('rejectKycForm').style.display = 'block'">
+                            <i class="fas fa-times-circle me-1"></i> Reject KYC
+                        </button>
+                    </div>
+
+                    <form id="rejectKycForm" action="{{ route($prefix.'vendors.kyc', $vendor) }}" method="POST" class="mt-3" style="display: none;">
+                        @csrf
+                        <input type="hidden" name="status" value="rejected">
+                        <div class="form-group mb-2">
+                            <label>Rejection Reason</label>
+                            <textarea name="reason" class="form-control" rows="2" placeholder="Explain why the KYC documents were rejected..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger btn-sm">Confirm Rejection</button>
+                    </form>
+                    @endif
+                @endif
+            </div>
+        </div>
+
         <div class="dashboard-card">
             <div class="dashboard-card-header">
                 <h3>Documents</h3>

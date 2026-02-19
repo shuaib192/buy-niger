@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class AIProvider extends Model
 {
     use HasFactory;
+    
+    protected $table = 'ai_providers';
     protected $fillable = [
         'name',
         'display_name',

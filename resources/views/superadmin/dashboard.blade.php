@@ -63,6 +63,23 @@
 @endphp
     <!-- Dashboard Grid -->
     <div class="row g-4">
+        <!-- Track Order Card -->
+        <div class="col-12">
+            <div class="dashboard-card bg-primary-50 border-primary-100">
+                <div class="dashboard-card-body d-flex align-items-center justify-content-between p-4">
+                    <div>
+                        <h3 class="h5 font-bold text-primary-900 mb-1">Track Order</h3>
+                        <p class="text-primary-700 mb-0 text-sm">Enter an Order Number (e.g., BN-...) or Tracking ID to view details.</p>
+                    </div>
+                    <form action="{{ route($prefix.'track') }}" method="POST" class="d-flex gap-2" style="min-width: 400px;">
+                        @csrf
+                        <input type="text" name="order_number" class="form-control" placeholder="Enter Order # or Tracking ID" required>
+                        <button type="submit" class="btn btn-primary white-space-nowrap">Track</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <!-- Recent Orders -->
         <div class="dashboard-card col-8">
             <div class="dashboard-card-header">

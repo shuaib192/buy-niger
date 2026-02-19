@@ -8,150 +8,108 @@
 @endsection
 
 @section('content')
-<div class="messaging-container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-5">
+<div class="messages-page">
+    {{-- Page Header --}}
+    <div class="page-header-premium">
         <div>
-            <h1 class="h3 font-bold text-secondary-900 mb-1">Customer Messages</h1>
-            <p class="text-secondary-500 mb-0">Manage communication with your store visitors and customers.</p>
+            <h1 class="page-title">Customer Messages</h1>
+            <p class="page-subtitle">Respond to inquiries and keep your customers happy.</p>
         </div>
-        <div class="message-stats d-flex gap-4">
-            <div class="stat-item text-center">
-                <div class="h4 font-bold mb-0 text-primary">{{ $conversations->sum('unread_count_for_vendor') }}</div>
-                <small class="text-xs uppercase font-bold text-secondary-400">Unread</small>
+        <div class="msg-stats">
+            <div class="msg-stat">
+                <span class="msg-stat-value text-primary">{{ $conversations->sum('unread_count_for_vendor') ?? 0 }}</span>
+                <span class="msg-stat-label">Unread</span>
             </div>
-            <div class="stat-item text-center">
-                <div class="h4 font-bold mb-0 text-secondary-900">{{ $conversations->total() }}</div>
-                <small class="text-xs uppercase font-bold text-secondary-400">Total</small>
+            <div class="msg-stat-divider"></div>
+            <div class="msg-stat">
+                <span class="msg-stat-value">{{ $conversations->total() }}</span>
+                <span class="msg-stat-label">Total</span>
             </div>
         </div>
     </div>
 
-    <div class="dashboard-card border-0 shadow-sm overflow-hidden">
-        <div class="dashboard-card-body p-0">
-            @if($conversations->count() > 0)
-                <div class="conversation-list">
-                    @foreach($conversations as $conversation)
-                        <a href="{{ route('vendor.messages.show', $conversation->id) }}" class="conversation-item {{ $conversation->unread_count_for_vendor > 0 ? 'unread' : '' }}">
-                            <div class="item-content d-flex align-items-center p-4">
-                                <div class="avatar-container mr-4">
-                                    <div class="avatar-circle">
-                                        {{ substr($conversation->user->name, 0, 1) }}
-                                    </div>
-                                    @if($conversation->unread_count_for_vendor > 0)
-                                        <div class="unread-dot"></div>
-                                    @endif
-                                </div>
-                                
-                                <div class="flex-grow-1 mr-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <h5 class="customer-name mb-0">{{ $conversation->user->name }}</h5>
-                                        <span class="message-time">{{ $conversation->last_message_at->diffForHumans() }}</span>
-                                    </div>
-                                    <p class="latest-preview mb-0">{{ Str::limit($conversation->latestMessage->body, 120) }}</p>
-                                </div>
-
-                                <div class="message-actions">
-                                    <i class="fas fa-chevron-right text-secondary-300"></i>
-                                </div>
+    <div class="premium-card">
+        @if($conversations->count() > 0)
+            <div class="conversation-list">
+                @foreach($conversations as $conversation)
+                    @php $isUnread = ($conversation->unread_count_for_vendor ?? 0) > 0; @endphp
+                    <a href="{{ route('vendor.messages.show', $conversation->id) }}" class="conversation-row {{ $isUnread ? 'unread' : '' }}">
+                        <div class="conv-avatar">
+                            {{ substr($conversation->user->name ?? 'U', 0, 1) }}
+                            @if($isUnread) <span class="unread-indicator"></span> @endif
+                        </div>
+                        <div class="conv-content">
+                            <div class="conv-top">
+                                <span class="conv-name">{{ $conversation->user->name ?? 'Unknown' }}</span>
+                                <span class="conv-time">{{ $conversation->last_message_at ? $conversation->last_message_at->diffForHumans() : '' }}</span>
                             </div>
-                        </a>
-                    @endforeach
-                </div>
-                
-                @if($conversations->hasPages())
-                <div class="pagination-footer p-4 bg-white border-top">
-                    {{ $conversations->links() }}
-                </div>
-                @endif
-            @else
-                <div class="text-center py-5 empty-state">
-                    <div class="empty-icon-box mb-4">
-                        <i class="fas fa-comments"></i>
-                    </div>
-                    <h3 class="font-bold text-secondary-900 mb-2">No conversations found</h3>
-                    <p class="text-secondary-500 max-w-sm mx-auto">When customers message you about your products, their inquiries will appear here for you to respond.</p>
-                </div>
+                            @if($conversation->subject)
+                                <div class="conv-subject">{{ $conversation->subject }}</div>
+                            @endif
+                            <div class="conv-preview">{{ Str::limit($conversation->latestMessage->body ?? 'No messages yet', 100) }}</div>
+                        </div>
+                        <div class="conv-arrow"><i class="fas fa-chevron-right"></i></div>
+                    </a>
+                @endforeach
+            </div>
+            
+            @if($conversations->hasPages())
+            <div class="pagination-bar">{{ $conversations->links() }}</div>
             @endif
-        </div>
+        @else
+            <div class="empty-state-premium">
+                <div class="empty-icon"><i class="fas fa-comments"></i></div>
+                <h4>No conversations yet</h4>
+                <p>When customers contact you about your products, their messages will appear here.</p>
+            </div>
+        @endif
     </div>
 </div>
 
 <style>
-    .messaging-container { max-width: 1000px; margin: 0 auto; }
-    .font-bold { font-weight: 700; }
-    .letter-spacing-1 { letter-spacing: 0.05em; }
-    
-    .conversation-item {
-        display: block;
-        text-decoration: none;
-        color: inherit;
-        border-bottom: 1px solid #f1f5f9;
-        transition: all 0.2s ease;
-        background: white;
-    }
-    
-    .conversation-item:last-child { border-bottom: none; }
-    .conversation-item:hover { background: #f8fafc; }
-    
-    .conversation-item.unread { background: #f0f7ff; }
-    .conversation-item.unread:hover { background: #eaf1ff; }
-    
-    .avatar-container { position: relative; }
-    .avatar-circle {
-        width: 56px;
-        height: 56px;
-        background: linear-gradient(135deg, #0066FF 0%, #004ecc 100%);
-        color: white;
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 20px;
-        box-shadow: 0 4px 10px rgba(0, 102, 255, 0.2);
-    }
-    
-    .unread-dot {
-        position: absolute;
-        top: -4px;
-        right: -4px;
-        width: 14px;
-        height: 14px;
-        background: #ef4444;
-        border: 3px solid white;
-        border-radius: 50%;
-    }
-    
-    .customer-name { font-size: 16px; font-weight: 700; color: #1e293b; transition: color 0.2s ease; }
-    .conversation-item:hover .customer-name { color: #0066FF; }
-    
-    .message-time { font-size: 12px; color: #94a3b8; font-weight: 500; }
-    
-    .latest-preview {
-        font-size: 14px;
-        color: #64748b;
-        line-height: 1.5;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .conversation-item.unread .latest-preview { color: #334155; font-weight: 600; }
-    
-    .empty-icon-box {
-        width: 100px;
-        height: 100px;
-        background: #f1f5f9;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-        color: #94a3b8;
-        font-size: 40px;
-    }
-    
-    .max-w-sm { max-width: 24rem; }
-    .gap-4 { gap: 2rem; }
+    .messages-page { animation: fadeInUp 0.4s ease; max-width: 900px; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .page-header-premium { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+    .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 4px; letter-spacing: -0.02em; }
+    .page-subtitle { color: #64748b; font-size: 14px; margin: 0; font-weight: 500; }
+
+    .msg-stats { display: flex; align-items: center; gap: 20px; background: white; border: 1px solid #f1f5f9; border-radius: 16px; padding: 12px 24px; }
+    .msg-stat { display: flex; flex-direction: column; align-items: center; }
+    .msg-stat-value { font-size: 22px; font-weight: 800; color: #0f172a; line-height: 1; }
+    .msg-stat-value.text-primary { color: #0066FF; }
+    .msg-stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-top: 2px; }
+    .msg-stat-divider { width: 1px; height: 32px; background: #f1f5f9; }
+
+    .premium-card { background: white; border: 1px solid #f1f5f9; border-radius: 20px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.03); }
+
+    .conversation-row { display: flex; align-items: center; gap: 16px; padding: 18px 24px; border-bottom: 1px solid #f8fafc; text-decoration: none; color: inherit; transition: all 0.2s ease; cursor: pointer; }
+    .conversation-row:last-child { border-bottom: none; }
+    .conversation-row:hover { background: #fafbfc; }
+    .conversation-row.unread { background: #f0f7ff; }
+    .conversation-row.unread:hover { background: #e8f0ff; }
+
+    .conv-avatar { width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; flex-shrink: 0; position: relative; box-shadow: 0 4px 10px rgba(102,126,234,0.2); }
+    .unread-indicator { position: absolute; top: -3px; right: -3px; width: 14px; height: 14px; background: #ef4444; border: 3px solid white; border-radius: 50%; }
+
+    .conv-content { flex-grow: 1; min-width: 0; }
+    .conv-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+    .conv-name { font-size: 15px; font-weight: 700; color: #0f172a; }
+    .conv-time { font-size: 12px; color: #94a3b8; font-weight: 500; white-space: nowrap; }
+    .conv-subject { font-size: 12px; color: #0066FF; font-weight: 600; margin-bottom: 2px; }
+    .conv-preview { font-size: 13px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; }
+    .conversation-row.unread .conv-preview { color: #334155; font-weight: 600; }
+
+    .conv-arrow { color: #cbd5e1; font-size: 12px; transition: transform 0.2s; flex-shrink: 0; }
+    .conversation-row:hover .conv-arrow { transform: translateX(3px); color: #94a3b8; }
+
+    .empty-state-premium { text-align: center; padding: 60px 20px; }
+    .empty-icon { width: 80px; height: 80px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px; color: #94a3b8; }
+    .empty-state-premium h4 { font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .empty-state-premium p { color: #94a3b8; font-size: 14px; max-width: 360px; margin: 0 auto; }
+
+    .pagination-bar { padding: 16px 24px; border-top: 1px solid #f1f5f9; }
+
+    @media (max-width: 768px) { .page-header-premium { flex-direction: column; align-items: flex-start; } .msg-stats { width: 100%; justify-content: center; } }
 </style>
 @endsection

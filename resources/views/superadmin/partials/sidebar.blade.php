@@ -5,7 +5,14 @@
     Partial: Super Admin Sidebar
 --}}
 @php
-    $prefix = request()->is('admin*') ? 'admin.' : 'superadmin.';
+    if (request()->is('admin*')) {
+        $prefix = 'admin.';
+    } elseif (request()->is('superadmin*')) {
+        $prefix = 'superadmin.';
+    } else {
+        // Fallback: use role to determine prefix
+        $prefix = (auth()->user()->role_id == 1) ? 'superadmin.' : 'admin.';
+    }
 @endphp
 <div class="nav-section">
     <div class="nav-section-title">Main</div>
@@ -45,9 +52,17 @@
         <span class="nav-label">Payouts</span>
     </a>
     @endif
+    <a href="{{ route($prefix.'transactions') }}" class="nav-link {{ request()->routeIs($prefix.'transactions*') ? 'active' : '' }}">
+        <i class="fas fa-history"></i>
+        <span class="nav-label">Transactions</span>
+    </a>
     <a href="{{ route($prefix.'disputes') }}" class="nav-link {{ request()->routeIs($prefix.'disputes*') ? 'active' : '' }}">
         <i class="fas fa-exclamation-circle"></i>
         <span class="nav-label">Disputes</span>
+    </a>
+    <a href="{{ route($prefix.'messages') }}" class="nav-link {{ request()->routeIs($prefix.'messages*') ? 'active' : '' }}">
+        <i class="fas fa-envelope-open-text"></i>
+        <span class="nav-label">Messages</span>
     </a>
 </div>
 
