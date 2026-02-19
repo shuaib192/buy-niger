@@ -145,6 +145,10 @@ GET     /search/suggestions             Live search suggestions             No
 GET     /stores                         All vendor stores listing           No
 GET     /store/{slug}                   Individual vendor store page        No
 
+Query Parameters for /store/{slug} (In-Store Search):
+  ?search=keyword     - Search products within this particular store
+  ?category=slug      - Filter products within this store by category
+
 Query Parameters for /shop:
   ?q=keyword          - Search query
   ?category=slug      - Filter by category
@@ -692,7 +696,7 @@ VENDOR MODELS:
   Vendor            - id, user_id, store_name, store_slug, description,
                       logo, banner, phone, address, city, state, status,
                       kyc_status, kyc_verified_at, approved_at, total_sales,
-                      commission_rate
+                      commission_rate, business_type, registration_number
   VendorBankDetail  - id, vendor_id, bank_name, account_number, account_name
   VendorDocument    - id, vendor_id, type, file_path, status
   VendorPayout      - id, vendor_id, amount, status, reference, 
@@ -785,7 +789,8 @@ TAB 1: HOME
 11. Category Products               Products filtered by category
 12. Product Detail                  Images carousel, price, description,
                                     variants, reviews, add-to-cart, vendor info
-13. Store Page                      Vendor's store: banner, products, about
+13. Store Page                      Vendor's storefront: banner, info, 
+                                    IN-STORE SEARCH BAR, categories, products
 14. All Stores                      Browse all vendor stores
 
 TAB 2: CATEGORIES
@@ -893,6 +898,8 @@ Search Results                  → GET /shop?q=keyword&sort=...
 Category Products               → GET /category/{slug}
 Product Detail                  → GET /product/{slug}
 Store Page                      → GET /store/{slug}
+                                → GET /store/{slug}?search=keyword
+                                → GET /store/{slug}?category=slug
 All Stores                      → GET /stores
 
 Cart                            → GET /cart
