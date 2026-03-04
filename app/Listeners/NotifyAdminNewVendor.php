@@ -29,7 +29,7 @@ class NotifyAdminNewVendor implements ShouldQueue
                 'vendor_pending',
                 'New Vendor Application',
                 "A new vendor '{$event->vendor->store_name}' has applied and is awaiting approval.",
-                '/admin/vendors/pending'
+                '/admin/vendors'
             );
         }
     }

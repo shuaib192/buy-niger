@@ -21,6 +21,7 @@
                         <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                             <option value="">All Statuses</option>
                             <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Open</option>
+                            <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                             <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Resolved</option>
                             <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
                             <option value="escalated" {{ request('status') == 'escalated' ? 'selected' : '' }}>Escalated</option>
@@ -35,7 +36,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Subject</th>
-                                <th>User</th>
+                                <th>Customer</th>
                                 <th>Order</th>
                                 <th>Priority</th>
                                 <th>Status</th>
@@ -53,8 +54,8 @@
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <img src="{{ $dispute->user->avatar_url }}" class="rounded-circle" width="24" height="24">
-                                            <span>{{ $dispute->user->name }}</span>
+                                            <img src="https://ui-avatars.com/api/?name={{ urlencode($dispute->user->name ?? 'U') }}&background=random&size=24" class="rounded-circle" width="24" height="24">
+                                            <span>{{ $dispute->user->name ?? 'Unknown' }}</span>
                                         </div>
                                     </td>
                                     <td>
@@ -68,13 +69,14 @@
                                     </td>
                                     <td>
                                         @if($dispute->priority == 'critical') <span class="badge badge-danger">Critical</span>
-                                        @elseif($dispute->priority == 'high') <span class="badge badge-orange">High</span>
-                                        @elseif($dispute->priority == 'medium') <span class="badge badge-warning">Medium</span>
+                                        @elseif($dispute->priority == 'high') <span class="badge badge-warning">High</span>
+                                        @elseif($dispute->priority == 'medium') <span class="badge badge-info">Medium</span>
                                         @else <span class="badge badge-secondary">Low</span>
                                         @endif
                                     </td>
                                     <td>
                                         @if($dispute->status == 'open') <span class="badge badge-primary">Open</span>
+                                        @elseif($dispute->status == 'in_progress') <span class="badge badge-info">In Progress</span>
                                         @elseif($dispute->status == 'resolved') <span class="badge badge-success">Resolved</span>
                                         @elseif($dispute->status == 'closed') <span class="badge badge-secondary">Closed</span>
                                         @else <span class="badge badge-danger">Escalated</span>
@@ -82,43 +84,9 @@
                                     </td>
                                     <td>{{ $dispute->created_at->format('M d, Y') }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#resolveModal{{ $dispute->id }}">
-                                            Manage
-                                        </button>
-
-                                        <!-- Resolve Modal -->
-                                        <div class="modal fade" id="resolveModal{{ $dispute->id }}" tabindex="-1">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <form action="{{ route($prefix.'disputes.update', $dispute) }}" method="POST">
-                                                        @csrf
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title">Manage Dispute #{{ $dispute->id }}</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <div class="mb-3">
-                                                                <label class="form-label">Status</label>
-                                                                <select name="status" class="form-select">
-                                                                    <option value="open" {{ $dispute->status == 'open' ? 'selected' : '' }}>Open</option>
-                                                                    <option value="resolved" {{ $dispute->status == 'resolved' ? 'selected' : '' }}>Resolved</option>
-                                                                    <option value="closed" {{ $dispute->status == 'closed' ? 'selected' : '' }}>Closed</option>
-                                                                    <option value="escalated" {{ $dispute->status == 'escalated' ? 'selected' : '' }}>Escalated</option>
-                                                                </select>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label">Resolution Notes</label>
-                                                                <textarea name="resolution_notes" class="form-control" rows="3">{{ $dispute->resolution_notes }}</textarea>
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <a href="{{ route($prefix.'disputes.show', $dispute->id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
                                     </td>
                                 </tr>
                             @empty

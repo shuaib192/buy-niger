@@ -45,7 +45,7 @@ class ProcessPayment implements ShouldQueue
             'payment_success',
             'Payment Successful',
             "Your payment of ₦" . number_format($event->amount, 2) . " for order #{$order->order_number} was successful.",
-            '/orders/' . $order->id
+            '/order/' . $order->id
         );
 
         // Calculate and record vendor commissions

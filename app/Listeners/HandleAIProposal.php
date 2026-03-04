@@ -30,7 +30,7 @@ class HandleAIProposal implements ShouldQueue
                     'ai_proposal',
                     "AI {$event->aiRole} Proposal",
                     "AI proposes: {$event->action} [Risk: {$event->riskLevel}]",
-                    '/admin/ai/simulations/' . $event->simulationId
+                    '/admin/ai'
                 );
             }
         }

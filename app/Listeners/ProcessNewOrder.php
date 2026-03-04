@@ -33,6 +33,8 @@ class ProcessNewOrder implements ShouldQueue
                 'order_number' => $order->order_number,
                 'order_total' => '₦' . number_format($order->total, 2),
                 'order_items' => $this->formatOrderItems($order),
+                'order_url' => url('/order/' . $order->order_number),
+                'tracking_url' => url('/track-order'),
             ],
             $order->user_id
         );

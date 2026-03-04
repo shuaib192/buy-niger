@@ -161,7 +161,7 @@
                     {{-- CTA --}}
                     <tr>
                         <td style="padding:16px 40px 32px; text-align:center;">
-                            <a href="{{ url('/orders/' . $order->order_number) }}" style="display:inline-block; background:linear-gradient(135deg, #1e40af, #3b82f6); color:white; padding:14px 40px; border-radius:10px; text-decoration:none; font-weight:700; font-size:15px;">
+                            <a href="{{ url('/track-order') }}" style="display:inline-block; background:linear-gradient(135deg, #1e40af, #3b82f6); color:white; padding:14px 40px; border-radius:10px; text-decoration:none; font-weight:700; font-size:15px;">
                                 Track Your Order
                             </a>
                         </td>

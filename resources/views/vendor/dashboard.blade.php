@@ -209,7 +209,7 @@
         </div>
 
         <!-- Sidebar Column -->
-        <div class="dashboard-sidebar col-4">
+        <div class="col-lg-4">
             <!-- Share Your Store Link -->
             @if($vendor && $vendor->store_slug)
             <div class="dashboard-card mb-4" style="border:2px solid #dbeafe; background:linear-gradient(135deg,#eff6ff,#f0f9ff);">

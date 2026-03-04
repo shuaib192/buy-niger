@@ -106,6 +106,12 @@ Route::middleware('auth')->group(function () {
 // Paystack Webhook (no auth)
 Route::post('/webhook/paystack', [PaymentController::class, 'webhook'])->name('payment.webhook');
 
+// Vendor Application (for existing logged-in customers)
+Route::middleware('auth')->group(function () {
+    Route::get('/become-a-vendor', [ShopController::class, 'showVendorApplication'])->name('vendor.apply');
+    Route::post('/become-a-vendor', [ShopController::class, 'submitVendorApplication'])->name('vendor.apply.submit');
+});
+
 // Redirect /home to /
 Route::get('/home', function () {
     return redirect('/');
@@ -175,6 +181,9 @@ Route::middleware(['auth', 'role:4'])->prefix('account')->name('customer.')->gro
     
     // Disputes
     Route::post('/orders/{order}/dispute', [CustomerController::class, 'storeDispute'])->name('dispute.store');
+
+    // Order Cancellation
+    Route::post('/orders/{order}/cancel', [CustomerController::class, 'cancelOrder'])->name('orders.cancel');
 });
 
 /*
@@ -271,7 +280,9 @@ Route::middleware(['auth', 'role:2'])->prefix('admin')->name('admin.')->group(fu
 
     // Disputes
     Route::get('/disputes', [SuperAdminController::class, 'disputes'])->name('disputes');
+    Route::get('/disputes/{dispute}', [SuperAdminController::class, 'disputeShow'])->name('disputes.show');
     Route::post('/disputes/{dispute}/update', [SuperAdminController::class, 'updateDisputeStatus'])->name('disputes.update');
+    Route::post('/disputes/{dispute}/message', [SuperAdminController::class, 'addDisputeMessage'])->name('disputes.message');
 
     // Contact Messages
     Route::get('/messages', [SuperAdminController::class, 'messages'])->name('messages');
@@ -322,7 +333,9 @@ Route::middleware(['auth', 'role:1'])->prefix('superadmin')->name('superadmin.')
 
     // Dispute Management
     Route::get('/disputes', [SuperAdminController::class, 'disputes'])->name('disputes');
+    Route::get('/disputes/{dispute}', [SuperAdminController::class, 'disputeShow'])->name('disputes.show');
     Route::post('/disputes/{dispute}/update', [SuperAdminController::class, 'updateDisputeStatus'])->name('disputes.update');
+    Route::post('/disputes/{dispute}/message', [SuperAdminController::class, 'addDisputeMessage'])->name('disputes.message');
 
     // AI Control
     Route::get('/ai', [SuperAdminController::class, 'aiControl'])->name('ai');
@@ -336,6 +349,15 @@ Route::middleware(['auth', 'role:1'])->prefix('superadmin')->name('superadmin.')
     
     // Audit Logs
     Route::get('/audit-logs', [SuperAdminController::class, 'auditLogs'])->name('audit');
+
+    // Transactions
+    Route::get('/transactions', [SuperAdminController::class, 'transactions'])->name('transactions');
+
+    // Contact Messages
+    Route::get('/messages', [SuperAdminController::class, 'messages'])->name('messages');
+
+    // Order Tracking
+    Route::post('/track', [SuperAdminController::class, 'trackOrder'])->name('track');
     
     // AI Actions
     Route::post('/ai/settings', [SuperAdminController::class, 'updateAiSettings'])->name('ai.settings.update');

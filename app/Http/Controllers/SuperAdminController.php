@@ -18,6 +18,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Dispute;
+use App\Models\DisputeMessage;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -250,7 +251,7 @@ class SuperAdminController extends Controller
     protected function sendVendorStatusNotification($user, $vendor, $status, $reason = null)
     {
         // In-app notification
-        $notifData = match($status) {
+        $notifDataMap = [
             'approved' => [
                 'type' => 'vendor_approved',
                 'title' => '🎉 Store Approved!',
@@ -269,7 +270,8 @@ class SuperAdminController extends Controller
                 'message' => 'Your store has been suspended.' . ($reason ? " Reason: {$reason}" : '') . ' Please contact support to resolve this.',
                 'url' => route('contact'),
             ],
-        };
+        ];
+        $notifData = $notifDataMap[$status] ?? $notifDataMap['rejected'];
 
         Notification::create([
             'user_id' => $user->id,
@@ -281,7 +283,7 @@ class SuperAdminController extends Controller
 
         // Email
         try {
-            $emailConfig = match($status) {
+            $emailConfigMap = [
                 'approved' => [
                     'subject' => 'BuyNiger — Your Store Has Been Approved! 🎉',
                     'iconBg' => '#22c55e', 'icon' => '✓',
@@ -303,7 +305,8 @@ class SuperAdminController extends Controller
                     'body' => "Hello <strong>{$user->name}</strong>, your store <strong>{$vendor->store_name}</strong> has been suspended." . ($reason ? "<br><br><strong>Reason:</strong> {$reason}" : '') . '<br><br>Please contact our support team to resolve this.',
                     'ctaText' => 'Contact Support', 'ctaUrl' => route('contact'), 'ctaBg' => '#f59e0b',
                 ],
-            };
+            ];
+            $emailConfig = $emailConfigMap[$status] ?? $emailConfigMap['rejected'];
 
             $emailBody = '
             <div style="font-family:Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:40px 20px;">
@@ -393,6 +396,7 @@ class SuperAdminController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
+        return back()->with('success', "Order status updated from {$oldStatus} to {$request->status}.");
     }
 
     /**
@@ -557,25 +561,142 @@ class SuperAdminController extends Controller
     }
 
     /**
+     * Show dispute detail page.
+     */
+    public function disputeShow(Dispute $dispute)
+    {
+        $dispute->load(['user', 'order.items.product', 'order.items.vendor', 'order.user', 'messages.user']);
+
+        // Get the vendors involved in this order
+        $vendors = collect();
+        if ($dispute->order) {
+            $vendorIds = $dispute->order->items->pluck('vendor_id')->unique();
+            $vendors = \App\Models\Vendor::whereIn('id', $vendorIds)->with('user')->get();
+        }
+
+        return view('superadmin.disputes.show', compact('dispute', 'vendors'));
+    }
+
+    /**
+     * Add a message to a dispute thread.
+     */
+    public function addDisputeMessage(Request $request, Dispute $dispute)
+    {
+        $request->validate([
+            'message' => 'required|string|max:2000',
+        ]);
+
+        DisputeMessage::create([
+            'dispute_id' => $dispute->id,
+            'user_id' => auth()->id(),
+            'message' => $request->message,
+            'is_admin' => true,
+        ]);
+
+        // If dispute was open, move to in_progress
+        if ($dispute->status === 'open') {
+            $dispute->update(['status' => 'in_progress']);
+        }
+
+        // Send email notification to the customer
+        $this->sendDisputeNotificationEmail($dispute, $request->message, 'message');
+
+        return back()->with('success', 'Response sent successfully.');
+    }
+
+    /**
      * Update dispute status.
      */
     public function updateDisputeStatus(Request $request, Dispute $dispute)
     {
         $request->validate([
-            'status' => 'required|string',
+            'status' => 'required|string|in:open,in_progress,resolved,escalated,closed',
             'resolution_notes' => 'nullable|string'
         ]);
 
-        $timestamp = now()->format('Y-m-d H:i');
-        $user = auth()->user()->name;
-        $newNote = $request->resolution_notes ? "[{$timestamp} by {$user}]: {$request->resolution_notes}\n" : '';
-        
-        $dispute->update([
-            'status' => $request->status,
-            'resolution_notes' => $dispute->resolution_notes . $newNote
+        $oldStatus = $dispute->status;
+        $updateData = ['status' => $request->status];
+
+        if ($request->status === 'resolved' || $request->status === 'closed') {
+            $updateData['resolved_at'] = now();
+        }
+
+        if ($request->resolution_notes) {
+            $timestamp = now()->format('Y-m-d H:i');
+            $user = auth()->user()->name;
+            $newNote = "[{$timestamp} by {$user}]: {$request->resolution_notes}\n";
+            $updateData['resolution_notes'] = ($dispute->resolution_notes ?? '') . $newNote;
+
+            // Also add as a message in the thread
+            DisputeMessage::create([
+                'dispute_id' => $dispute->id,
+                'user_id' => auth()->id(),
+                'message' => "Status changed to " . strtoupper($request->status) . ". " . $request->resolution_notes,
+                'is_admin' => true,
+            ]);
+        }
+
+        $dispute->update($updateData);
+
+        // Send notification to customer
+        Notification::create([
+            'user_id' => $dispute->user_id,
+            'type' => 'dispute_updated',
+            'title' => 'Dispute Updated',
+            'message' => "Your dispute \"" . \Illuminate\Support\Str::limit($dispute->subject, 30) . "\" has been updated to: " . strtoupper($request->status) . '.',
+            'action_url' => route('orders.detail', $dispute->order_id),
         ]);
 
-        return back()->with('success', "Dispute updated successfully.");
+        // Send email
+        $this->sendDisputeNotificationEmail($dispute, $request->resolution_notes, 'status_change');
+
+        return back()->with('success', "Dispute status updated to {$request->status}.");
+    }
+
+    /**
+     * Send dispute notification email to customer.
+     */
+    protected function sendDisputeNotificationEmail(Dispute $dispute, ?string $message, string $type)
+    {
+        try {
+            $dispute->load('user');
+            $user = $dispute->user;
+
+            if ($type === 'status_change') {
+                $subject = 'BuyNiger — Dispute Update: ' . ucfirst($dispute->status);
+                $heading = 'Dispute Status Updated';
+                $bodyText = "Hello <strong>{$user->name}</strong>, your dispute <strong>\"{$dispute->subject}\"</strong> has been updated to <strong>" . strtoupper($dispute->status) . "</strong>.";
+                if ($message) {
+                    $bodyText .= "<br><br><strong>Admin Note:</strong> {$message}";
+                }
+            } else {
+                $subject = 'BuyNiger — New Response on Your Dispute';
+                $heading = 'New Response on Dispute';
+                $bodyText = "Hello <strong>{$user->name}</strong>, our support team has responded to your dispute <strong>\"{$dispute->subject}\"</strong>.<br><br><strong>Response:</strong><br>{$message}";
+            }
+
+            $emailBody = '
+            <div style="font-family:Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:40px 20px;">
+                <div style="text-align:center;margin-bottom:32px;">
+                    <div style="width:64px;height:64px;background:#3b82f6;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+                        <span style="color:white;font-size:28px;">⚖</span>
+                    </div>
+                    <h2 style="margin:0;color:#1e293b;font-size:22px;">'.$heading.'</h2>
+                </div>
+                <p style="color:#475569;font-size:15px;line-height:1.7;">'.$bodyText.'</p>
+                <div style="text-align:center;margin:32px 0;">
+                    <a href="'.route('orders.detail', $dispute->order_id).'" style="display:inline-block;background:#3b82f6;color:white;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:700;font-size:15px;">View Order</a>
+                </div>
+                <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;">
+                <p style="color:#94a3b8;font-size:12px;text-align:center;">BuyNiger — Multi-Vendor Marketplace</p>
+            </div>';
+
+            \Illuminate\Support\Facades\Mail::send([], [], function ($msg) use ($user, $subject, $emailBody) {
+                $msg->to($user->email)->subject($subject)->html($emailBody);
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Dispute email failed: ' . $e->getMessage());
+        }
     }
 
     /**

@@ -18,35 +18,49 @@
                 @if($orders->count() > 0)
                     <div class="orders-list">
                         @foreach($orders as $order)
-                        <a href="{{ route('orders.detail', $order->order_number) }}" class="order-card">
-                            <div class="order-header">
-                                <div class="order-id">
-                                    <span>Order</span>
-                                    <strong>{{ $order->order_number }}</strong>
+                        <div class="order-card-wrap">
+                            <a href="{{ route('orders.detail', $order->order_number) }}" class="order-card">
+                                <div class="order-header">
+                                    <div class="order-id">
+                                        <span>Order</span>
+                                        <strong>{{ $order->order_number }}</strong>
+                                    </div>
+                                    <div class="order-badges">
+                                        @if($order->payment_status === 'pending' && $order->status !== 'cancelled')
+                                            <span class="pay-indicator unpaid"><i class="fas fa-exclamation-circle"></i> Unpaid</span>
+                                        @elseif($order->payment_status === 'paid')
+                                            <span class="pay-indicator paid"><i class="fas fa-check-circle"></i> Paid</span>
+                                        @endif
+                                        <span class="status-badge {{ $order->status }}">{{ ucfirst($order->status) }}</span>
+                                    </div>
                                 </div>
-                                <span class="status-badge {{ $order->status }}">{{ ucfirst($order->status) }}</span>
-                            </div>
-                            <div class="order-body">
-                                <div class="order-items-preview">
-                                    @foreach($order->items->take(3) as $item)
-                                    <div class="item-thumb" title="{{ $item->product_name }}">
-                                        @if($item->product && $item->product->primary_image_url)
-                                            <img src="{{ $item->product->primary_image_url }}" alt="">
-                                        @else
-                                            <i class="fas fa-box"></i>
+                                <div class="order-body">
+                                    <div class="order-items-preview">
+                                        @foreach($order->items->take(3) as $item)
+                                        <div class="item-thumb" title="{{ $item->product_name }}">
+                                            @if($item->product && $item->product->primary_image_url)
+                                                <img src="{{ $item->product->primary_image_url }}" alt="">
+                                            @else
+                                                <i class="fas fa-box"></i>
+                                            @endif
+                                        </div>
+                                        @endforeach
+                                        @if($order->items->count() > 3)
+                                            <div class="item-thumb more">+{{ $order->items->count() - 3 }}</div>
                                         @endif
                                     </div>
-                                    @endforeach
-                                    @if($order->items->count() > 3)
-                                        <div class="item-thumb more">+{{ $order->items->count() - 3 }}</div>
-                                    @endif
+                                    <div class="order-info">
+                                        <span class="order-date">{{ $order->created_at->format('M d, Y') }}</span>
+                                        <span class="order-total">₦{{ number_format($order->total) }}</span>
+                                    </div>
                                 </div>
-                                <div class="order-info">
-                                    <span class="order-date">{{ $order->created_at->format('M d, Y') }}</span>
-                                    <span class="order-total">₦{{ number_format($order->total) }}</span>
-                                </div>
-                            </div>
-                        </a>
+                            </a>
+                            @if($order->payment_status === 'pending' && $order->status !== 'cancelled')
+                                <a href="{{ route('payment.page', $order->id) }}" class="complete-pay-btn">
+                                    <i class="fas fa-credit-card"></i> Complete Payment — ₦{{ number_format($order->total) }}
+                                </a>
+                            @endif
+                        </div>
                         @endforeach
                     </div>
 
@@ -67,59 +81,86 @@
 </div>
 
 <style>
+    /* ===== MOBILE FIRST ===== */
     .orders-list {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 10px;
+    }
+
+    .order-card-wrap {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--secondary-100);
+        transition: all 0.2s;
+    }
+
+    .order-card-wrap:hover {
+        border-color: var(--primary-200);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
     .order-card {
         display: block;
         background: white;
-        border-radius: 12px;
-        padding: 20px;
-        border: 1px solid var(--secondary-100);
+        padding: 14px;
         transition: all 0.2s;
         text-decoration: none;
-    }
-
-    .order-card:hover {
-        border-color: var(--primary-200);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        transform: translateY(-2px);
     }
 
     .order-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 16px;
+        margin-bottom: 10px;
         border-bottom: 1px solid var(--secondary-50);
-        padding-bottom: 12px;
+        padding-bottom: 10px;
     }
 
     .order-id span {
-        font-size: 11px;
+        font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: var(--secondary-400);
         display: block;
-        margin-bottom: 2px;
+        margin-bottom: 1px;
     }
 
     .order-id strong {
         display: block;
-        font-size: 15px;
+        font-size: 13px;
         color: var(--secondary-900);
     }
 
-    .status-badge {
-        padding: 4px 10px;
+    .order-badges {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .pay-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
         border-radius: 6px;
-        font-size: 11px;
+        font-size: 10px;
+        font-weight: 700;
+    }
+    .pay-indicator i { font-size: 9px; }
+    .pay-indicator.unpaid { background: #fef2f2; color: #ef4444; }
+    .pay-indicator.paid   { background: #ecfdf5; color: #059669; }
+
+    .status-badge {
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 10px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        flex-shrink: 0;
     }
 
     .status-badge.pending { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
@@ -129,20 +170,21 @@
     .status-badge.delivered { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
     .status-badge.cancelled { background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
 
+    /* Mobile: stack order body */
     .order-body {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
+        gap: 10px;
     }
 
     .order-items-preview {
         display: flex;
-        gap: 8px;
+        gap: 6px;
     }
 
     .item-thumb {
-        width: 48px;
-        height: 48px;
+        width: 40px;
+        height: 40px;
         border-radius: 8px;
         background: var(--secondary-50);
         border: 1px solid var(--secondary-100);
@@ -151,6 +193,8 @@
         align-items: center;
         justify-content: center;
         color: var(--secondary-400);
+        flex-shrink: 0;
+        font-size: 0.75rem;
     }
 
     .item-thumb img {
@@ -160,73 +204,120 @@
     }
 
     .item-thumb.more {
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
         color: var(--secondary-500);
-        background: var(--secondary-50);
     }
 
     .order-info {
-        text-align: right;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--secondary-50);
+        padding-top: 8px;
     }
 
     .order-date {
-        display: block;
-        font-size: 13px;
+        font-size: 12px;
         color: var(--secondary-500);
-        margin-bottom: 4px;
     }
 
     .order-total {
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 700;
         color: var(--secondary-900);
     }
 
+    /* Complete Payment Button */
+    .complete-pay-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 11px 16px;
+        background: linear-gradient(135deg, #0066FF, #0052cc);
+        color: white;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s;
+        border-top: 1px solid rgba(0,102,255,0.2);
+    }
+    .complete-pay-btn i { font-size: 12px; }
+    .complete-pay-btn:hover {
+        background: linear-gradient(135deg, #0052cc, #003d99);
+        color: white;
+    }
+
     .empty-state {
         text-align: center;
-        padding: 60px 20px;
+        padding: 40px 16px;
     }
 
     .empty-state i {
-        font-size: 3rem;
+        font-size: 2.5rem;
         color: var(--secondary-200);
-        margin-bottom: 16px;
+        margin-bottom: 12px;
     }
 
     .empty-state h2 {
-        font-size: 1.25rem;
-        margin-bottom: 8px;
+        font-size: 1.125rem;
+        margin-bottom: 6px;
         color: var(--secondary-900);
     }
 
     .empty-state p {
         color: var(--secondary-500);
-        margin-bottom: 24px;
+        margin-bottom: 20px;
+        font-size: 0.875rem;
     }
 
     .pagination-wrapper {
-        margin-top: 24px;
+        margin-top: 16px;
         display: flex;
         justify-content: center;
     }
 
-    @media (max-width: 600px) {
-        .order-body {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 16px;
+    /* ===== TABLET+ (≥600px) ===== */
+    @media (min-width: 600px) {
+        .order-card {
+            padding: 20px;
         }
-        
-        .order-info {
-            text-align: left;
-            width: 100%;
-            display: flex;
+
+        .order-header {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+        }
+
+        .order-id strong { font-size: 15px; }
+        .status-badge { font-size: 11px; padding: 4px 10px; }
+        .pay-indicator { font-size: 11px; padding: 3px 10px; }
+
+        .order-body {
+            flex-direction: row;
             justify-content: space-between;
             align-items: center;
-            border-top: 1px solid var(--secondary-50);
-            padding-top: 12px;
         }
+
+        .item-thumb {
+            width: 48px;
+            height: 48px;
+        }
+
+        .order-info {
+            text-align: right;
+            flex-direction: column;
+            border-top: none;
+            padding-top: 0;
+            gap: 4px;
+        }
+
+        .order-date { font-size: 13px; }
+        .order-total { font-size: 16px; }
+
+        .complete-pay-btn { font-size: 14px; padding: 12px 20px; }
+
+        .empty-state { padding: 60px 20px; }
     }
 </style>
 @endsection

@@ -18,11 +18,13 @@
         </div>
         <div class="col-md-6 text-right">
             <div class="btn-group">
+                <a href="{{ route($prefix.'orders') }}" class="btn btn-sm btn-outline-secondary">All</a>
                 <a href="{{ route($prefix.'orders', ['status' => 'pending']) }}" class="btn btn-sm btn-outline-warning">Pending</a>
                 <a href="{{ route($prefix.'orders', ['status' => 'paid']) }}" class="btn btn-sm btn-outline-success">Paid</a>
                 <a href="{{ route($prefix.'orders', ['status' => 'processing']) }}" class="btn btn-sm btn-outline-primary">Processing</a>
                 <a href="{{ route($prefix.'orders', ['status' => 'shipped']) }}" class="btn btn-sm btn-outline-info">Shipped</a>
                 <a href="{{ route($prefix.'orders', ['status' => 'delivered']) }}" class="btn btn-sm btn-success">Delivered</a>
+                <a href="{{ route($prefix.'orders', ['status' => 'cancelled']) }}" class="btn btn-sm btn-outline-danger">Cancelled</a>
             </div>
         </div>
     </div>

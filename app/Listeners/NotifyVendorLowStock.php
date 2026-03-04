@@ -23,7 +23,7 @@ class NotifyVendorLowStock implements ShouldQueue
             'inventory_low',
             'Low Stock Alert',
             "Your product '{$event->product->name}' has only {$event->currentQuantity} units left (threshold: {$event->threshold}).",
-            '/vendor/products/' . $event->product->id
+            '/vendor/inventory'
         );
 
         // Trigger AI Supply Chain analysis

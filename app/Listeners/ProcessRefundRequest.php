@@ -32,7 +32,7 @@ class ProcessRefundRequest implements ShouldQueue
                 'refund_request',
                 'New Refund Request',
                 "Refund request for order #{$order->order_number} - ₦" . number_format($event->amount, 2),
-                '/admin/refunds'
+                '/admin/disputes'
             );
         }
 

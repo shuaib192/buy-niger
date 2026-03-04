@@ -37,7 +37,25 @@ class ShopController extends Controller
             ->take(8)
             ->get();
 
-        return view('shop.index', compact('featuredCategories', 'latestProducts', 'featuredProducts'));
+        // Best sellers — products with most orders
+        $bestSellers = Product::where('status', 'active')
+            ->withCount('orderItems')
+            ->orderByDesc('order_items_count')
+            ->with('category', 'images')
+            ->take(8)
+            ->get();
+
+        // Top stores — highest rated approved vendors
+        $topStores = \App\Models\Vendor::approved()
+            ->orderByDesc('rating')
+            ->orderByDesc('total_sales')
+            ->take(6)
+            ->get();
+
+        return view('shop.index', compact(
+            'featuredCategories', 'latestProducts', 'featuredProducts',
+            'bestSellers', 'topStores'
+        ));
     }
 
     /**
@@ -254,6 +272,80 @@ class ShopController extends Controller
     public function refundPolicy()
     {
         return view('shop.refund-policy');
+    }
+
+    /**
+     * Show the vendor application form (for logged-in customers).
+     */
+    public function showVendorApplication()
+    {
+        $user = auth()->user();
+
+        // Already an approved vendor — go to dashboard
+        $existingVendor = \App\Models\Vendor::where('user_id', $user->id)->first();
+        if ($existingVendor && $existingVendor->status === 'approved') {
+            return redirect()->route('vendor.dashboard');
+        }
+
+        // Has a pending or rejected application — show status on the page
+        return view('shop.vendor-apply', compact('user', 'existingVendor'));
+    }
+
+    /**
+     * Process the vendor application for an existing customer.
+     */
+    public function submitVendorApplication(Request $request)
+    {
+        $user = auth()->user();
+
+        // Prevent duplicate applications
+        if ($user->role_id == 3 || \App\Models\Vendor::where('user_id', $user->id)->exists()) {
+            return redirect()->route('home')->with('info', 'You already have a vendor account or application.');
+        }
+
+        $request->validate([
+            'store_name' => 'required|string|max:255',
+            'store_description' => 'nullable|string|max:1000',
+            'business_address' => 'required|string|max:500',
+            'city' => 'required|string|max:100',
+            'state' => 'required|string|max:100',
+            'business_phone' => 'nullable|string|max:20',
+        ]);
+
+        // Generate clean store slug
+        $baseSlug = \Illuminate\Support\Str::slug($request->store_name);
+        $slug = $baseSlug;
+        $count = 1;
+        while (\App\Models\Vendor::where('store_slug', $slug)->exists()) {
+            $count++;
+            $slug = $baseSlug . '-' . $count;
+        }
+
+        // Upgrade user role to vendor
+        $user->update(['role_id' => 3]);
+
+        // Create vendor profile
+        $vendor = \App\Models\Vendor::create([
+            'user_id' => $user->id,
+            'store_name' => $request->store_name,
+            'store_slug' => $slug,
+            'store_description' => $request->store_description,
+            'business_email' => $user->email,
+            'business_phone' => $request->business_phone ?? $user->phone,
+            'business_address' => $request->business_address,
+            'city' => $request->city,
+            'state' => $request->state,
+            'country' => 'Nigeria',
+            'status' => 'pending',
+        ]);
+
+        // Fire vendor registered event if it exists
+        if (class_exists(\App\Events\VendorRegistered::class)) {
+            event(new \App\Events\VendorRegistered($vendor));
+        }
+
+        return redirect()->route('home')
+            ->with('success', 'Your vendor application has been submitted! 🎉 Your store will be reviewed and approved within 2 business days.');
     }
 }
 

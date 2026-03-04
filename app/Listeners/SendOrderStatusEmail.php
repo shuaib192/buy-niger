@@ -39,7 +39,9 @@ class SendOrderStatusEmail implements ShouldQueue
                     'customer_name' => $order->user->name,
                     'order_number' => $order->order_number,
                     'tracking_number' => $order->items->first()?->tracking_number ?? '',
-                    'tracking_url' => url('/track/' . $order->order_number),
+                    'tracking_url' => url('/track-order'),
+                    'order_url' => url('/order/' . $order->order_number),
+                    'order_total' => '₦' . number_format($order->total, 2),
                 ],
                 $order->user_id
             );
@@ -60,7 +62,7 @@ class SendOrderStatusEmail implements ShouldQueue
             'order_status',
             'Order Update - #' . $order->order_number,
             $messages[$event->newStatus] ?? 'Your order status has been updated.',
-            '/orders/' . $order->id
+            '/order/' . $order->id
         );
     }
 }

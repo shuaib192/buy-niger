@@ -14,7 +14,7 @@
         <div class="hero-section">
             {{-- Real image background --}}
             <div class="hero-image-bg">
-                <img src="https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=1200&q=80" alt="African shoppers" class="hero-bg-img">
+                <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1200&q=80" alt="Nigerian marketplace" class="hero-bg-img">
                 <div class="hero-overlay"></div>
             </div>
 
@@ -27,7 +27,11 @@
                         <a href="{{ route('catalog') }}" class="btn btn-primary btn-lg">
                             <i class="fas fa-shopping-bag"></i> Explore Products
                         </a>
-                        <a href="{{ route('register', ['role' => 3]) }}" class="btn btn-outline-white btn-lg">
+                        @auth
+                            <a href="{{ route('vendor.apply') }}" class="btn btn-outline-white btn-lg">
+                        @else
+                            <a href="{{ route('vendor.register') }}" class="btn btn-outline-white btn-lg">
+                        @endauth
                             <i class="fas fa-store"></i> Sell on BuyNiger
                         </a>
                     </div>
@@ -39,8 +43,8 @@
                 </div>
                 <div class="hero-visuals">
                     <div class="hero-people">
-                        <img src="https://images.unsplash.com/photo-1589156280159-27698a70f29e?w=400&q=80" alt="Happy African shopper" class="hero-person hero-person-1">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" alt="African entrepreneur" class="hero-person hero-person-2">
+                        <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&q=80" alt="Nigerian woman" class="hero-person hero-person-1">
+                        <img src="https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=400&q=80" alt="Nigerian man" class="hero-person hero-person-2">
                     </div>
                     <div class="hero-floating-card card-1">
                         <i class="fas fa-truck"></i>
@@ -103,7 +107,7 @@
             <h2 class="section-title">Featured Products</h2>
             <a href="{{ route('catalog') }}" class="text-link">Shop More</a>
         </div>
-        <div class="product-grid">
+        <div class="product-grid carousel-mobile">
             @foreach($featuredProducts as $product)
                 @include('shop.partials.product-card', ['product' => $product])
             @endforeach
@@ -111,20 +115,77 @@
     </div>
     @endif
 
-    <!-- Latest Products -->
+    <!-- Latest Products (Carousel) -->
     @if($latestProducts->count() > 0)
     <div class="container mt-5 mb-5">
         <div class="section-header">
             <h2 class="section-title">New Arrivals</h2>
             <a href="{{ route('catalog') }}" class="text-link">Browse All</a>
         </div>
-        <div class="product-grid">
+        <div class="product-grid carousel-mobile">
             @foreach($latestProducts as $product)
                 @include('shop.partials.product-card', ['product' => $product])
             @endforeach
         </div>
     </div>
     @endif
+
+    <!-- Best Sellers (Normal 2-col grid on mobile) -->
+    @if($bestSellers->count() > 0)
+    <div class="container mt-5 mb-5">
+        <div class="section-header">
+            <h2 class="section-title">🔥 Best Sellers</h2>
+            <a href="{{ route('catalog', ['sort' => 'popular']) }}" class="text-link">View All</a>
+        </div>
+        <div class="product-grid">
+            @foreach($bestSellers as $product)
+                @include('shop.partials.product-card', ['product' => $product])
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- Top Stores -->
+    @if($topStores->count() > 0)
+    <div class="container mt-5 mb-5">
+        <div class="section-header">
+            <h2 class="section-title">🏪 Top Stores</h2>
+            <a href="{{ route('catalog') }}" class="text-link">Browse All</a>
+        </div>
+        <div class="stores-grid">
+            @foreach($topStores as $vendor)
+            <a href="{{ url('/store/' . $vendor->store_slug) }}" class="store-card">
+                <img src="{{ $vendor->logo_url }}" alt="{{ $vendor->store_name }}" class="store-logo">
+                <div class="store-info">
+                    <h4>{{ Str::limit($vendor->store_name, 20) }}</h4>
+                    <div class="store-meta">
+                        <span class="store-rating"><i class="fas fa-star"></i> {{ number_format($vendor->rating ?? 0, 1) }}</span>
+                        <span class="store-products">{{ $vendor->total_products ?? 0 }} products</span>
+                    </div>
+                </div>
+            </a>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- Become a Vendor CTA -->
+    <div class="container mt-5 mb-5">
+        <div class="vendor-cta">
+            <div class="vendor-cta-content">
+                <div class="vendor-cta-icon"><i class="fas fa-store"></i></div>
+                <h2>Start Selling on BuyNiger</h2>
+                <p>Join hundreds of vendors earning daily. Set up your store in minutes — it's free!</p>
+                @auth
+                    <a href="{{ route('vendor.apply') }}" class="btn btn-primary btn-lg">
+                @else
+                    <a href="{{ route('vendor.register') }}" class="btn btn-primary btn-lg">
+                @endauth
+                    <i class="fas fa-rocket"></i> Become a Vendor
+                </a>
+            </div>
+        </div>
+    </div>
 
     <!-- Empty State -->
     @if($featuredProducts->count() == 0 && $latestProducts->count() == 0)
@@ -352,6 +413,142 @@
             .hero-actions .btn { width: 100%; }
             .hero-links { justify-content: center; flex-wrap: wrap; }
             .hero-stats { justify-content: center; padding: 16px 24px 28px; }
+        }
+
+        /* ===== Top Stores ===== */
+        .stores-grid {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 8px;
+            scrollbar-width: none;
+        }
+        .stores-grid::-webkit-scrollbar { display: none; }
+
+        .store-card {
+            flex-shrink: 0;
+            width: 160px;
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--secondary-100, #f1f5f9);
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .store-card:hover {
+            border-color: var(--primary-200, #bfdbfe);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            transform: translateY(-4px);
+        }
+
+        .store-logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 10px;
+            display: block;
+            border: 2px solid var(--secondary-100, #f1f5f9);
+        }
+
+        .store-info h4 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--secondary-900, #0f172a);
+            margin: 0 0 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .store-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            align-items: center;
+        }
+
+        .store-rating {
+            font-size: 11px;
+            font-weight: 700;
+            color: #f59e0b;
+        }
+        .store-rating i { font-size: 10px; }
+
+        .store-products {
+            font-size: 10px;
+            color: var(--secondary-400, #94a3b8);
+            font-weight: 500;
+        }
+
+        @media (min-width: 769px) {
+            .stores-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                overflow-x: visible;
+            }
+            .store-card { width: auto; }
+        }
+
+        /* ===== Vendor CTA ===== */
+        .vendor-cta {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%);
+            border-radius: 24px;
+            padding: 48px 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .vendor-cta::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 70%, rgba(59,130,246,0.15) 0%, transparent 50%);
+        }
+        .vendor-cta-content {
+            position: relative;
+            z-index: 2;
+        }
+        .vendor-cta-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 24px;
+            color: #93c5fd;
+        }
+        .vendor-cta h2 {
+            color: white;
+            font-size: clamp(1.25rem, 4vw, 1.75rem);
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .vendor-cta p {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 480px) {
+            .vendor-cta { padding: 36px 20px; border-radius: 20px; }
+            .store-card { width: 130px; padding: 12px; }
+            .store-logo { width: 44px; height: 44px; }
+            .store-info h4 { font-size: 12px; }
         }
     </style>
 @endsection
