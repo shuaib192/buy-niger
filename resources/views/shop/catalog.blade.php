@@ -10,9 +10,21 @@
 
 @section('content')
     <div class="container py-5">
+        {{-- Mobile Filter Toggle --}}
+        <button class="mobile-filter-btn" id="filterToggle" onclick="document.getElementById('filterSidebar').classList.add('open'); document.getElementById('filterOverlay').classList.add('open');">
+            <i class="fas fa-sliders-h"></i> Filters
+        </button>
+        <div class="filter-overlay" id="filterOverlay" onclick="document.getElementById('filterSidebar').classList.remove('open'); this.classList.remove('open');"></div>
+
         <div class="shop-grid">
             <!-- Sidebar Filters -->
-            <aside class="shop-sidebar">
+            <aside class="shop-sidebar" id="filterSidebar">
+                <div class="sidebar-header-mobile">
+                    <h3>Filters</h3>
+                    <button class="sidebar-close" onclick="document.getElementById('filterSidebar').classList.remove('open'); document.getElementById('filterOverlay').classList.remove('open');">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
                 <div class="sidebar-block">
                     <h4>Categories</h4>
                     <ul class="filter-list">
@@ -117,6 +129,49 @@
     </div>
 
     <style>
+        /* ===== Mobile Filter Button ===== */
+        .mobile-filter-btn {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid var(--secondary-200);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--secondary-700);
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+        .mobile-filter-btn:active {
+            transform: scale(0.97);
+        }
+        .mobile-filter-btn i {
+            color: var(--primary-500);
+        }
+
+        /* Filter Overlay */
+        .filter-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .filter-overlay.open {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Sidebar mobile close + header */
+        .sidebar-header-mobile {
+            display: none;
+        }
+
         .shop-grid {
             display: grid;
             grid-template-columns: 280px 1fr;
@@ -240,12 +295,78 @@
 
         .py-5 { padding: var(--spacing-2xl) 0; }
 
+        /* ===== MOBILE: Sidebar as Drawer ===== */
         @media (max-width: 1024px) {
+            .mobile-filter-btn {
+                display: inline-flex;
+            }
+
             .shop-grid {
                 grid-template-columns: 1fr;
             }
+
             .shop-sidebar {
-                display: none; /* Hide sidebar on small screens for now or make it a drawer */
+                position: fixed;
+                top: 0;
+                left: -320px;
+                width: 300px;
+                height: 100vh;
+                background: var(--secondary-50, #f8fafc);
+                z-index: 1000;
+                overflow-y: auto;
+                padding: 20px;
+                transition: left 0.3s ease;
+                box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+            }
+
+            .shop-sidebar.open {
+                left: 0;
+            }
+
+            .sidebar-header-mobile {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 16px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--secondary-200);
+            }
+
+            .sidebar-header-mobile h3 {
+                font-size: 18px;
+                font-weight: 800;
+                color: var(--secondary-900);
+                margin: 0;
+            }
+
+            .sidebar-close {
+                width: 36px;
+                height: 36px;
+                background: white;
+                border: 1px solid var(--secondary-200);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                font-size: 16px;
+                color: var(--secondary-500);
+                transition: all 0.2s;
+            }
+            .sidebar-close:hover {
+                background: var(--secondary-100);
+                color: var(--secondary-900);
+            }
+
+            .shop-toolbar {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start;
+                padding: 12px 14px;
+            }
+
+            .shop-toolbar select {
+                width: 100%;
             }
         }
     </style>

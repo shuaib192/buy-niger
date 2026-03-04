@@ -61,6 +61,7 @@ class Order extends Model
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_REFUNDED = 'refunded';
 
+
     // Relationships
     public function user()
     {

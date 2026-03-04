@@ -284,7 +284,7 @@ class CheckoutController extends Controller
                 \Log::error('Order email failed: ' . $e->getMessage());
             }
 
-            return redirect()->route('checkout.confirmation', $order->order_number);
+            return redirect()->route('payment.page', $order->id);
 
         } catch (\Exception $e) {
             DB::rollBack();

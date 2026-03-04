@@ -204,15 +204,15 @@ class PaymentController extends Controller
     /**
      * Show payment page for order.
      */
-    public function paymentPage($orderNumber)
+    public function paymentPage($orderId)
     {
-        $order = Order::where('order_number', $orderNumber)
+        $order = Order::where('id', $orderId)
             ->where('user_id', Auth::id())
             ->with('items.product')
             ->firstOrFail();
 
         if ($order->payment_status !== 'pending') {
-            return redirect()->route('orders.detail', $orderNumber)
+            return redirect()->route('orders.detail', $order->order_number)
                 ->with('info', 'This order has already been paid.');
         }
 

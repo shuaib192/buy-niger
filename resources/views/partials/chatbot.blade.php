@@ -290,19 +290,89 @@
 /* Responsive */
 @media (max-width: 480px) {
     .bn-chat-window {
-        width: calc(100vw - 32px);
-        height: calc(100vh - 140px);
-        max-height: 520px;
-        right: 16px;
-        bottom: 90px;
-        border-radius: 16px;
+        width: calc(100vw - 24px);
+        height: 360px;
+        max-height: 360px;
+        right: 12px;
+        bottom: 72px;
+        border-radius: 14px;
     }
     .bn-chat-fab {
-        bottom: 20px;
+        bottom: 16px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    .bn-chat-header {
+        padding: 12px 14px;
+    }
+    .bn-chat-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        font-size: 15px;
+    }
+    .bn-chat-header-info h4 {
+        font-size: 13px;
+    }
+    .bn-chat-header-info p {
+        font-size: 10px;
+    }
+    .bn-chat-close {
+        width: 26px;
+        height: 26px;
+        font-size: 13px;
+        top: 10px;
+        right: 10px;
+    }
+    .bn-chat-messages {
+        padding: 10px;
+        gap: 8px;
+    }
+    .bn-msg {
+        font-size: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+    }
+    .bn-quick-actions {
+        padding: 6px 10px;
+        gap: 4px;
+    }
+    .bn-quick-btn {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+    .bn-chat-input {
+        padding: 8px 10px;
+        gap: 6px;
+    }
+    .bn-chat-input input {
+        padding: 8px 12px;
+        font-size: 12px;
+        border-radius: 10px;
+    }
+    .bn-chat-send {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+}
+@media (min-width: 481px) and (max-width: 768px) {
+    .bn-chat-window {
+        width: 340px;
+        height: 420px;
+        max-height: 420px;
         right: 16px;
-        width: 52px;
-        height: 52px;
-        font-size: 20px;
+        bottom: 80px;
+    }
+    .bn-chat-fab {
+        bottom: 18px;
+        right: 16px;
+        width: 46px;
+        height: 46px;
+        font-size: 18px;
     }
 }
 </style>
