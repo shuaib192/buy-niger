@@ -21,7 +21,7 @@
             <div class="hero-grid">
                 <div class="hero-content">
                     <span class="hero-badge"><i class="fas fa-bolt"></i> AI-Powered Shopping</span>
-                    <h1 class="hero-title">Shop Smarter,<br>Live Better.</h1>
+                    <h1 class="hero-title">Shop <span class="text-highlight">Smarter</span>,<br>Live <span class="text-highlight">Better</span>.</h1>
                     <p class="hero-subtitle">Discover thousands of premium Nigerian products from trusted vendors — all in one marketplace.</p>
                     <div class="hero-actions">
                         <a href="{{ route('catalog') }}" class="btn btn-primary btn-lg">
@@ -264,6 +264,24 @@
             line-height: 1.1;
             letter-spacing: -0.025em;
             text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+            background: linear-gradient(to bottom, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleFade 0.8s ease-out forwards;
+        }
+
+        @keyframes titleFade {
+            from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        .text-highlight {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
         }
 
         .hero-subtitle {
