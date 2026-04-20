@@ -14,6 +14,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\VendorBankDetail;
 use App\Models\VendorPayout;
@@ -993,35 +994,49 @@ public function exportAnalytics(Request $request)
     public function requestPayout(Request $request)
     {
         $vendor = Auth::user()->vendor;
+        if (!$vendor) {
+            return back()->with('error', 'Vendor profile not found.');
+        }
+
         if (($vendor->kyc_status ?? 'not_submitted') !== 'verified') {
             return back()->with('error', 'You must complete KYC verification before requesting payouts.');
         }
 
         $request->validate([
             'amount' => 'required|numeric|min:1000',
-            'bank_detail_id' => 'required|exists:vendor_bank_details,id'
+            'bank_detail_id' => 'required|integer'
         ]);
 
-        $vendor = Auth::user()->vendor;
+        $bankDetail = VendorBankDetail::where('vendor_id', $vendor->id)
+            ->where('id', $request->bank_detail_id)
+            ->first();
+        if (!$bankDetail) {
+            return back()->with('error', 'Invalid destination account selected.');
+        }
 
         if ($request->amount > $vendor->balance) {
             return back()->with('error', 'Insufficient balance for this payout request.');
         }
 
-        // Create payout record
-        VendorPayout::create([
-            'vendor_id' => $vendor->id,
-            'amount' => $request->amount,
-            'reference' => 'PAY-' . strtoupper(Str::random(10)),
-            'status' => 'pending',
-            'payment_method' => 'bank_transfer',
-            'payment_details' => [
-                'bank_detail_id' => $request->bank_detail_id
-            ]
-        ]);
+        DB::transaction(function () use ($vendor, $request, $bankDetail) {
+            // Create payout record
+            VendorPayout::create([
+                'vendor_id' => $vendor->id,
+                'amount' => $request->amount,
+                'reference' => 'PAY-' . strtoupper(Str::random(10)),
+                'status' => 'pending',
+                'payment_method' => 'bank_transfer',
+                'payment_details' => [
+                    'bank_detail_id' => $bankDetail->id,
+                    'bank_name' => $bankDetail->bank_name,
+                    'account_name' => $bankDetail->account_name,
+                    'account_number' => $bankDetail->account_number,
+                ]
+            ]);
 
-        // Deduct from balance
-        $vendor->decrement('balance', $request->amount);
+            // Hold funds immediately to prevent double-spend of balance.
+            $vendor->decrement('balance', $request->amount);
+        });
 
         return back()->with('success', 'Payout request submitted successfully! It will be processed within 24-48 hours.');
     }

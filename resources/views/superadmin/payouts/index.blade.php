@@ -128,48 +128,28 @@
                         </td>
                         <td class="text-end pe-4">
                             @if($payout->status === 'pending' || $payout->status === 'processing')
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-cog me-1"></i> Update
+                            <div class="d-flex justify-content-end gap-2 flex-wrap">
+                                <form method="POST" action="{{ route('superadmin.payouts.status', $payout->id) }}">
+                                    @csrf
+                                    <input type="hidden" name="status" value="approved">
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="fas fa-check-circle me-1"></i> Approve
+                                    </button>
+                                </form>
+
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        onclick="document.getElementById('failForm{{ $payout->id }}').classList.toggle('d-none')">
+                                    <i class="fas fa-times-circle me-1"></i> Reject
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow">
-                                    @if($payout->status === 'pending')
-                                    <li>
-                                        <form method="POST" action="{{ route('superadmin.payouts.status', $payout->id) }}">
-                                            @csrf
-                                            <input type="hidden" name="status" value="processing">
-                                            <button type="submit" class="dropdown-item text-info">
-                                                <i class="fas fa-spinner me-2"></i> Mark Processing
-                                            </button>
-                                        </form>
-                                    </li>
-                                    @endif
-                                    <li>
-                                        <form method="POST" action="{{ route('superadmin.payouts.status', $payout->id) }}">
-                                            @csrf
-                                            <input type="hidden" name="status" value="completed">
-                                            <button type="submit" class="dropdown-item text-success">
-                                                <i class="fas fa-check-circle me-2"></i> Mark Completed
-                                            </button>
-                                        </form>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <button type="button" class="dropdown-item text-danger" 
-                                                onclick="document.getElementById('failForm{{ $payout->id }}').classList.toggle('d-none')">
-                                            <i class="fas fa-times-circle me-2"></i> Mark Failed
-                                        </button>
-                                    </li>
-                                </ul>
                             </div>
 
-                            {{-- Hidden Fail Form with Notes --}}
+                            {{-- Hidden Reject Form with Notes --}}
                             <form id="failForm{{ $payout->id }}" method="POST" action="{{ route('superadmin.payouts.status', $payout->id) }}" class="d-none mt-2 text-start">
                                 @csrf
-                                <input type="hidden" name="status" value="failed">
-                                <textarea name="notes" class="form-control form-control-sm mb-2" placeholder="Reason for failure..." rows="2" required></textarea>
+                                <input type="hidden" name="status" value="rejected">
+                                <textarea name="notes" class="form-control form-control-sm mb-2" placeholder="Reason for rejection..." rows="2" required></textarea>
                                 <button type="submit" class="btn btn-sm btn-danger w-100">
-                                    <i class="fas fa-times me-1"></i> Confirm Fail
+                                    <i class="fas fa-times me-1"></i> Confirm Reject
                                 </button>
                             </form>
                             @elseif($payout->status === 'completed')

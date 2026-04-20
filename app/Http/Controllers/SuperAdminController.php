@@ -20,11 +20,21 @@ use App\Models\Product;
 use App\Models\Dispute;
 use App\Models\DisputeMessage;
 use App\Models\Notification;
+use App\Models\VendorBankDetail;
+use App\Services\PaystackTransferService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 class SuperAdminController extends Controller
 {
+    protected PaystackTransferService $paystackTransferService;
+
+    public function __construct(PaystackTransferService $paystackTransferService)
+    {
+        $this->paystackTransferService = $paystackTransferService;
+    }
+
     /**
      * Display the super admin dashboard.
      */
@@ -421,25 +431,116 @@ class SuperAdminController extends Controller
     public function updatePayoutStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:processing,completed,failed',
+            'status' => 'required|in:approved,rejected,processing,completed,failed',
             'notes' => 'nullable|string'
         ]);
 
-        $payout = VendorPayout::findOrFail($id);
-        $oldStatus = $payout->status;
-        
-        $payout->update([
-            'status' => $request->status,
-            'notes' => $request->notes,
-            'processed_at' => in_array($request->status, ['completed', 'failed']) ? now() : $payout->processed_at
-        ]);
+        $payout = VendorPayout::with('vendor')->findOrFail($id);
+        $requestedStatus = $request->status;
 
-        // If failed, refund vendor balance
-        if ($request->status == 'failed' && $oldStatus != 'failed') {
-            $payout->vendor->increment('balance', $payout->amount);
+        // Normalize UI statuses to payout states.
+        if ($requestedStatus === 'approved') {
+            $requestedStatus = 'completed';
+        } elseif ($requestedStatus === 'rejected') {
+            $requestedStatus = 'failed';
         }
 
-        return back()->with('success', "Payout status updated to {$request->status}.");
+        // Completed/failed payouts should be immutable to avoid accidental double updates/refunds.
+        if (in_array($payout->status, ['completed', 'failed'])) {
+            return back()->with('error', 'This payout has already been finalized and cannot be changed.');
+        }
+
+        if ($requestedStatus === 'completed') {
+            $transferResult = $this->processVendorTransfer($payout);
+            if (!$transferResult['success']) {
+                return back()->with('error', $transferResult['message']);
+            }
+
+            DB::transaction(function () use ($payout, $request, $transferResult) {
+                $details = $payout->payment_details ?? [];
+                $details['transfer'] = $transferResult['data'];
+
+                $payout->update([
+                    'status' => 'completed',
+                    'notes' => $request->notes,
+                    'payment_details' => $details,
+                    'processed_at' => now()
+                ]);
+            });
+
+            return back()->with('success', 'Payout transfer initiated successfully on Paystack and marked as completed.');
+        }
+
+        DB::transaction(function () use ($payout, $request, $requestedStatus) {
+            $payout->update([
+                'status' => $requestedStatus,
+                'notes' => $request->notes,
+                'processed_at' => $requestedStatus === 'failed' ? now() : $payout->processed_at
+            ]);
+
+            // On failure, release held funds back to the vendor once.
+            if ($requestedStatus === 'failed') {
+                $payout->vendor->increment('balance', $payout->amount);
+            }
+        });
+
+        return back()->with('success', "Payout status updated to {$requestedStatus}.");
+    }
+
+    protected function processVendorTransfer(VendorPayout $payout): array
+    {
+        if (!$this->paystackTransferService->isConfigured()) {
+            return ['success' => false, 'message' => 'Paystack is not configured. Please set PAYSTACK_SECRET_KEY.'];
+        }
+
+        $bankDetailId = data_get($payout->payment_details, 'bank_detail_id');
+        $bankDetail = VendorBankDetail::where('vendor_id', $payout->vendor_id)
+            ->where('id', $bankDetailId)
+            ->first();
+
+        if (!$bankDetail) {
+            return ['success' => false, 'message' => 'Bank details for this payout were not found.'];
+        }
+
+        $bankCode = $bankDetail->bank_code;
+        if (empty($bankCode)) {
+            $bankCode = $this->paystackTransferService->resolveBankCodeByName($bankDetail->bank_name);
+            if (!$bankCode) {
+                return ['success' => false, 'message' => 'Bank code is missing and could not be resolved from bank name. Update vendor bank details first.'];
+            }
+        }
+
+        $recipientCode = data_get($payout->payment_details, 'recipient_code');
+        if (!$recipientCode) {
+            $recipientResult = $this->paystackTransferService->createRecipient(
+                $bankDetail->account_name,
+                $bankDetail->account_number,
+                $bankCode
+            );
+
+            if (!$recipientResult['success']) {
+                return ['success' => false, 'message' => 'Unable to create transfer recipient: ' . $recipientResult['message']];
+            }
+
+            $recipientCode = data_get($recipientResult, 'data.recipient_code');
+            if (!$recipientCode) {
+                return ['success' => false, 'message' => 'Paystack did not return a recipient code.'];
+            }
+        }
+
+        $transferResult = $this->paystackTransferService->initiateTransfer(
+            (float) $payout->amount,
+            $recipientCode,
+            $payout->reference,
+            'Vendor withdrawal payout'
+        );
+
+        if (!$transferResult['success']) {
+            return ['success' => false, 'message' => 'Transfer failed: ' . $transferResult['message']];
+        }
+
+        $transferResult['data']['recipient_code'] = $recipientCode;
+        return $transferResult;
     }
 
     // ==================== USER MANAGEMENT ====================
