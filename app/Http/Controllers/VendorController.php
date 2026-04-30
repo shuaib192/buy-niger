@@ -23,6 +23,7 @@ use App\Models\Tag;
 use App\Models\ProductVariant;
 use App\Models\StockHistory;
 use Illuminate\Support\Str;
+use App\Services\PaystackTransferService;
 
 class VendorController extends Controller
 {
@@ -991,7 +992,7 @@ public function exportAnalytics(Request $request)
     /**
      * Handle payout request.
      */
-    public function requestPayout(Request $request)
+    public function requestPayout(Request $request, PaystackTransferService $paystackService)
     {
         $vendor = Auth::user()->vendor;
         if (!$vendor) {
@@ -1018,13 +1019,13 @@ public function exportAnalytics(Request $request)
             return back()->with('error', 'Insufficient balance for this payout request.');
         }
 
-        DB::transaction(function () use ($vendor, $request, $bankDetail) {
-            // Create payout record
-            VendorPayout::create([
+        DB::beginTransaction();
+        try {
+            $payout = VendorPayout::create([
                 'vendor_id' => $vendor->id,
                 'amount' => $request->amount,
                 'reference' => 'PAY-' . strtoupper(Str::random(10)),
-                'status' => 'pending',
+                'status' => 'processing',
                 'payment_method' => 'bank_transfer',
                 'payment_details' => [
                     'bank_detail_id' => $bankDetail->id,
@@ -1034,11 +1035,56 @@ public function exportAnalytics(Request $request)
                 ]
             ]);
 
-            // Hold funds immediately to prevent double-spend of balance.
             $vendor->decrement('balance', $request->amount);
-        });
 
-        return back()->with('success', 'Payout request submitted successfully! It will be processed within 24-48 hours.');
+            if (!$paystackService->isConfigured()) {
+                throw new \Exception('Paystack is not configured.');
+            }
+
+            $bankCode = $bankDetail->bank_code;
+            if (empty($bankCode)) {
+                $bankCode = $paystackService->resolveBankCodeByName($bankDetail->bank_name);
+                if (!$bankCode) throw new \Exception('Bank code could not be resolved. Please update your bank details.');
+            }
+
+            $recipientResult = $paystackService->createRecipient(
+                $bankDetail->account_name,
+                $bankDetail->account_number,
+                $bankCode
+            );
+
+            if (!$recipientResult['success']) {
+                throw new \Exception('Unable to create transfer recipient: ' . $recipientResult['message']);
+            }
+
+            $recipientCode = data_get($recipientResult, 'data.recipient_code');
+            
+            $transferResult = $paystackService->initiateTransfer(
+                (float) $request->amount,
+                $recipientCode,
+                $payout->reference,
+                'Vendor withdrawal payout'
+            );
+
+            if (!$transferResult['success']) {
+                throw new \Exception('Transfer failed: ' . $transferResult['message']);
+            }
+
+            $details = $payout->payment_details ?? [];
+            $details['transfer'] = $transferResult['data'];
+            
+            $payout->update([
+                'status' => 'completed',
+                'payment_details' => $details,
+                'processed_at' => now()
+            ]);
+
+            DB::commit();
+            return back()->with('success', 'Payout processed successfully! Funds have been sent to your bank account.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Automatic payout failed: ' . $e->getMessage());
+        }
     }
 
     /**

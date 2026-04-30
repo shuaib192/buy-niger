@@ -62,7 +62,7 @@ class PaymentController extends Controller
         ]);
 
         try {
-            $response = Http::withToken($this->paystackSecretKey)
+            $response = Http::withoutVerifying()->withToken($this->paystackSecretKey)
                 ->post($this->paystackBaseUrl . '/transaction/initialize', $data);
 
             // Debug: Log the response
@@ -99,7 +99,7 @@ class PaymentController extends Controller
 
         // Verify transaction
         try {
-            $response = Http::withToken($this->paystackSecretKey)
+            $response = Http::withoutVerifying()->withToken($this->paystackSecretKey)
                 ->get($this->paystackBaseUrl . '/transaction/verify/' . $reference);
 
             if ($response->successful() && $response->json('status')) {

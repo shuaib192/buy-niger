@@ -21,7 +21,7 @@ class PaystackTransferService
 
     public function createRecipient(string $accountName, string $accountNumber, string $bankCode): array
     {
-        $response = Http::withToken($this->secretKey)
+        $response = Http::withoutVerifying()->withToken($this->secretKey)
             ->post($this->baseUrl . '/transferrecipient', [
                 'type' => 'nuban',
                 'name' => $accountName,
@@ -49,7 +49,7 @@ class PaystackTransferService
 
     public function initiateTransfer(float $amount, string $recipientCode, string $reference, ?string $reason = null): array
     {
-        $response = Http::withToken($this->secretKey)
+        $response = Http::withoutVerifying()->withToken($this->secretKey)
             ->post($this->baseUrl . '/transfer', [
                 'source' => 'balance',
                 'amount' => (int) round($amount * 100), // Kobo
@@ -78,7 +78,7 @@ class PaystackTransferService
 
     public function resolveBankCodeByName(string $bankName): ?string
     {
-        $response = Http::withToken($this->secretKey)
+        $response = Http::withoutVerifying()->withToken($this->secretKey)
             ->get($this->baseUrl . '/bank', [
                 'country' => 'nigeria',
                 'currency' => 'NGN',
