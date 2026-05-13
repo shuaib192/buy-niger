@@ -112,6 +112,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/become-a-vendor', [ShopController::class, 'submitVendorApplication'])->name('vendor.apply.submit');
 });
 
+// Debug Mail Config
+Route::get('/debug-mail-config', function() {
+    return [
+        'app_name' => config('app.name'),
+        'mail_from_address' => config('mail.from.address'),
+        'mail_from_name' => config('mail.from.name'),
+        'mail_host' => config('mail.mailers.smtp.host'),
+        'mail_port' => config('mail.mailers.smtp.port'),
+    ];
+});
+
 // Redirect /home to /
 Route::get('/home', function () {
     return redirect('/');
