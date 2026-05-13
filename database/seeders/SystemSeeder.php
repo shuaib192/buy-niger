@@ -236,7 +236,7 @@ class SystemSeeder extends Seeder
         <p style="text-align:center;color:#94a3b8;font-size:13px;margin:0;">Your login email: <strong>{email}</strong></p>
     </div>
     <div style="text-align:center;padding:24px;border-top:1px solid #e2e8f0;">
-        <p style="color:#94a3b8;font-size:12px;margin:0;">© 2026 BuyNiger. Built by Shuaibu Abdulmumin | P3 Consulting Limited</p>
+        <p style="color:#94a3b8;font-size:12px;margin:0;">© 2026 BuyNiger. All Rights Reserved.</p>
     </div>
 </div>',
                 'variables' => json_encode(['customer_name', 'email']),

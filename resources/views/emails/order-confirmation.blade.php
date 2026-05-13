@@ -174,7 +174,7 @@
                                 © {{ date('Y') }} BuyNiger. All rights reserved.
                             </p>
                             <p style="margin:0; color:#cbd5e1; font-size:11px;">
-                                Built by Shuaibu Abdulmumin · P3 Consulting Limited
+                                © {{ date('Y') }} BuyNiger. All Rights Reserved.
                             </p>
                         </td>
                     </tr>

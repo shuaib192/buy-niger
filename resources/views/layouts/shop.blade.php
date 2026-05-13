@@ -181,7 +181,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; {{ date('Y') }} BuyNiger. Powered by P3Consulting Limited</p>
+                <p>&copy; {{ date('Y') }} BuyNiger. All Rights Reserved.</p>
             </div>
         </div>
     </footer>
