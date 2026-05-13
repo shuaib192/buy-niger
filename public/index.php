@@ -50,6 +50,15 @@ $kernel = $app->make(Kernel::class);
 
 $response = $kernel->handle(
     $request = Request::capture()
-)->send();
+);
+
+// Emergency Cache Clear via URL
+if ($request->get('clear_cache') === 'buyniger_secret_123') {
+    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+    \Illuminate\Support\Facades\Cache::flush();
+    die('System Cache Cleared Successfully! Please remove the clear_cache parameter and try again.');
+}
+
+$response->send();
 
 $kernel->terminate($request, $response);
