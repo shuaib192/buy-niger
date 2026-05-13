@@ -21,7 +21,14 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
+                $user = Auth::guard($guard)->user();
+                $route = match ((int)$user->role_id) {
+                    1 => 'superadmin.dashboard',
+                    2 => 'admin.dashboard',
+                    3 => 'vendor.dashboard',
+                    default => 'customer.dashboard',
+                };
+                return redirect()->route($route);
             }
         }
 

@@ -222,11 +222,12 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        return match ($user->role_id) {
+        return match ((int)$user->role_id) {
             1 => redirect()->route('superadmin.dashboard'),
             2 => redirect()->route('admin.dashboard'),
             3 => redirect()->route('vendor.dashboard'),
-            default => redirect()->route('home'),
+            4 => redirect()->route('customer.dashboard'),
+            default => redirect()->route('customer.dashboard'),
         };
     }
 
