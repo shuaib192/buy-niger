@@ -67,7 +67,7 @@
                     <i class="fas fa-map-marker-alt"></i>
                 </div>
                 <h4>Our Location</h4>
-                <p>Niamey, Niger Republic<br>P3 Consulting Limited</p>
+                <p>P3 HUB OFFICE, OPP BOSSO EMIR JUNCTION,<br>MINNA, NIGER STATE</p>
             </div>
             <div class="contact-info-card">
                 <div class="contact-info-icon" style="background:linear-gradient(135deg,#10b981,#059669);">
