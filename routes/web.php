@@ -304,6 +304,7 @@ Route::middleware(['auth', 'role:1'])->prefix('superadmin')->name('superadmin.')
     Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/settings', [SuperAdminController::class, 'settings'])->name('settings');
     Route::post('/settings', [SuperAdminController::class, 'updateSettings'])->name('settings.update');
+    Route::post('/optimize', [SuperAdminController::class, 'optimizeSystem'])->name('optimize');
     // User Management
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
     Route::get('/users/{user}', [SuperAdminController::class, 'userShow'])->name('users.show');

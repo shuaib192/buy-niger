@@ -110,6 +110,33 @@
         </div>
     </form>
 
+    <!-- System Optimization Section -->
+    <div class="row g-4 mt-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h3><i class="fas fa-rocket text-primary"></i> System Optimization</h3>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-1">Optimize Cache & Performance</h5>
+                            <p class="text-muted small mb-0">This will clear all application caches (Config, Routes, Views, and Homepage) and rebuild them. Recommended after making configuration changes or if the site feels slow.</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <form action="{{ route($prefix.'optimize') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-sync-alt"></i> Optimize Now
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
         .settings-row {
             display: grid;

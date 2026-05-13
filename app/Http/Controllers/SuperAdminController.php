@@ -78,6 +78,26 @@ class SuperAdminController extends Controller
     }
 
     /**
+     * Optimize System (Clear Cache, Optimize Autoloader, etc.)
+     */
+    public function optimizeSystem()
+    {
+        try {
+            Artisan::call('optimize:clear');
+            Artisan::call('view:cache');
+            Artisan::call('config:cache');
+            Artisan::call('route:cache');
+            
+            // Clear custom home cache
+            \Illuminate\Support\Facades\Cache::forget('shop_home_data');
+
+            return back()->with('success', 'System optimized successfully! Caches have been cleared and rebuilt.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Optimization failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Display vendor management.
      */
     public function vendors(Request $request)
