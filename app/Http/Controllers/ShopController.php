@@ -20,6 +20,14 @@ class ShopController extends Controller
      */
     public function index()
     {
+        // EMERGENCY CACHE CLEAR
+        try {
+            \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+            \Illuminate\Support\Facades\Cache::flush();
+        } catch (\Exception $e) {
+            // Ignore if fails
+        }
+
         $cacheTime = 600; // 10 minutes
 
         $data = \Illuminate\Support\Facades\Cache::remember('shop_home_data', $cacheTime, function() {
