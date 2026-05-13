@@ -68,12 +68,12 @@
 
                     <div class="form-group mt-4">
                         <label class="form-label">Contact Email</label>
-                        <input type="email" name="settings[contact_email]" class="form-control" value="{{ \App\Models\SystemSetting::get('support_email', 'support@buyniger.com') }}">
+                        <input type="email" name="settings[contact_email]" class="form-control" value="{{ \App\Models\SystemSetting::get('support_email', 'info@buyniger.com') }}">
                     </div>
 
                     <div class="form-group mt-4">
                         <label class="form-label">Contact Phone</label>
-                        <input type="text" name="settings[phone]" class="form-control" value="{{ \App\Models\SystemSetting::get('phone', '08122598372') }}">
+                        <input type="text" name="settings[phone]" class="form-control" value="{{ \App\Models\SystemSetting::get('phone', '09019194418') }}">
                     </div>
                 </div>
             </div>

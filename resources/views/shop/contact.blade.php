@@ -74,15 +74,15 @@
                     <i class="fas fa-phone-alt"></i>
                 </div>
                 <h4>Call Us</h4>
-                <p><a href="tel:+2348122598372">+234 812 259 8372</a><br>
-                   <a href="tel:+2347049906420">+234 704 990 6420</a></p>
+                <p><a href="tel:+2349019194418">+234 901 919 4418</a><br>
+                   <a href="tel:+2348033504871">+234 803 350 4871</a></p>
             </div>
             <div class="contact-info-card">
                 <div class="contact-info-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
                     <i class="fas fa-envelope"></i>
                 </div>
                 <h4>Email Us</h4>
-                <p><a href="mailto:shuaibabdul192@gmail.com">shuaibabdul192@gmail.com</a></p>
+                <p><a href="mailto:info@buyniger.com">info@buyniger.com</a></p>
             </div>
             <div class="contact-info-card">
                 <div class="contact-info-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">
