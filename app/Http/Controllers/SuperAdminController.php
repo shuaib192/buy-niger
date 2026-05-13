@@ -88,8 +88,8 @@ class SuperAdminController extends Controller
             Artisan::call('config:cache');
             Artisan::call('route:cache');
             
-            // Clear custom home cache
-            \Illuminate\Support\Facades\Cache::forget('shop_home_data');
+            // Full cache flush to clear "Forever" cached settings
+            \Illuminate\Support\Facades\Cache::flush();
 
             return back()->with('success', 'System optimized successfully! Caches have been cleared and rebuilt.');
         } catch (\Exception $e) {
