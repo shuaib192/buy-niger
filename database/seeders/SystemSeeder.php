@@ -43,7 +43,7 @@ class SystemSeeder extends Seeder
             // Email
             ['group' => 'email', 'key' => 'from_name', 'value' => 'BuyNiger', 'type' => 'string', 'is_public' => false],
             ['group' => 'email', 'key' => 'from_email', 'value' => 'noreply@buyniger.com', 'type' => 'string', 'is_public' => false],
-            ['group' => 'email', 'key' => 'support_email', 'value' => 'support@buyniger.com', 'type' => 'string', 'is_public' => true],
+            ['group' => 'email', 'key' => 'support_email', 'value' => 'infor@buyniger.com', 'type' => 'string', 'is_public' => true],
             
             // Social
             ['group' => 'social', 'key' => 'facebook_url', 'value' => '', 'type' => 'string', 'is_public' => true],
@@ -51,7 +51,7 @@ class SystemSeeder extends Seeder
             ['group' => 'social', 'key' => 'instagram_url', 'value' => '', 'type' => 'string', 'is_public' => true],
             
             // Contact
-            ['group' => 'contact', 'key' => 'phone', 'value' => '08122598372', 'type' => 'string', 'is_public' => true],
+            ['group' => 'contact', 'key' => 'phone', 'value' => '09019194418', 'type' => 'string', 'is_public' => true],
             ['group' => 'contact', 'key' => 'address', 'value' => 'Nigeria', 'type' => 'string', 'is_public' => true],
         ];
 

@@ -82,7 +82,7 @@
                     <i class="fas fa-envelope"></i>
                 </div>
                 <h4>Email Us</h4>
-                <p><a href="mailto:info@buyniger.com">info@buyniger.com</a></p>
+                <p><a href="mailto:infor@buyniger.com">infor@buyniger.com</a></p>
             </div>
             <div class="contact-info-card">
                 <div class="contact-info-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">

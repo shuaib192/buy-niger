@@ -68,7 +68,7 @@
 
                     <div class="form-group mt-4">
                         <label class="form-label">Contact Email</label>
-                        <input type="email" name="settings[contact_email]" class="form-control" value="{{ \App\Models\SystemSetting::get('support_email', 'info@buyniger.com') }}">
+                        <input type="email" name="settings[contact_email]" class="form-control" value="{{ \App\Models\SystemSetting::get('support_email', 'infor@buyniger.com') }}">
                     </div>
 
                     <div class="form-group mt-4">
