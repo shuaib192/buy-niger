@@ -52,7 +52,7 @@ class SystemSeeder extends Seeder
             
             // Contact
             ['group' => 'contact', 'key' => 'phone', 'value' => '09019194418', 'type' => 'string', 'is_public' => true],
-            ['group' => 'contact', 'key' => 'address', 'value' => 'P3 HUB OFFICE, OPP BOSSO EMIR JUNCTION, MINNA, NIGER STATE', 'type' => 'string', 'is_public' => true],
+            ['group' => 'contact', 'key' => 'address', 'value' => 'P3 HUB OFFICE, OPP BOSSO EMIR JUNCTION, MINNA, NIGER STATE, NIGERIA', 'type' => 'string', 'is_public' => true],
         ];
 
         foreach ($settings as $setting) {

@@ -67,7 +67,7 @@
                     <i class="fas fa-map-marker-alt"></i>
                 </div>
                 <h4>Our Location</h4>
-                <p>P3 HUB OFFICE, OPP BOSSO EMIR JUNCTION,<br>MINNA, NIGER STATE</p>
+                <p>P3 HUB OFFICE, OPP BOSSO EMIR JUNCTION,<br>MINNA, NIGER STATE, NIGERIA</p>
             </div>
             <div class="contact-info-card">
                 <div class="contact-info-icon" style="background:linear-gradient(135deg,#10b981,#059669);">
@@ -93,6 +93,20 @@
             </div>
         </div>
     </div>
+    
+    <!-- Map Section -->
+    <div style="margin-top:56px; border-radius:24px; overflow:hidden; border:1px solid #e2e8f0; height:450px; background:#f8fafc;">
+        <iframe 
+            width="100%" 
+            height="100%" 
+            style="border:0;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3934.153456789!2d6.5167!3d9.6167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x104e7694f4b1b3b3%3A0x7d8d8d8d8d8d8d8d!2sBosso%20Emir%20Junction%2C%20Minna!5e0!3m2!1sen!2sng!4v1715616000000!5m2!1sen!2sng">
+        </iframe>
+    </div>
+
 </div>
 
 <style>
