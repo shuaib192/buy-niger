@@ -141,11 +141,7 @@ Route::get('/debug-log-777', function() {
     $path = storage_path('logs/laravel.log');
     if (!file_exists($path)) return "Log file not found.";
     $lines = file($path);
-    $today = date('Y-m-d');
-    $filtered = array_filter($lines, function($line) use ($today) {
-        return str_contains($line, $today);
-    });
-    return "<pre>" . htmlspecialchars(implode("", array_slice($filtered, -50))) . "</pre>";
+    return "<pre>" . htmlspecialchars(implode("", array_slice($lines, -200))) . "</pre>";
 });
 
 // Redirect /home to /
