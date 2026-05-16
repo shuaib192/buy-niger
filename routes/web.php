@@ -21,33 +21,6 @@ use App\Http\Controllers\MessageController;
 
 /*
 |--------------------------------------------------------------------------
-| Subdomain Routes (Wildcard)
-|--------------------------------------------------------------------------
-*/
-Route::domain('{subdomain}.' . env('APP_URL_BASE', 'buyniger.com'))->group(function () {
-    Route::get('/', function ($subdomain) {
-        $user = \App\Models\User::where('subdomain', $subdomain)->first();
-        if (!$user) {
-            return redirect('https://' . env('APP_URL_BASE', 'buyniger.com'));
-        }
-        return "Welcome to " . e($user->name) . "'s Subdomain! This is a test for: " . e($subdomain);
-    });
-});
-
-// Masked Subdomain Backend (For Cloudflare Worker) - Supports subpages like /products, /about, etc.
-Route::get('/s/{subdomain}/{path?}', function ($subdomain, $path = null) {
-    $user = \App\Models\User::where('subdomain', $subdomain)->first();
-    if (!$user) {
-        return abort(404, "Store not found.");
-    }
-    
-    // For now, let's just show what page we are on for testing
-    $page = $path ?: 'Homepage';
-    return "Welcome to " . e($user->name) . "'s Store! <br> Currently viewing: <b>" . e($page) . "</b> on subdomain <b>" . e($subdomain) . "</b>";
-})->where('path', '.*');
-
-/*
-|--------------------------------------------------------------------------
 | Public Shop Routes
 |--------------------------------------------------------------------------
 */
