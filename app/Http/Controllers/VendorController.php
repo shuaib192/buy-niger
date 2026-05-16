@@ -957,24 +957,14 @@ public function exportAnalytics(Request $request)
 
         // Update or create primary bank detail
         if ($request->bank_name && $request->account_number) {
-            $transferService = app(PaystackTransferService::class);
-            $bankCode = $transferService->resolveBankCodeByName($request->bank_name);
-
             VendorBankDetail::updateOrCreate(
                 ['vendor_id' => $vendor->id, 'is_primary' => true],
                 [
                     'bank_name' => $request->bank_name,
                     'account_name' => $request->account_name,
                     'account_number' => $request->account_number,
-                    'bank_code' => $bankCode,
                 ]
             );
-
-            // Sync to vendor table for easier access in PaymentController
-            $vendor->update([
-                'bank_name' => $request->bank_name,
-                'account_number' => $request->account_number,
-            ]);
         }
 
         return back()->with('success', 'Store settings updated successfully!');

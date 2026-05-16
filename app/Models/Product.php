@@ -138,35 +138,16 @@ class Product extends Model
     // Helpers
     public function getCurrentPriceAttribute(): float
     {
-        if ($this->variants()->exists()) {
-            return (float) $this->variants()->min('price');
-        }
-
-        if ($this->sale_price && $this->sale_price > 0) {
-            return min($this->price, $this->sale_price);
+        if ($this->sale_price && $this->sale_price < $this->price) {
+            return $this->sale_price;
         }
         return $this->price;
-    }
-
-    public function getOriginalPriceAttribute(): float
-    {
-        if ($this->sale_price && $this->sale_price > 0) {
-            return max($this->price, $this->sale_price);
-        }
-        return $this->price;
-    }
-
-    public function getHasDiscountAttribute(): bool
-    {
-        return $this->sale_price && $this->sale_price > 0 && $this->sale_price != $this->price;
     }
 
     public function getDiscountPercentageAttribute(): ?int
     {
-        if ($this->has_discount) {
-            $orig = $this->original_price;
-            $curr = $this->current_price;
-            return (int) round((($orig - $curr) / $orig) * 100);
+        if ($this->sale_price && $this->sale_price < $this->price) {
+            return (int) round((($this->price - $this->sale_price) / $this->price) * 100);
         }
         return null;
     }
@@ -186,13 +167,13 @@ class Product extends Model
         $image = $this->images()->where('is_primary', true)->first() 
                  ?? $this->images()->first();
         
-        $path = $image ? $image->image_path : null;
+        $path = $image ? $image->image_path : $this->image_path;
 
         if (empty($path)) {
             return asset('images/no-product.svg');
         }
 
-        if (is_string($path) && str_starts_with($path, 'http')) {
+        if (str_starts_with($path, 'http')) {
             return $path;
         }
 

@@ -47,17 +47,14 @@ class CartController extends Controller
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'variant_id' => 'nullable|exists:product_variants,id',
             'quantity' => 'integer|min:1|max:100'
         ]);
 
         $product = Product::findOrFail($request->product_id);
-        $variant = $request->variant_id ? \App\Models\ProductVariant::find($request->variant_id) : null;
         $quantity = $request->quantity ?? 1;
 
-        // Check stock (either variant stock or product stock)
-        $stockAvailable = $variant ? $variant->stock_quantity : $product->quantity;
-        if ($stockAvailable < $quantity) {
+        // Check stock
+        if ($product->quantity < $quantity) {
             return response()->json([
                 'success' => false,
                 'message' => 'Not enough stock available'
@@ -66,23 +63,16 @@ class CartController extends Controller
 
         $cart = $this->getCart();
         
-        // Check if item already in cart (match product AND variant)
-        $cartItem = $cart->items()
-            ->where('product_id', $product->id)
-            ->where('product_variant_id', $request->variant_id)
-            ->first();
+        // Check if item already in cart
+        $cartItem = $cart->items()->where('product_id', $product->id)->first();
         
         if ($cartItem) {
             $cartItem->increment('quantity', $quantity);
         } else {
-            // Use variant price if available, otherwise product price
-            $price = ($variant && $variant->price) ? $variant->price : ($product->sale_price ?? $product->price);
-            
             $cart->items()->create([
                 'product_id' => $product->id,
-                'product_variant_id' => $request->variant_id,
                 'quantity' => $quantity,
-                'price' => $price
+                'price' => $product->sale_price ?? $product->price
             ]);
         }
 

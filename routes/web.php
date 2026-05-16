@@ -25,112 +25,25 @@ use App\Http\Controllers\MessageController;
 |--------------------------------------------------------------------------
 */
 
-// HOME - inline to bypass OPcache on ShopController
-Route::get('/', function() {
-    $featuredCategories = \App\Models\Category::where('is_active', true)->where('is_featured', true)->take(6)->get();
-    $latestProducts = \App\Models\Product::where('status', 'active')->latest()->take(8)->with('category', 'images')->get();
-    $featuredProducts = \App\Models\Product::where('status', 'active')->where('is_featured', true)->with('category', 'images')->take(8)->get();
-    $bestSellers = \App\Models\Product::where('status', 'active')->withCount('orderItems')->orderByDesc('order_items_count')->with('category', 'images')->take(8)->get();
-    $topStores = \App\Models\Vendor::approved()->orderByDesc('rating')->orderByDesc('total_sales')->take(6)->get();
-    return view('shop.index', compact('featuredCategories', 'latestProducts', 'featuredProducts', 'bestSellers', 'topStores'));
-})->name('home');
+// Home
+Route::get('/', [ShopController::class, 'index'])->name('home');
+Route::get('/about', [ShopController::class, 'about'])->name('about');
+Route::get('/contact', [ShopController::class, 'contact'])->name('contact');
+Route::post('/contact', [ShopController::class, 'sendContact'])->name('contact.send');
+Route::match(['get', 'post'], '/track-order', [ShopController::class, 'trackOrder'])->name('track.order');
 
-// Shop Routes - Inline Closures to bypass OPcache
-Route::get('/about', function() {
-    $vendorCount = \App\Models\Vendor::where('status', 'approved')->count();
-    $productCount = \App\Models\Product::where('status', 'active')->count();
-    $orderCount = \App\Models\Order::count();
-    return view('shop.about', compact('vendorCount', 'productCount', 'orderCount'));
-})->name('about');
+// Policies
+Route::get('/privacy', [ShopController::class, 'privacy'])->name('privacy');
+Route::get('/terms', [ShopController::class, 'terms'])->name('terms');
+Route::get('/vendor-policy', [ShopController::class, 'vendorPolicy'])->name('vendor.policy');
+Route::get('/refund-policy', [ShopController::class, 'refundPolicy'])->name('refund.policy');
 
-Route::get('/contact', function() {
-    return view('shop.contact');
-})->name('contact');
+// Catalog & Categories
+Route::get('/shop', [ShopController::class, 'catalog'])->name('catalog');
+Route::get('/category/{category}', [ShopController::class, 'catalog'])->name('category');
 
-Route::post('/contact', function(\Illuminate\Http\Request $request) {
-    $request->validate([
-        'name' => 'required|string|max:100',
-        'email' => 'required|email|max:200',
-        'subject' => 'required|string|max:200',
-        'message' => 'required|string|max:2000',
-    ]);
-    \App\Models\ContactMessage::create($request->all());
-    return back()->with('success', 'Your message has been sent!');
-})->name('contact.send');
-
-Route::match(['get', 'post'], '/track-order', function(\Illuminate\Http\Request $request) {
-    if ($request->isMethod('post')) {
-        $order = \App\Models\Order::where('order_number', $request->order_number)->first();
-        if (!$order) return back()->with('error', 'Order not found');
-        return view('shop.track-order', compact('order'));
-    }
-    return view('shop.track-order');
-})->name('track.order');
-
-Route::get('/privacy', function() { return view('shop.privacy'); })->name('privacy');
-Route::get('/terms', function() { return view('shop.terms'); })->name('terms');
-Route::get('/vendor-policy', function() { return view('shop.vendor-policy'); })->name('vendor.policy');
-Route::get('/refund-policy', function() { return view('shop.refund-policy'); })->name('refund.policy');
-
-// CATALOG - inline to bypass OPcache on ShopController
-Route::get('/shop-test', function(\Illuminate\Http\Request $request) {
-    $query = \App\Models\Product::where('status', 'active');
-    $products   = $query->with(['category', 'images', 'vendor'])->paginate(20);
-    $categories = \App\Models\Category::where('is_active', true)->get();
-    return view('shop.catalog', compact('products', 'categories'));
-});
-
-// CATALOG - bypass cursed /shop URL
-Route::get('/products', function(\Illuminate\Http\Request $request) {
-    $query = \App\Models\Product::where('status', 'active');
-    if ($request->search) {
-        $s = $request->search;
-        $query->where(function($q) use ($s) {
-            $q->where('name', 'like', "%{$s}%")
-              ->orWhere('short_description', 'like', "%{$s}%")
-              ->orWhereHas('vendor', fn($vq) => $vq->where('store_name', 'like', "%{$s}%"));
-        });
-    }
-    if ($request->category) {
-        $cat = \App\Models\Category::where('slug', $request->category)->first();
-        if ($cat) $query->where('category_id', $cat->id);
-    }
-    if ($request->min_price) $query->where('price', '>=', $request->min_price);
-    if ($request->max_price) $query->where('price', '<=', $request->max_price);
-    if ($request->rating)    $query->where('rating', '>=', $request->rating);
-    switch ($request->sort) {
-        case 'price_low':  $query->orderBy('price', 'asc'); break;
-        case 'price_high': $query->orderBy('price', 'desc'); break;
-        case 'avg_rating': $query->orderBy('rating', 'desc'); break;
-        default:           $query->latest(); break;
-    }
-    $products   = $query->with(['category', 'images', 'vendor'])->paginate(20);
-    $categories = \App\Models\Category::where('is_active', true)->get();
-    return view('shop.catalog', compact('products', 'categories'));
-})->name('catalog');
-
-Route::get('/shop', function() {
-    return redirect()->route('catalog');
-});
-
-Route::get('/shop-test', function() {
-    return redirect()->route('catalog');
-});
-
-Route::get('/category/{category}', function($slug) {
-    if (function_exists('opcache_reset')) { opcache_reset(); }
-    $cat = \App\Models\Category::where('slug', $slug)->firstOrFail();
-    $products = \App\Models\Product::where('category_id', $cat->id)->where('status', 'active')->with(['category', 'images', 'vendor'])->paginate(20);
-    $categories = \App\Models\Category::where('is_active', true)->get();
-    return view('shop.catalog', compact('products', 'categories'));
-})->name('category');
-
-Route::get('/product/{slug}', function($slug) {
-    if (function_exists('opcache_reset')) { opcache_reset(); }
-    $product = \App\Models\Product::where('slug', $slug)->where('status', 'active')->with(['category', 'images', 'vendor', 'reviews'])->firstOrFail();
-    $relatedProducts = \App\Models\Product::where('category_id', $product->category_id)->where('id', '!=', $product->id)->where('status', 'active')->take(4)->get();
-    return view('shop.product', compact('product', 'relatedProducts'));
-})->name('product.detail');
+// Product Detail
+Route::get('/product/{slug}', [ShopController::class, 'product'])->name('product.detail');
 
 // Vendor Storefront
 use App\Http\Controllers\StoreController;
@@ -210,19 +123,20 @@ Route::get('/debug-mail-config', function() {
     ];
 });
 
-// ============================================================
-// REDIRECTS & CLEANUP
-// ============================================================
-Route::get('/shop', function() {
-    return redirect()->route('catalog');
+// Emergency Migration Route
+Route::get('/run-migration-secret-777', function() {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        return "Migration Successful: " . \Illuminate\Support\Facades\Artisan::output();
+    } catch (\Exception $e) {
+        return "Migration Failed: " . $e->getMessage();
+    }
 });
-
-Route::get('/shop-test', function() {
-    return redirect()->route('catalog');
-});
-
 
 // Redirect /home to /
+Route::get('/home', function () {
+    return redirect('/');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -312,13 +226,13 @@ Route::middleware(['auth', 'role:3', 'vendor.approved'])->prefix('vendor')->name
     Route::get('/analytics/export', [VendorController::class, 'exportAnalytics'])->name('analytics.export');
 
     // Products
-    Route::get('/products', [VendorProductController::class, 'index'])->name('products');
-    Route::post('/products/bulk', [VendorProductController::class, 'bulkAction'])->name('products.bulk');
-    Route::get('/products/create', [VendorProductController::class, 'create'])->name('products.create');
-    Route::post('/products', [VendorProductController::class, 'store'])->name('products.store');
-    Route::get('/products/{product}/edit', [VendorProductController::class, 'edit'])->name('products.edit');
-    Route::put('/products/{product}', [VendorProductController::class, 'update'])->name('products.update');
-    Route::delete('/products/{product}', [VendorProductController::class, 'destroy'])->name('products.destroy');
+    Route::get('/products', [VendorController::class, 'products'])->name('products');
+    Route::post('/products/bulk', [VendorController::class, 'bulkAction'])->name('products.bulk');
+    Route::get('/products/create', [VendorController::class, 'createProduct'])->name('products.create');
+    Route::post('/products', [VendorController::class, 'storeProduct'])->name('products.store');
+    Route::get('/products/{id}/edit', [VendorController::class, 'editProduct'])->name('products.edit');
+    Route::put('/products/{id}', [VendorController::class, 'updateProduct'])->name('products.update');
+    Route::delete('/products/{id}', [VendorController::class, 'destroyProduct'])->name('products.destroy');
 
     // Coupons
     Route::get('/coupons', [VendorController::class, 'coupons'])->name('coupons');

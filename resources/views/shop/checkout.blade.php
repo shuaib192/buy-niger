@@ -134,7 +134,11 @@
                                     <span class="shipping-eta"><i class="far fa-clock"></i> {{ $method->estimated_days }}</span>
                                 </div>
                                 <div class="shipping-price">
-                                    <span class="price-tag" style="font-size: 12px; color: var(--primary-600);">Discuss with Vendor</span>
+                                    @if($methodCost > 0)
+                                        <span class="price-tag">₦{{ number_format($methodCost) }}</span>
+                                    @else
+                                        <span class="price-tag free">FREE</span>
+                                    @endif
                                 </div>
                             </div>
                             <span class="shipping-check"><i class="fas fa-check"></i></span>
@@ -186,8 +190,16 @@
                         </div>
                         <div class="summary-row" id="shippingRow">
                             <span>Shipping</span>
-                            <span id="shippingCostDisplay" class="text-primary font-bold">
-                                Discuss with Vendor
+                            <span id="shippingCostDisplay">
+                                @php
+                                    $firstIsPickup = isset($shippingMethods[0]) && str_contains(strtolower($shippingMethods[0]->name), 'pickup');
+                                    $initialShipping = $firstIsPickup ? 0 : $vendorDeliveryFee;
+                                @endphp
+                                @if($initialShipping > 0)
+                                    ₦{{ number_format($initialShipping) }}
+                                @else
+                                    <span class="text-success">Free</span>
+                                @endif
                             </span>
                         </div>
                         <div class="summary-row discount-row" id="discountRow" style="display:none;">

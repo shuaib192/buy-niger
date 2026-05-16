@@ -87,4 +87,3 @@ FLUTTERWAVE_SECRET_KEY=your_key
 ## 📄 License
 
 This project is proprietary software. All rights reserved.
-// Wake up deployment

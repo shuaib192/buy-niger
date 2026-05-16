@@ -20,40 +20,56 @@ class ShopController extends Controller
      */
     public function index()
     {
-        $featuredCategories = Category::where('is_active', true)
-            ->where('is_featured', true)
-            ->take(6)
-            ->get();
+        // EMERGENCY CACHE CLEAR
+        try {
+            \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+            \Illuminate\Support\Facades\Cache::flush();
+        } catch (\Exception $e) {
+            // Ignore if fails
+        }
 
-        $latestProducts = Product::where('status', 'active')
-            ->latest()
-            ->take(8)
-            ->with('category', 'images')
-            ->get();
+        $cacheTime = 600; // 10 minutes
 
-        $featuredProducts = Product::where('status', 'active')
-            ->where('is_featured', true)
-            ->with('category', 'images')
-            ->take(8)
-            ->get();
+        $data = \Illuminate\Support\Facades\Cache::remember('shop_home_data', $cacheTime, function() {
+            $featuredCategories = Category::where('is_active', true)
+                ->where('is_featured', true)
+                ->take(6)
+                ->get();
 
-        $bestSellers = Product::where('status', 'active')
-            ->withCount('orderItems')
-            ->orderByDesc('order_items_count')
-            ->with('category', 'images')
-            ->take(8)
-            ->get();
+            $latestProducts = Product::where('status', 'active')
+                ->latest()
+                ->take(8)
+                ->with('category', 'images')
+                ->get();
 
-        $topStores = \App\Models\Vendor::approved()
-            ->orderByDesc('rating')
-            ->orderByDesc('total_sales')
-            ->take(6)
-            ->get();
+            $featuredProducts = Product::where('status', 'active')
+                ->where('is_featured', true)
+                ->with('category', 'images')
+                ->take(8)
+                ->get();
 
-        return view('shop.index', compact(
-            'featuredCategories', 'latestProducts', 'featuredProducts',
-            'bestSellers', 'topStores'
-        ));
+            // Best sellers — products with most orders
+            $bestSellers = Product::where('status', 'active')
+                ->withCount('orderItems')
+                ->orderByDesc('order_items_count')
+                ->with('category', 'images')
+                ->take(8)
+                ->get();
+
+            // Top stores — highest rated approved vendors
+            $topStores = \App\Models\Vendor::approved()
+                ->orderByDesc('rating')
+                ->orderByDesc('total_sales')
+                ->take(6)
+                ->get();
+
+            return compact(
+                'featuredCategories', 'latestProducts', 'featuredProducts',
+                'bestSellers', 'topStores'
+            );
+        });
+
+        return view('shop.index', $data);
     }
 
     /**

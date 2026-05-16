@@ -15,7 +15,7 @@
                 </div>
             @endif
         </a>
-        @if($product->has_discount)
+        @if($product->sale_price && $product->sale_price < $product->price)
             <span class="product-badge badge-sale">Sale</span>
         @elseif($product->created_at && $product->created_at->gt(now()->subDays(7)))
             <span class="product-badge badge-new">New</span>
@@ -25,11 +25,11 @@
         <div class="product-cat">{{ $product->category->name ?? 'General' }}</div>
         <a href="{{ route('product.detail', $product->slug) }}" class="product-name">{{ Str::limit($product->name, 40) }}</a>
         <div class="product-price-row">
-            @if($product->has_discount)
-                <span class="product-price">₦{{ number_format($product->current_price) }}</span>
-                <span class="product-old-price">₦{{ number_format($product->original_price) }}</span>
+            @if($product->sale_price && $product->sale_price < $product->price)
+                <span class="product-price">₦{{ number_format($product->sale_price) }}</span>
+                <span class="product-old-price">₦{{ number_format($product->price) }}</span>
             @else
-                <span class="product-price">₦{{ number_format($product->current_price) }}</span>
+                <span class="product-price">₦{{ number_format($product->price) }}</span>
             @endif
         </div>
         <div class="product-footer">

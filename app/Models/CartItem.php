@@ -15,18 +15,7 @@ class CartItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'cart_id',
-        'product_id',
-        'product_variant_id',
-        'quantity',
-        'price',
-    ];
-
-    public function variant()
-    {
-        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
-    }
+    protected $fillable = ['cart_id', 'product_id', 'quantity', 'price'];
 
     /**
      * Get the cart.

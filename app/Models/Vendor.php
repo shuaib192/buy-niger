@@ -57,9 +57,6 @@ class Vendor extends Model
         'kyc_status',
         'kyc_rejection_reason',
         'kyc_verified_at',
-        'paystack_subaccount_id',
-        'bank_name',
-        'account_number',
     ];
 
     protected $casts = [

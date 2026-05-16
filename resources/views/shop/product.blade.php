@@ -48,63 +48,18 @@
                 </div>
 
                 <div class="p-price-block">
-                    @if($product->has_discount)
-                        <span class="curr-price">₦{{ number_format($product->current_price) }}</span>
-                        <span class="old-price">₦{{ number_format($product->original_price) }}</span>
-                        <span class="save-badge">Save {{ $product->discount_percentage }}%</span>
+                    @if($product->sale_price && $product->sale_price < $product->price)
+                        <span class="curr-price">₦{{ number_format($product->sale_price) }}</span>
+                        <span class="old-price">₦{{ number_format($product->price) }}</span>
+                        <span class="save-badge">Save {{ round((($product->price - $product->sale_price) / $product->price) * 100) }}%</span>
                     @else
-                        <span class="curr-price">₦{{ number_format($product->current_price) }}</span>
+                        <span class="curr-price">₦{{ number_format($product->price) }}</span>
                     @endif
                 </div>
 
                 <div class="p-short-desc">
                     {{ $product->short_description }}
                 </div>
-
-                {{-- Product Variants --}}
-                @if($product->variants->count() > 0)
-                    <div class="product-variants mb-4">
-                        @php
-                            $sizes = $product->variants->pluck('size')->unique()->filter();
-                            $colors = $product->variants->pluck('color')->unique()->filter();
-                        @endphp
-
-                        @if($sizes->count() > 0)
-                            <div class="variant-group mb-3">
-                                <label class="d-block mb-2 font-bold text-xs uppercase text-secondary-500">Select Size</label>
-                                <div class="variant-options d-flex flex-wrap gap-2">
-                                    @foreach($sizes as $size)
-                                        <button type="button" class="variant-option size-option" data-type="size" data-value="{{ $size }}">
-                                            {{ $size }}
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-
-                        @if($colors->count() > 0)
-                            <div class="variant-group mb-3">
-                                <label class="d-block mb-2 font-bold text-xs uppercase text-secondary-500">Select Color</label>
-                                <div class="variant-options d-flex flex-wrap gap-2">
-                                    @foreach($colors as $color)
-                                        @php
-                                            $isHex = preg_match('/^#[0-9A-F]{6}$/i', $color);
-                                        @endphp
-                                        <button type="button" class="variant-option color-option" 
-                                                data-type="color" 
-                                                data-value="{{ $color }}"
-                                                @if($isHex) style="background-color: {{ $color }};" @endif
-                                                title="{{ $color }}">
-                                            @if(!$isHex) {{ $color }} @endif
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                        
-                        <input type="hidden" name="variant_id" id="selectedVariantId" value="">
-                    </div>
-                @endif
 
                 <div class="p-actions">
                     <div class="quantity-picker">
@@ -273,58 +228,10 @@
         }
 
         // Handle tab switching via URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
             if (tab === 'reviews') {
-                showTab('reviews', document.querySelectorAll('.tab-btn')[1]);
-            }
-        });
-
-        // Variant Selection Logic
-        document.querySelectorAll('.variant-option').forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Remove active class from siblings
-                const group = this.closest('.variant-options');
-                group.querySelectorAll('.variant-option').forEach(b => b.classList.remove('active'));
-                
-                // Add active class to clicked
-                this.classList.add('active');
-                
-                // Check if all groups have selection
-                checkVariants();
-            });
-        });
-
-        function checkVariants() {
-            const hasSize = document.querySelector('.size-option') !== null;
-            const hasColor = document.querySelector('.color-option') !== null;
-            
-            const selectedSize = document.querySelector('.size-option.active')?.dataset.value;
-            const selectedColor = document.querySelector('.color-option.active')?.dataset.value;
-            
-            // Pass the variants array to JS (safe way)
-            const variants = {!! json_encode($product->variants) !!};
-            
-            let matched = variants.find(v => {
-                let match = true;
-                if (hasSize && v.size !== selectedSize) match = false;
-                if (hasColor && v.color !== selectedColor) match = false;
-                return match;
-            });
-            
-            if (matched) {
-                document.getElementById('selectedVariantId').value = matched.id;
-                // Update price if variation has custom price
-                if (matched.price) {
-                    document.querySelector('.curr-price').innerText = '₦' + new Intl.NumberFormat().format(matched.price);
-                }
-                // Update stock max
-                document.getElementById('qty').max = matched.stock_quantity;
-                if (parseInt(document.getElementById('qty').value) > matched.stock_quantity) {
-                    document.getElementById('qty').value = matched.stock_quantity;
-                }
-            } else {
-                document.getElementById('selectedVariantId').value = '';
-            }
-        }
     </script>
 
     <style>
@@ -683,40 +590,6 @@
             .review-comment { font-size: 1rem; }
             .product-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 20px !important; }
             .section-title { font-size: 1.5rem; }
-        }
-
-        /* --- Variant Selection Styling --- */
-        .variant-option {
-            border: 2px solid #e2e8f0;
-            background: #fff;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--secondary-700);
-            min-width: 44px;
-        }
-        .variant-option:hover { border-color: var(--primary-300); }
-        .variant-option.active {
-            border-color: var(--primary-600);
-            background: var(--primary-50);
-            color: var(--primary-700);
-        }
-        .color-option {
-            width: 36px;
-            height: 36px;
-            padding: 0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.65rem;
-            text-transform: uppercase;
-        }
-        .color-option.active {
-            box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--primary-600);
         }
     </style>
 @endsection
