@@ -31,14 +31,14 @@
                     <div class="cart-item-details">
                         <a href="{{ route('product.detail', $item->product->slug) }}" class="cart-item-name">{{ $item->product->name }}</a>
                         <div class="cart-item-meta">{{ $item->product->category->name ?? 'General' }}</div>
-                        <div class="cart-item-price">₦{{ number_format($item->product->sale_price ?? $item->product->price) }}</div>
+                        <div class="cart-item-price">₦{{ number_format($item->product->current_price) }}</div>
                     </div>
                     <div class="cart-item-qty">
                         <button class="qty-btn" onclick="updateQty({{ $item->id }}, -1)"><i class="fas fa-minus"></i></button>
                         <input type="number" value="{{ $item->quantity }}" min="1" max="99" id="qty-{{ $item->id }}" onchange="setQty({{ $item->id }}, this.value)">
                         <button class="qty-btn" onclick="updateQty({{ $item->id }}, 1)"><i class="fas fa-plus"></i></button>
                     </div>
-                    @php $itemPrice = $item->product->sale_price ?? $item->product->price; @endphp
+                    @php $itemPrice = $item->product->current_price; @endphp
                     <div class="cart-item-total" id="total-{{ $item->id }}">
                         ₦{{ number_format($itemPrice * $item->quantity) }}
                     </div>
