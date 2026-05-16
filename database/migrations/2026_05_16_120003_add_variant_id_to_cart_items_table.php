@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('cart_items', function (Blueprint $table) {
-            $table->foreignId('product_variant_id')->nullable()->constrained()->onDelete('cascade')->after('product_id');
+            if (!Schema::hasColumn('cart_items', 'product_variant_id')) {
+                $table->foreignId('product_variant_id')->nullable()->constrained()->onDelete('cascade')->after('product_id');
+            }
         });
     }
 

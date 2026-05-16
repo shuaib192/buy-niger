@@ -12,9 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('vendors', function (Blueprint $table) {
-            $table->string('paystack_subaccount_id')->nullable()->after('business_name');
-            $table->string('bank_name')->nullable()->after('paystack_subaccount_id');
-            $table->string('account_number')->nullable()->after('bank_name');
+            if (!Schema::hasColumn('vendors', 'paystack_subaccount_id')) {
+                $table->string('paystack_subaccount_id')->nullable()->after('business_name');
+            }
+            if (!Schema::hasColumn('vendors', 'bank_name')) {
+                $table->string('bank_name')->nullable()->after('paystack_subaccount_id');
+            }
+            if (!Schema::hasColumn('vendors', 'account_number')) {
+                $table->string('account_number')->nullable()->after('bank_name');
+            }
         });
     }
 
