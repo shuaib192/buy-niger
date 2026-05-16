@@ -123,16 +123,16 @@ Route::get('/debug-mail-config', function() {
     ];
 });
 
-// Emergency Migration & Optimization Route
+// Emergency Migration & Optimization Route - v5.SHOPFIX
 Route::get('/run-migration-secret-777', function() {
     try {
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         \Illuminate\Support\Facades\Artisan::call('view:clear');
         \Illuminate\Support\Facades\Artisan::call('config:clear');
-        return "System Updated! Migration & Cache Clear Successful. <br><br> Output: " . \Illuminate\Support\Facades\Artisan::output();
+        return "v5.SHOPFIX | System Updated! Migration & Cache Clear Successful. <br><br> Output: " . \Illuminate\Support\Facades\Artisan::output();
     } catch (\Exception $e) {
-        return "Update Failed: " . $e->getMessage();
+        return "v5.SHOPFIX | Update Failed: " . $e->getMessage();
     }
 });
 
