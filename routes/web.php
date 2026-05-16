@@ -80,7 +80,8 @@ Route::get('/shop-test', function(\Illuminate\Http\Request $request) {
     return view('shop.catalog', compact('products', 'categories'));
 });
 
-Route::get('/shop', function(\Illuminate\Http\Request $request) {
+// CATALOG - bypass cursed /shop URL
+Route::get('/products', function(\Illuminate\Http\Request $request) {
     $query = \App\Models\Product::where('status', 'active');
     if ($request->search) {
         $s = $request->search;
@@ -107,6 +108,14 @@ Route::get('/shop', function(\Illuminate\Http\Request $request) {
     $categories = \App\Models\Category::where('is_active', true)->get();
     return view('shop.catalog', compact('products', 'categories'));
 })->name('catalog');
+
+Route::get('/shop', function() {
+    return redirect()->route('catalog');
+});
+
+Route::get('/shop-test', function() {
+    return redirect()->route('catalog');
+});
 
 Route::get('/category/{category}', function($slug) {
     if (function_exists('opcache_reset')) { opcache_reset(); }
