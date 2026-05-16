@@ -146,15 +146,16 @@ Route::get('/debug-mail-config', function() {
     ];
 });
 
-// ============================================================
-// REDIRECTS & CLEANUP
-// ============================================================
-Route::get('/shop', function() {
-    return redirect()->route('catalog');
-});
-
-Route::get('/shop-test', function() {
-    return redirect()->route('catalog');
+// SECRET MIGRATE ROUTE
+Route::get('/run-migration-secret-777', function() {
+    try {
+        if (function_exists('opcache_reset')) { opcache_reset(); }
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return "<pre>Migration Successful:\n" . $output . "</pre>";
+    } catch (\Exception $e) {
+        return "<pre>Migration Failed:\n" . $e->getMessage() . "</pre>";
+    }
 });
 
 
