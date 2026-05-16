@@ -155,7 +155,7 @@
             @if($order->status === 'cancelled')
                 <div class="detail-card mt-3" style="background:#fef2f2;border-color:#fca5a5;">
                     <h3 style="color:#dc2626;">Order Cancelled</h3>
-                    <p class="mb-0" style="color:#991b1b;">This order was cancelled on {{ $order->cancelled_at?->format('M d, Y h:i A') ?? 'N/A' }}.</p>
+                    <p class="mb-0" style="color:#991b1b;">This order was cancelled on {{ $order->cancelled_at ? $order->cancelled_at->format('M d, Y h:i A') : 'N/A' }}.</p>
                 </div>
             @endif
 

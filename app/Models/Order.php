@@ -201,7 +201,7 @@ class Order extends Model
             'status' => $status,
             'notes' => $notes,
             'changed_by' => $user ? 'user' : 'system',
-            'user_id' => $user?->id,
+            'user_id' => $user ? $user->id : null,
         ]);
     }
 
