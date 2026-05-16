@@ -123,13 +123,16 @@ Route::get('/debug-mail-config', function() {
     ];
 });
 
-// Emergency Migration Route
+// Emergency Migration & Optimization Route
 Route::get('/run-migration-secret-777', function() {
     try {
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        return "Migration Successful: " . \Illuminate\Support\Facades\Artisan::output();
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        return "System Updated! Migration & Cache Clear Successful. <br><br> Output: " . \Illuminate\Support\Facades\Artisan::output();
     } catch (\Exception $e) {
-        return "Migration Failed: " . $e->getMessage();
+        return "Update Failed: " . $e->getMessage();
     }
 });
 
