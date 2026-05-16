@@ -34,6 +34,15 @@ Route::domain('{subdomain}.' . env('APP_URL_BASE', 'buyniger.com'))->group(funct
     });
 });
 
+// Masked Subdomain Backend (For Cloudflare Worker)
+Route::get('/s/{subdomain}', function ($subdomain) {
+    $user = \App\Models\User::where('subdomain', $subdomain)->first();
+    if (!$user) {
+        return abort(404, "Store not found.");
+    }
+    return "Welcome to " . e($user->name) . "'s Storefront (Masked Mode)! This is: " . e($subdomain);
+});
+
 /*
 |--------------------------------------------------------------------------
 | Public Shop Routes
