@@ -915,12 +915,24 @@ public function exportAnalytics(Request $request)
 
         $vendor = Auth::user()->vendor;
 
-        $data = $request->only([
-            'store_name', 'description', 'address', 'city', 'state',
-            'meta_title', 'meta_description', 'facebook', 'twitter', 'instagram',
-            'delivery_fee',
-            'id_type', 'id_number', 'nin', 'bvn', 'cac_number',
-        ]);
+        $data = [
+            'store_name' => $request->store_name,
+            'store_description' => $request->description,
+            'business_address' => $request->address,
+            'city' => $request->city,
+            'state' => $request->state,
+            'meta_title' => $request->meta_title,
+            'meta_description' => $request->meta_description,
+            'facebook' => $request->facebook,
+            'twitter' => $request->twitter,
+            'instagram' => $request->instagram,
+            'delivery_fee' => $request->delivery_fee,
+            'id_type' => $request->id_type,
+            'id_number' => $request->id_number,
+            'nin' => $request->nin,
+            'bvn' => $request->bvn,
+            'cac_number' => $request->cac_number,
+        ];
 
         if ($request->hasFile('logo')) {
             if ($vendor->logo) {
