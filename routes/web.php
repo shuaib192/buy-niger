@@ -138,7 +138,12 @@ Route::get('/run-migration-secret-777', function() {
 
 // Emergency Test Route
 Route::get('/test-route-777', function() {
-    return "Hello World! Routing is working.";
+    try {
+        $product = \App\Models\Product::first();
+        return "Product loaded: " . ($product ? $product->name : "No products found");
+    } catch (\Exception $e) {
+        return "Error loading product: " . $e->getMessage();
+    }
 });
 
 // Emergency Debug Route
