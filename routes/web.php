@@ -81,14 +81,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout-order-now', [OrderController::class, 'checkout'])->name('checkout');
     Route::post('/checkout-order-now', [OrderController::class, 'process'])->name('checkout.process');
 
-    Route::get('/clear-route-cache-secret-888', function() {
-        \Illuminate\Support\Facades\Artisan::call('route:clear');
-        \Illuminate\Support\Facades\Artisan::call('config:clear');
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        if (function_exists('opcache_reset')) { opcache_reset(); }
-        return "Cache Cleared!";
-    });
-
     Route::get('/checkout', function() {
         return redirect()->route('checkout');
     });
