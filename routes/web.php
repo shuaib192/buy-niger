@@ -138,6 +138,16 @@ Route::get('/debug-mail-config', function() {
     ];
 });
 
+// Emergency Migration Route
+Route::get('/run-migration-secret-777', function() {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        return "Migration Successful: " . \Illuminate\Support\Facades\Artisan::output();
+    } catch (\Exception $e) {
+        return "Migration Failed: " . $e->getMessage();
+    }
+});
+
 // Redirect /home to /
 Route::get('/home', function () {
     return redirect('/');
