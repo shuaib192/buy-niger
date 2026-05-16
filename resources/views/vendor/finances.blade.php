@@ -14,170 +14,175 @@
 @endsection
 
 @section('content')
-<div class="finances-page">
-    {{-- Page Header --}}
-    <div class="page-header-premium">
-        <div>
-            <h1 class="page-title">Financial Overview</h1>
-            <p class="page-subtitle">Monitor your earnings, payouts, and linked bank accounts.</p>
-        </div>
-        <button class="btn-primary-premium" data-bs-toggle="modal" data-bs-target="#payoutModal" {{ $stats['available_balance'] < 1000 ? 'disabled' : '' }}>
-            <i class="fas fa-money-bill-transfer"></i> Withdraw to Bank
-        </button>
-    </div>
+<div class="fin-page">
 
-    {{-- Auto-Payout Info Banner --}}
-    <div class="info-banner mb-4">
-        <div class="info-banner-icon"><i class="fas fa-bolt"></i></div>
-        <div class="info-banner-text">
-            <strong>Automatic Earnings</strong> — Your balance is automatically credited when you mark an order as "Delivered". Withdraw anytime to your bank account.
+    {{-- Hero Balance Section --}}
+    <div class="fin-hero">
+        <div class="fin-hero-left">
+            <div class="fin-hero-label">Available Balance</div>
+            <div class="fin-hero-amount">₦{{ number_format($stats['available_balance'], 2) }}</div>
+            <div class="fin-hero-hint">Ready for instant withdrawal to your bank</div>
+        </div>
+        <div class="fin-hero-right">
+            <button class="fin-withdraw-btn" data-bs-toggle="modal" data-bs-target="#payoutModal" {{ $stats['available_balance'] < 1000 ? 'disabled' : '' }}>
+                <i class="fas fa-arrow-right"></i>
+                <span>Withdraw</span>
+            </button>
+            @if($stats['available_balance'] < 1000)
+                <div class="fin-hero-note">Min. ₦1,000 to withdraw</div>
+            @endif
         </div>
     </div>
 
     @if(session('success'))
-        <div class="alert-premium alert-success mb-4">
-            <i class="fas fa-check-circle"></i> {{ session('success') }}
-        </div>
+        <div class="fin-alert fin-alert-ok"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
     @endif
     @if(session('error'))
-        <div class="alert-premium alert-error mb-4">
-            <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
-        </div>
+        <div class="fin-alert fin-alert-err"><i class="fas fa-exclamation-circle"></i> {{ session('error') }}</div>
     @endif
 
-    {{-- Stats Cards --}}
-    <div class="stats-grid">
-        <div class="stat-card stat-total">
-            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
-            <div class="stat-data">
-                <span class="stat-label">Total Earnings</span>
-                <h2 class="stat-value">₦{{ number_format($stats['total_earned'], 2) }}</h2>
-                <span class="stat-hint">Gross revenue from delivered orders</span>
+    {{-- Earnings Breakdown --}}
+    <div class="fin-metrics">
+        <div class="fin-metric">
+            <div class="fin-metric-top">
+                <div class="fin-metric-icon fin-metric-green"><i class="fas fa-trending-up"></i></div>
+                <span class="fin-metric-label">Total Earned</span>
             </div>
+            <div class="fin-metric-value">₦{{ number_format($stats['total_earned'], 2) }}</div>
+            <div class="fin-metric-sub">From delivered orders</div>
         </div>
-        <div class="stat-card stat-pending">
-            <div class="stat-icon"><i class="fas fa-clock"></i></div>
-            <div class="stat-data">
-                <span class="stat-label">In Transit</span>
-                <h2 class="stat-value">₦{{ number_format($stats['pending_payout'], 2) }}</h2>
-                <span class="stat-hint">Orders not yet delivered</span>
+        <div class="fin-metric">
+            <div class="fin-metric-top">
+                <div class="fin-metric-icon fin-metric-amber"><i class="fas fa-shipping-fast"></i></div>
+                <span class="fin-metric-label">In Transit</span>
             </div>
-        </div>
-        <div class="stat-card stat-available">
-            <div class="stat-icon"><i class="fas fa-wallet"></i></div>
-            <div class="stat-data">
-                <span class="stat-label">Available Balance</span>
-                <h2 class="stat-value">₦{{ number_format($stats['available_balance'], 2) }}</h2>
-                <span class="stat-hint">Ready for withdrawal</span>
-            </div>
+            <div class="fin-metric-value">₦{{ number_format($stats['pending_payout'], 2) }}</div>
+            <div class="fin-metric-sub">Awaiting delivery confirmation</div>
         </div>
     </div>
 
-    <div class="content-grid">
+    {{-- Info Tip --}}
+    <div class="fin-tip">
+        <i class="fas fa-lightbulb"></i>
+        <span>Your balance grows automatically when you mark orders as <strong>"Delivered"</strong>. Withdraw to your bank anytime!</span>
+    </div>
+
+    {{-- Main Content --}}
+    <div class="fin-grid">
+
         {{-- Payout History --}}
-        <div class="premium-card main-col">
-            <div class="card-header-premium">
+        <div class="fin-card fin-card-main">
+            <div class="fin-card-head">
                 <h3>Payout History</h3>
             </div>
-            <div class="card-body-premium p-0">
-                <div class="table-responsive">
-                    <table class="premium-table">
-                        <thead>
-                            <tr>
-                                <th>Reference</th>
-                                <th>Type</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($payouts as $payout)
-                                <tr>
-                                    <td><span class="ref-code">{{ $payout->reference }}</span></td>
-                                    <td>
-                                        @if(($payout->payment_method ?? '') === 'auto_credit')
-                                            <span class="type-badge type-auto"><i class="fas fa-bolt"></i> Auto</span>
-                                        @else
-                                            <span class="type-badge type-manual"><i class="fas fa-university"></i> Withdrawal</span>
-                                        @endif
-                                    </td>
-                                    <td><span class="amount-text">₦{{ number_format($payout->amount) }}</span></td>
-                                    <td>
-                                        @php
-                                            $statusClass = match($payout->status) {
-                                                'completed' => 'dot-success',
-                                                'pending' => 'dot-warning',
-                                                'failed' => 'dot-danger',
-                                                default => 'dot-secondary'
-                                            };
-                                        @endphp
-                                        <span class="status-dot {{ $statusClass }}"></span>
-                                        <span class="status-text">{{ ucfirst($payout->status) }}</span>
-                                    </td>
-                                    <td><span class="date-text">{{ $payout->created_at->format('M d, Y') }}</span></td>
-                                </tr>
-                            @empty
-                                <tr><td colspan="5" class="empty-row">No payout history yet. Deliver orders to start earning!</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                @if($payouts->hasPages())
-                <div class="pagination-bar">{{ $payouts->links() }}</div>
-                @endif
+
+            @if($payouts->count() > 0)
+            <div class="fin-table-wrap">
+                <table class="fin-table">
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($payouts as $payout)
+                        <tr>
+                            <td>
+                                <span class="fin-ref">{{ $payout->reference }}</span>
+                            </td>
+                            <td>
+                                @if(($payout->payment_method ?? '') === 'auto_credit')
+                                    <span class="fin-type fin-type-auto"><i class="fas fa-bolt"></i> Auto</span>
+                                @else
+                                    <span class="fin-type fin-type-bank"><i class="fas fa-university"></i> Bank</span>
+                                @endif
+                            </td>
+                            <td><span class="fin-amount">₦{{ number_format($payout->amount) }}</span></td>
+                            <td>
+                                @php
+                                    $statusClass = match($payout->status) {
+                                        'completed' => 'fin-st-ok',
+                                        'pending' => 'fin-st-wait',
+                                        'processing' => 'fin-st-proc',
+                                        'failed' => 'fin-st-fail',
+                                        default => 'fin-st-wait'
+                                    };
+                                @endphp
+                                <span class="fin-status {{ $statusClass }}">{{ ucfirst($payout->status) }}</span>
+                            </td>
+                            <td><span class="fin-date">{{ $payout->created_at->format('M d, Y') }}</span></td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
+            @if($payouts->hasPages())
+            <div class="fin-pagination">{{ $payouts->links() }}</div>
+            @endif
+            @else
+            <div class="fin-empty">
+                <div class="fin-empty-icon"><i class="fas fa-receipt"></i></div>
+                <h4>No payouts yet</h4>
+                <p>Deliver orders to earn, then withdraw here!</p>
+            </div>
+            @endif
         </div>
 
-        {{-- Sidebar: Bank Accounts --}}
-        <div class="side-col">
-            <div class="premium-card">
-                <div class="card-header-premium d-flex justify-content-between align-items-center">
+        {{-- Sidebar --}}
+        <div class="fin-sidebar">
+
+            {{-- Bank Accounts --}}
+            <div class="fin-card">
+                <div class="fin-card-head" style="display:flex; justify-content:space-between; align-items:center;">
                     <h3>Bank Accounts</h3>
-                    <a href="{{ route('vendor.settings') }}" class="manage-link">Manage</a>
+                    <a href="{{ route('vendor.settings') }}" class="fin-manage-link">Manage →</a>
                 </div>
-                <div class="card-body-premium">
+                <div class="fin-card-body">
                     @forelse($bankDetails as $bank)
-                        <div class="bank-card {{ $bank->is_primary ? 'bank-primary' : '' }}">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="bank-label">Linked Account</span>
-                                @if($bank->is_primary)
-                                    <span class="primary-badge">Primary</span>
-                                @endif
-                            </div>
-                            <h4 class="bank-name">{{ $bank->bank_name }}</h4>
-                            <div class="bank-number">{{ $bank->account_number }}</div>
-                            <div class="bank-holder">{{ $bank->account_name }}</div>
+                    <div class="fin-bank {{ $bank->is_primary ? 'fin-bank-primary' : '' }}">
+                        <div class="fin-bank-top">
+                            <span class="fin-bank-icon"><i class="fas fa-university"></i></span>
+                            @if($bank->is_primary)
+                                <span class="fin-primary-tag">Primary</span>
+                            @endif
                         </div>
+                        <div class="fin-bank-name">{{ $bank->bank_name }}</div>
+                        <div class="fin-bank-num">{{ $bank->account_number }}</div>
+                        <div class="fin-bank-holder">{{ $bank->account_name }}</div>
+                    </div>
                     @empty
-                        <div class="empty-state-sm">
-                            <i class="fas fa-university"></i>
-                            <p>No bank accounts linked. <a href="{{ route('vendor.settings') }}">Add one now</a></p>
-                        </div>
+                    <div class="fin-empty-sm">
+                        <i class="fas fa-credit-card"></i>
+                        <p>No bank linked yet. <a href="{{ route('vendor.settings') }}">Add one</a></p>
+                    </div>
                     @endforelse
                 </div>
             </div>
 
             {{-- How it Works --}}
-            <div class="premium-card mt-3">
-                <div class="card-header-premium"><h3>How Payouts Work</h3></div>
-                <div class="card-body-premium">
-                    <div class="steps-list">
-                        <div class="step-item">
-                            <div class="step-num">1</div>
-                            <div>Customer places an order</div>
+            <div class="fin-card">
+                <div class="fin-card-head"><h3>How It Works</h3></div>
+                <div class="fin-card-body">
+                    <div class="fin-steps">
+                        <div class="fin-step">
+                            <div class="fin-step-dot">1</div>
+                            <div class="fin-step-text">Customer places an order</div>
                         </div>
-                        <div class="step-item">
-                            <div class="step-num">2</div>
-                            <div>You process & deliver the order</div>
+                        <div class="fin-step">
+                            <div class="fin-step-dot">2</div>
+                            <div class="fin-step-text">You process & deliver the order</div>
                         </div>
-                        <div class="step-item">
-                            <div class="step-num">3</div>
-                            <div>Mark as "Delivered" → balance auto-credited</div>
+                        <div class="fin-step">
+                            <div class="fin-step-dot">3</div>
+                            <div class="fin-step-text">Mark as "Delivered" → balance credited</div>
                         </div>
-                        <div class="step-item">
-                            <div class="step-num">4</div>
-                            <div>Withdraw to your bank anytime</div>
+                        <div class="fin-step">
+                            <div class="fin-step-dot">4</div>
+                            <div class="fin-step-text">Tap <strong>Withdraw</strong> → money sent to bank</div>
                         </div>
                     </div>
                 </div>
@@ -186,44 +191,47 @@
     </div>
 </div>
 
-{{-- Withdrawal Modal --}}
+{{-- Withdrawal Modal (logic untouched) --}}
 <div class="modal fade" id="payoutModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:24px;">
+        <div class="modal-content" style="border:none; border-radius:24px; overflow:hidden; box-shadow:0 25px 60px rgba(0,0,0,0.15);">
             <form action="{{ route('vendor.payouts.request') }}" method="POST">
                 @csrf
-                <div class="modal-header border-0 p-4 pb-0">
-                    <h5 style="font-weight:800; color:#0f172a;">Withdraw to Bank</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="fin-modal-head">
+                    <div>
+                        <h5>Withdraw Funds</h5>
+                        <p>Send money to your bank account</p>
+                    </div>
+                    <button type="button" class="fin-modal-close" data-bs-dismiss="modal">&times;</button>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="withdrawal-box mb-4">
-                        <div class="withdrawal-label">Available for Withdrawal</div>
-                        <div class="withdrawal-amount">₦{{ number_format($stats['available_balance'], 2) }}</div>
+                <div class="fin-modal-body">
+                    <div class="fin-modal-balance">
+                        <div class="fin-modal-balance-label">Available</div>
+                        <div class="fin-modal-balance-val">₦{{ number_format($stats['available_balance'], 2) }}</div>
                     </div>
 
-                    <div class="form-group-premium mb-4">
-                        <label>Amount (₦)</label>
-                        <div class="input-with-prefix">
-                            <span class="prefix">₦</span>
-                            <input type="number" name="amount" class="form-input-premium" min="1000" max="{{ $stats['available_balance'] }}" required placeholder="0.00">
+                    <div class="fin-field">
+                        <label>Withdrawal Amount</label>
+                        <div class="fin-input-wrap">
+                            <span class="fin-input-prefix">₦</span>
+                            <input type="number" name="amount" min="1000" max="{{ $stats['available_balance'] }}" required placeholder="Enter amount">
                         </div>
-                        <small class="form-hint">Minimum withdrawal: ₦1,000</small>
+                        <small>Minimum: ₦1,000</small>
                     </div>
 
-                    <div class="form-group-premium">
-                        <label>Destination Account</label>
-                        <select name="bank_detail_id" class="form-select-premium" required>
+                    <div class="fin-field">
+                        <label>Send To</label>
+                        <select name="bank_detail_id" required>
                             @foreach($bankDetails as $bank)
-                                <option value="{{ $bank->id }}">{{ $bank->bank_name }} ({{ $bank->account_number }})</option>
+                                <option value="{{ $bank->id }}">{{ $bank->bank_name }} — {{ $bank->account_number }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
-                <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" class="btn-outline-premium" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn-primary-premium" {{ $bankDetails->isEmpty() ? 'disabled' : '' }}>
-                        <i class="fas fa-paper-plane"></i> Withdraw
+                <div class="fin-modal-foot">
+                    <button type="button" data-bs-dismiss="modal" class="fin-btn-cancel">Cancel</button>
+                    <button type="submit" class="fin-btn-send" {{ $bankDetails->isEmpty() ? 'disabled' : '' }}>
+                        <i class="fas fa-paper-plane"></i> Withdraw Now
                     </button>
                 </div>
             </form>
@@ -232,110 +240,221 @@
 </div>
 
 <style>
-    .finances-page { animation: fadeInUp 0.4s ease; }
-    @keyframes fadeInUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+/* ============ FINANCES PAGE ============ */
+.fin-page { max-width:1100px; animation: finFadeIn 0.5s ease; }
+@keyframes finFadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-    .page-header-premium { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
-    .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 4px; letter-spacing: -0.02em; }
-    .page-subtitle { color: #64748b; font-size: 14px; margin: 0; font-weight: 500; }
+/* ---- Hero Balance ---- */
+.fin-hero {
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1f4e 50%, #0d2847 100%);
+    border-radius: 24px; padding: 32px 36px; color: white;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px; position: relative; overflow: hidden;
+}
+.fin-hero::before {
+    content: ''; position: absolute; top: -50%; right: -20%;
+    width: 300px; height: 300px; background: rgba(255,255,255,0.03);
+    border-radius: 50%; pointer-events: none;
+}
+.fin-hero::after {
+    content: ''; position: absolute; bottom: -60%; left: 10%;
+    width: 200px; height: 200px; background: rgba(0,102,255,0.12);
+    border-radius: 50%; pointer-events: none;
+}
+.fin-hero-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+.fin-hero-amount { font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; line-height: 1.1; margin-bottom: 6px; }
+.fin-hero-hint { font-size: 0.8125rem; color: rgba(255,255,255,0.45); }
+.fin-hero-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; position: relative; z-index: 1; }
+.fin-withdraw-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 28px; background: #fff; color: #0a0e27;
+    border: none; border-radius: 16px; font-weight: 800; font-size: 0.9375rem;
+    cursor: pointer; transition: all 0.25s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.fin-withdraw-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+.fin-withdraw-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.fin-withdraw-btn i { font-size: 1rem; }
+.fin-hero-note { font-size: 0.6875rem; color: rgba(255,255,255,0.35); }
 
-    .btn-primary-premium { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: #0066FF; color: white; border: none; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(0,102,255,0.25); text-decoration: none; }
-    .btn-primary-premium:hover { background: #0052cc; transform: translateY(-1px); }
-    .btn-primary-premium:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .btn-outline-premium { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: white; color: #475569; border: 1px solid #e2e8f0; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+/* ---- Alerts ---- */
+.fin-alert { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-radius: 14px; font-size: 0.875rem; font-weight: 600; margin-bottom: 20px; }
+.fin-alert-ok { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+.fin-alert-err { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 
-    /* Info Banner */
-    .info-banner { display: flex; align-items: center; gap: 14px; padding: 14px 20px; background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border: 1px solid #dbeafe; border-radius: 16px; }
-    .info-banner-icon { width: 36px; height: 36px; background: #0066FF; color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-    .info-banner-text { font-size: 13px; color: #334155; line-height: 1.5; }
-    .info-banner-text strong { color: #0f172a; }
+/* ---- Metrics ---- */
+.fin-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+.fin-metric {
+    background: #fff; border: 1px solid #f1f5f9; border-radius: 20px;
+    padding: 22px 24px; transition: all 0.25s;
+}
+.fin-metric:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.04); transform: translateY(-2px); }
+.fin-metric-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.fin-metric-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; flex-shrink: 0; }
+.fin-metric-green { background: #ecfdf5; color: #10b981; }
+.fin-metric-amber { background: #fffbeb; color: #f59e0b; }
+.fin-metric-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; }
+.fin-metric-value { font-size: 1.5rem; font-weight: 900; color: #0f172a; margin-bottom: 2px; letter-spacing: -0.5px; }
+.fin-metric-sub { font-size: 0.75rem; color: #94a3b8; }
 
-    /* Alerts */
-    .alert-premium { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 14px; font-size: 14px; font-weight: 600; }
-    .alert-success { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-    .alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+/* ---- Tip Bar ---- */
+.fin-tip {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 18px; background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 14px; margin-bottom: 24px; font-size: 0.8125rem; color: #92400e;
+}
+.fin-tip i { color: #f59e0b; font-size: 1rem; flex-shrink: 0; }
 
-    /* Stats */
-    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-    .stat-card { position: relative; overflow: hidden; border-radius: 20px; padding: 24px; background: white; border: 1px solid #f1f5f9; box-shadow: 0 1px 4px rgba(0,0,0,0.03); transition: all 0.3s; display: flex; align-items: flex-start; gap: 16px; }
-    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-    .stat-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-    .stat-total { border-left: 4px solid #10b981; }
-    .stat-total .stat-icon { background: #ecfdf5; color: #10b981; }
-    .stat-pending { border-left: 4px solid #f59e0b; }
-    .stat-pending .stat-icon { background: #fffbeb; color: #f59e0b; }
-    .stat-available { background: linear-gradient(135deg, #0066FF 0%, #0052cc 100%); border: none; color: white; }
-    .stat-available .stat-icon { background: rgba(255,255,255,0.2); color: white; }
-    .stat-available .stat-label, .stat-available .stat-hint { color: rgba(255,255,255,0.7); }
-    .stat-available .stat-value { color: white; }
-    .stat-label { font-size: 12px; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px; }
-    .stat-value { font-size: 26px; font-weight: 800; color: #0f172a; margin: 0 0 4px; }
-    .stat-hint { font-size: 11px; color: #94a3b8; }
+/* ---- Grid ---- */
+.fin-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
 
-    /* Content Grid */
-    .content-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
-    .main-col { min-width: 0; }
+/* ---- Cards ---- */
+.fin-card {
+    background: #fff; border: 1px solid #f1f5f9; border-radius: 20px;
+    overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.fin-card + .fin-card { margin-top: 16px; }
+.fin-card-head { padding: 18px 24px; border-bottom: 1px solid #f1f5f9; }
+.fin-card-head h3 { font-size: 0.9375rem; font-weight: 800; color: #0f172a; margin: 0; }
+.fin-card-body { padding: 20px 24px; }
+.fin-card-main { min-width: 0; }
+.fin-manage-link { font-size: 0.6875rem; font-weight: 700; color: #0066FF; text-transform: uppercase; letter-spacing: 0.08em; text-decoration: none; }
 
-    /* Cards */
-    .premium-card { background: white; border: 1px solid #f1f5f9; border-radius: 20px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.03); }
-    .card-header-premium { padding: 18px 24px; border-bottom: 1px solid #f1f5f9; }
-    .card-header-premium h3 { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; }
-    .card-body-premium { padding: 20px 24px; }
-    .p-0 { padding: 0 !important; }
-    .manage-link { font-size: 11px; font-weight: 700; color: #0066FF; text-transform: uppercase; letter-spacing: 0.08em; text-decoration: none; }
+/* ---- Payout Table ---- */
+.fin-table-wrap { overflow-x: auto; }
+.fin-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+.fin-table th {
+    background: #f8fafc; color: #94a3b8; font-size: 0.625rem;
+    text-transform: uppercase; letter-spacing: 0.12em; font-weight: 800;
+    padding: 11px 20px; text-align: left; border: none;
+}
+.fin-table td { padding: 14px 20px; border-bottom: 1px solid #f8fafc; font-size: 0.875rem; vertical-align: middle; }
+.fin-table tr:hover td { background: #fafbfe; }
+.fin-ref { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 0.75rem; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; }
+.fin-amount { font-weight: 800; color: #0f172a; }
+.fin-date { font-size: 0.8125rem; color: #94a3b8; }
 
-    /* Table */
-    .premium-table { width: 100%; border-collapse: collapse; }
-    .premium-table th { background: #f8fafc; color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; padding: 12px 20px; border: none; text-align: left; }
-    .premium-table td { padding: 14px 20px; border-bottom: 1px solid #f8fafc; vertical-align: middle; font-size: 14px; }
-    .premium-table tr:hover { background: #fafbfc; }
-    .ref-code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #64748b; }
-    .amount-text { font-weight: 800; color: #0f172a; }
-    .date-text { font-size: 13px; color: #64748b; }
-    .empty-row { text-align: center; padding: 40px 20px !important; color: #94a3b8; }
-    .type-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
-    .type-auto { background: #ecfdf5; color: #059669; }
-    .type-manual { background: #eff6ff; color: #0066FF; }
-    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-    .dot-success { background: #22c55e; }
-    .dot-warning { background: #f59e0b; }
-    .dot-danger { background: #ef4444; }
-    .dot-secondary { background: #94a3b8; }
-    .status-text { font-size: 13px; font-weight: 600; color: #475569; }
-    .pagination-bar { padding: 16px 24px; border-top: 1px solid #f1f5f9; }
+.fin-type { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 8px; font-size: 0.6875rem; font-weight: 700; }
+.fin-type-auto { background: #ecfdf5; color: #059669; }
+.fin-type-bank { background: #eff6ff; color: #3b82f6; }
 
-    /* Bank Cards */
-    .bank-card { padding: 16px; border-radius: 16px; background: #f8fafc; border: 1px solid #e2e8f0; margin-bottom: 12px; }
-    .bank-card:last-child { margin-bottom: 0; }
-    .bank-card.bank-primary { background: #eff6ff; border-color: #93c5fd; }
-    .bank-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; }
-    .primary-badge { background: #0066FF; color: white; font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
-    .bank-name { font-size: 15px; font-weight: 800; color: #0f172a; margin: 0 0 4px; }
-    .bank-number { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #475569; letter-spacing: 0.05em; margin-bottom: 4px; }
-    .bank-holder { font-size: 12px; color: #64748b; }
-    .empty-state-sm { text-align: center; padding: 24px 16px; }
-    .empty-state-sm i { font-size: 28px; color: #cbd5e1; display: block; margin-bottom: 8px; }
-    .empty-state-sm p { font-size: 13px; color: #94a3b8; margin: 0; }
-    .empty-state-sm a { color: #0066FF; font-weight: 600; }
+.fin-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.fin-st-ok { background: #dcfce7; color: #16a34a; }
+.fin-st-wait { background: #fef9c3; color: #a16207; }
+.fin-st-proc { background: #e0e7ff; color: #4f46e5; }
+.fin-st-fail { background: #fee2e2; color: #dc2626; }
 
-    /* Steps List */
-    .steps-list { display: flex; flex-direction: column; gap: 12px; }
-    .step-item { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #475569; line-height: 1.4; }
-    .step-num { width: 24px; height: 24px; border-radius: 8px; background: #0066FF; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+.fin-pagination { padding: 14px 24px; border-top: 1px solid #f1f5f9; }
 
-    /* Modal */
-    .withdrawal-box { background: #eff6ff; padding: 18px; border-radius: 16px; border: 1px solid #dbeafe; }
-    .withdrawal-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #0066FF; margin-bottom: 4px; }
-    .withdrawal-amount { font-size: 28px; font-weight: 800; color: #0066FF; }
-    .form-group-premium label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 8px; }
-    .form-input-premium, .form-select-premium { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-weight: 600; background: #fafbfc; color: #0f172a; outline: none; transition: all 0.2s; }
-    .form-input-premium:focus, .form-select-premium:focus { border-color: #0066FF; background: white; box-shadow: 0 0 0 3px rgba(0,102,255,0.1); }
-    .form-hint { font-size: 11px; color: #94a3b8; margin-top: 4px; display: block; }
-    .input-with-prefix { display: flex; align-items: center; background: #fafbfc; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-    .input-with-prefix .prefix { padding: 10px 0 10px 14px; font-weight: 800; color: #94a3b8; }
-    .input-with-prefix .form-input-premium { border: none; background: transparent; }
+.fin-empty { text-align: center; padding: 48px 24px; }
+.fin-empty-icon { width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.fin-empty-icon i { font-size: 1.5rem; color: #cbd5e1; }
+.fin-empty h4 { font-size: 1rem; font-weight: 700; color: #334155; margin: 0 0 6px; }
+.fin-empty p { font-size: 0.8125rem; color: #94a3b8; margin: 0; }
 
-    @media (max-width: 1024px) { .content-grid { grid-template-columns: 1fr; } }
-    @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } .page-header-premium { flex-direction: column; align-items: flex-start; } }
+/* ---- Bank Cards ---- */
+.fin-bank {
+    padding: 16px; border-radius: 16px; background: #f8fafc;
+    border: 1px solid #e2e8f0; margin-bottom: 10px; transition: all 0.2s;
+}
+.fin-bank:last-child { margin-bottom: 0; }
+.fin-bank:hover { border-color: #cbd5e1; }
+.fin-bank-primary { background: linear-gradient(135deg, #eff6ff, #f0f9ff); border-color: #93c5fd; }
+.fin-bank-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.fin-bank-icon { width: 32px; height: 32px; background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.8rem; }
+.fin-bank-primary .fin-bank-icon { background: #dbeafe; color: #3b82f6; }
+.fin-primary-tag { font-size: 0.5625rem; font-weight: 800; background: #0066FF; color: white; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.fin-bank-name { font-size: 0.875rem; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
+.fin-bank-num { font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; color: #475569; letter-spacing: 0.04em; margin-bottom: 2px; }
+.fin-bank-holder { font-size: 0.75rem; color: #94a3b8; }
+
+.fin-empty-sm { text-align: center; padding: 20px 16px; }
+.fin-empty-sm i { font-size: 1.5rem; color: #cbd5e1; display: block; margin-bottom: 8px; }
+.fin-empty-sm p { font-size: 0.8125rem; color: #94a3b8; margin: 0; }
+.fin-empty-sm a { color: #0066FF; font-weight: 700; }
+
+/* ---- Steps ---- */
+.fin-steps { display: flex; flex-direction: column; gap: 14px; }
+.fin-step { display: flex; align-items: center; gap: 12px; font-size: 0.8125rem; color: #475569; }
+.fin-step-dot {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(135deg, #0066FF, #0052cc); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6875rem; font-weight: 800; flex-shrink: 0;
+}
+
+/* ---- Modal ---- */
+.fin-modal-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 28px 28px 0; 
+}
+.fin-modal-head h5 { font-size: 1.125rem; font-weight: 800; color: #0f172a; margin: 0 0 2px; }
+.fin-modal-head p { font-size: 0.8125rem; color: #94a3b8; margin: 0; }
+.fin-modal-close { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 1.25rem; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.fin-modal-close:hover { background: #e2e8f0; }
+
+.fin-modal-body { padding: 24px 28px; }
+.fin-modal-balance {
+    background: linear-gradient(135deg, #0a0e27, #1a1f4e); color: white;
+    padding: 20px; border-radius: 16px; margin-bottom: 24px; text-align: center;
+}
+.fin-modal-balance-label { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+.fin-modal-balance-val { font-size: 1.75rem; font-weight: 900; }
+
+.fin-field { margin-bottom: 20px; }
+.fin-field label { display: block; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 8px; }
+.fin-field small { font-size: 0.6875rem; color: #94a3b8; margin-top: 4px; display: block; }
+.fin-input-wrap {
+    display: flex; align-items: center; background: #f8fafc;
+    border: 2px solid #e2e8f0; border-radius: 14px; overflow: hidden; transition: all 0.2s;
+}
+.fin-input-wrap:focus-within { border-color: #0066FF; background: #fff; box-shadow: 0 0 0 4px rgba(0,102,255,0.08); }
+.fin-input-prefix { padding: 0 0 0 16px; font-weight: 800; color: #94a3b8; font-size: 1rem; }
+.fin-input-wrap input {
+    flex: 1; border: none; background: transparent; padding: 12px 14px;
+    font-size: 1rem; font-weight: 700; color: #0f172a; outline: none;
+}
+.fin-field select {
+    width: 100%; padding: 12px 14px; border: 2px solid #e2e8f0;
+    border-radius: 14px; font-size: 0.875rem; font-weight: 600;
+    background: #f8fafc; color: #0f172a; outline: none; transition: all 0.2s;
+}
+.fin-field select:focus { border-color: #0066FF; background: white; }
+
+.fin-modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 0 28px 28px; }
+.fin-btn-cancel {
+    padding: 11px 22px; background: #f1f5f9; color: #475569;
+    border: none; border-radius: 12px; font-weight: 700; font-size: 0.875rem;
+    cursor: pointer; transition: all 0.2s;
+}
+.fin-btn-cancel:hover { background: #e2e8f0; }
+.fin-btn-send {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 24px; background: linear-gradient(135deg, #0066FF, #0052cc);
+    color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 0.875rem;
+    cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(0,102,255,0.3);
+}
+.fin-btn-send:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,102,255,0.35); }
+.fin-btn-send:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ---- Responsive ---- */
+@media (max-width: 1024px) {
+    .fin-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    .fin-hero { flex-direction: column; align-items: flex-start; gap: 20px; padding: 24px; }
+    .fin-hero-amount { font-size: 2rem; }
+    .fin-hero-right { align-items: flex-start; }
+    .fin-metrics { grid-template-columns: 1fr; }
+    .fin-table { min-width: 450px; }
+}
+@media (max-width: 480px) {
+    .fin-hero { padding: 20px; }
+    .fin-hero-amount { font-size: 1.75rem; }
+    .fin-metric-value { font-size: 1.25rem; }
+    .fin-modal-body { padding: 20px; }
+    .fin-modal-head { padding: 20px 20px 0; }
+    .fin-modal-foot { padding: 0 20px 20px; }
+}
 </style>
 @endsection
