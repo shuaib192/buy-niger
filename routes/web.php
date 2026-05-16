@@ -123,36 +123,34 @@ Route::get('/debug-mail-config', function() {
     ];
 });
 
-// Emergency Migration & Optimization Route - v5.SHOPFIX
+// Emergency Migration & Optimization Route - v6
 Route::get('/run-migration-secret-777', function() {
+    $output = [];
     try {
+        if (function_exists('opcache_reset')) { opcache_reset(); $output[] = 'OPcache cleared'; }
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $output[] = 'Migrations: ' . trim(\Illuminate\Support\Facades\Artisan::output());
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        $output[] = 'Cache cleared';
         \Illuminate\Support\Facades\Artisan::call('view:clear');
-        \Illuminate\Support\Facades\Artisan::call('config:clear');
-        return "v5.SHOPFIX | System Updated! Migration & Cache Clear Successful. <br><br> Output: " . \Illuminate\Support\Facades\Artisan::output();
-    } catch (\Exception $e) {
-        return "v5.SHOPFIX | Update Failed: " . $e->getMessage();
+        $output[] = 'Views cleared';
+        return "v6 | SUCCESS<br><pre>" . implode("\n", $output) . "</pre>";
+    } catch (\Throwable $e) {
+        return "v6 | FAILED: " . $e->getMessage() . "<br><pre>" . implode("\n", $output) . "</pre>";
     }
 });
 
-// Emergency Test Route
-Route::get('/test-route-777', function() {
+// Shop Debug Route - shows exact error
+Route::get('/shop-debug-777', function() {
     try {
-        $now = now()->toDateTimeString();
-        $product = \App\Models\Product::first();
-        return "Time: $now | Product loaded: " . ($product ? $product->name : "No products found");
-    } catch (\Exception $e) {
-        return "Time: $now | Error loading product: " . $e->getMessage();
+        $categories = \App\Models\Category::where('is_active', true)->get();
+        $products = \App\Models\Product::where('status', 'active')
+            ->with(['category', 'images', 'vendor'])
+            ->paginate(20);
+        return "OK! Found " . $products->total() . " products and " . $categories->count() . " categories. View rendering next...";
+    } catch (\Throwable $e) {
+        return "<pre>SHOP ERROR:\n" . $e->getMessage() . "\n\nFile: " . $e->getFile() . "\nLine: " . $e->getLine() . "\n\nTrace:\n" . $e->getTraceAsString() . "</pre>";
     }
-});
-
-// Emergency Debug Route
-Route::get('/debug-log-777', function() {
-    $path = storage_path('logs/laravel.log');
-    if (!file_exists($path)) return "Log file not found.";
-    $lines = file($path);
-    return "<pre>" . htmlspecialchars(implode("", array_slice($lines, -200))) . "</pre>";
 });
 
 // Redirect /home to /
