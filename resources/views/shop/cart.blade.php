@@ -38,18 +38,19 @@
                         </div>
                         <div class="cart-item-price">
                             @if($item->product->sale_price && $item->product->sale_price < $item->product->price && !$item->variant)
+                                <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.8px; color:#dc2626; font-weight:800; margin-bottom:2px;">🔥 On Sale</div>
                                 <div style="font-size:1rem; font-weight:800; color:var(--primary-600);">
-                                    Sale Price: ₦{{ number_format($item->product->sale_price) }}
+                                    You Pay: ₦{{ number_format($item->product->sale_price) }}
                                 </div>
                                 <div style="font-size:0.8rem; color:var(--secondary-400); text-decoration:line-through;">
-                                    Was: ₦{{ number_format($item->product->price) }}
+                                    Original: ₦{{ number_format($item->product->price) }}
                                 </div>
                                 <div style="display:inline-block; margin-top:3px; font-size:0.7rem; background:#fef2f2; color:#dc2626; padding:2px 8px; border-radius:20px; font-weight:700;">
                                     You save ₦{{ number_format($item->product->price - $item->product->sale_price) }}
                                 </div>
                             @else
                                 <div style="font-size:1rem; font-weight:800; color:var(--secondary-900);">
-                                    ₦{{ number_format($item->price) }}
+                                    Price: ₦{{ number_format($item->price) }}
                                 </div>
                             @endif
                         </div>
@@ -340,9 +341,10 @@ function setQty(itemId, qty) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            document.getElementById('total-' + itemId).textContent = '₦' + data.item_total.toLocaleString();
-            document.getElementById('cart-subtotal').textContent = '₦' + data.cart_total.toLocaleString();
-            document.getElementById('cart-total').textContent = '₦' + data.cart_total.toLocaleString();
+            // Math.round() ensures display matches PHP number_format() — no more ₦2,399.94 bugs
+            document.getElementById('total-' + itemId).textContent = '₦' + Math.round(data.item_total).toLocaleString('en-NG');
+            document.getElementById('cart-subtotal').textContent = '₦' + Math.round(data.cart_total).toLocaleString('en-NG');
+            document.getElementById('cart-total').textContent = '₦' + Math.round(data.cart_total).toLocaleString('en-NG');
             updateCartBadge(data.cart_count);
         }
     });
@@ -361,8 +363,8 @@ function removeItem(itemId) {
     .then(data => {
         if (data.success) {
             document.querySelector('[data-item-id="' + itemId + '"]').remove();
-            document.getElementById('cart-subtotal').textContent = '₦' + data.cart_total.toLocaleString();
-            document.getElementById('cart-total').textContent = '₦' + data.cart_total.toLocaleString();
+            document.getElementById('cart-subtotal').textContent = '₦' + Math.round(data.cart_total).toLocaleString('en-NG');
+            document.getElementById('cart-total').textContent = '₦' + Math.round(data.cart_total).toLocaleString('en-NG');
             updateCartBadge(data.cart_count);
             if (data.cart_count === 0) location.reload();
         }

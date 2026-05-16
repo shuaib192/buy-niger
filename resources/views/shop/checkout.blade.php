@@ -122,23 +122,50 @@
                         $checkoutVendors = $items->map(fn($i) => $i->product->vendor)->unique('id')->filter();
                     @endphp
                     @forelse($checkoutVendors as $vendor)
+                    <div style="border:1px solid #e2e8f0; border-radius:16px; overflow:hidden; margin-bottom:12px;">
+                        {{-- Vendor Header --}}
+                        <div style="background:#f8fafc; padding:10px 16px; font-weight:700; font-size:0.875rem; color:var(--secondary-700); border-bottom:1px solid #e2e8f0;">
+                            <i class="fas fa-store" style="color:var(--primary-600); margin-right:8px;"></i>{{ $vendor->store_name }}
+                        </div>
+
                         @if($vendor->business_phone)
-                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $vendor->business_phone) }}?text={{ urlencode('Hi! I just placed an order on BuyNiger from your store (' . $vendor->store_name . '). I\'d like to arrange delivery. Please confirm my order details.') }}"
+                        {{-- Option 1: Ask about Delivery --}}
+                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $vendor->business_phone) }}?text={{ urlencode('Hi ' . $vendor->store_name . '! I just placed an order on BuyNiger. I\'d like home delivery — please confirm my order and share your delivery cost and timeline.') }}"
                            target="_blank"
-                           style="display:flex; align-items:center; gap:14px; padding:14px 18px; background:#fff; border:2px solid #dcfce7; border-radius:14px; text-decoration:none; transition:all 0.2s; margin-bottom:10px;"
-                           onmouseover="this.style.borderColor='#22c55e'" onmouseout="this.style.borderColor='#dcfce7'">
-                            <div style="width:44px; height:44px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                <i class="fab fa-whatsapp" style="color:white; font-size:1.4rem;"></i>
+                           style="display:flex; align-items:center; gap:12px; padding:12px 16px; text-decoration:none; border-bottom:1px solid #f1f5f9; transition:background 0.2s;"
+                           onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='transparent'">
+                            <div style="width:38px; height:38px; border-radius:10px; background:#dcfce7; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fas fa-motorcycle" style="color:#16a34a; font-size:1rem;"></i>
                             </div>
-                            <div>
-                                <strong style="display:block; color:#0f172a; font-size:0.9375rem;">{{ $vendor->store_name }}</strong>
-                                <span style="font-size:0.8125rem; color:#64748b;">Tap to discuss delivery on WhatsApp</span>
+                            <div style="flex:1;">
+                                <strong style="display:block; font-size:0.875rem; color:#0f172a;">Ask About Delivery</strong>
+                                <span style="font-size:0.75rem; color:#64748b;">Chat on WhatsApp to arrange home delivery</span>
                             </div>
-                            <i class="fas fa-chevron-right" style="margin-left:auto; color:#94a3b8;"></i>
+                            <i class="fab fa-whatsapp" style="color:#25d366; font-size:1.25rem;"></i>
                         </a>
+
+                        {{-- Option 2: Pickup from Store --}}
+                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $vendor->business_phone) }}?text={{ urlencode('Hi ' . $vendor->store_name . '! I just placed an order on BuyNiger and I\'d like to come pick it up from your store. Please share your store address and when I can come.') }}"
+                           target="_blank"
+                           style="display:flex; align-items:center; gap:12px; padding:12px 16px; text-decoration:none; transition:background 0.2s;"
+                           onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
+                            <div style="width:38px; height:38px; border-radius:10px; background:#dbeafe; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fas fa-store" style="color:#2563eb; font-size:1rem;"></i>
+                            </div>
+                            <div style="flex:1;">
+                                <strong style="display:block; font-size:0.875rem; color:#0f172a;">Pickup from Store</strong>
+                                <span style="font-size:0.75rem; color:#64748b;">Chat on WhatsApp to get store address</span>
+                            </div>
+                            <i class="fab fa-whatsapp" style="color:#25d366; font-size:1.25rem;"></i>
+                        </a>
+                        @else
+                        <div style="padding:12px 16px; font-size:0.8125rem; color:var(--secondary-500);">
+                            No WhatsApp number set for this vendor. Contact them via the platform messaging.
+                        </div>
                         @endif
+                    </div>
                     @empty
-                        <p style="font-size:0.875rem; color:var(--secondary-500);">Vendor contact not available. Check your order confirmation email for details.</p>
+                        <p style="font-size:0.875rem; color:var(--secondary-500);">Vendor contact not available. Check your order confirmation email.</p>
                     @endforelse
                 </div>
             </div>

@@ -47,13 +47,24 @@
                     <div class="p-sku">SKU: {{ $product->sku }}</div>
                 </div>
 
-                <div class="p-price-block">
+                <div class="p-price-block" style="flex-direction:column; align-items:flex-start; gap:8px;">
                     @if($product->sale_price && $product->sale_price < $product->price)
-                        <span class="curr-price">₦{{ number_format($product->sale_price) }}</span>
-                        <span class="old-price">₦{{ number_format($product->price) }}</span>
-                        <span class="save-badge">Save {{ round((($product->price - $product->sale_price) / $product->price) * 100) }}%</span>
+                        <div style="display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap;">
+                            <div>
+                                <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; font-weight:800; color:#dc2626;">🔥 Sale — You Pay</div>
+                                <span class="curr-price">₦{{ number_format($product->sale_price) }}</span>
+                            </div>
+                            <div>
+                                <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; font-weight:700; color:var(--secondary-400);">Original Price</div>
+                                <span class="old-price" style="text-decoration:line-through; font-size:1.2rem;">₦{{ number_format($product->price) }}</span>
+                            </div>
+                        </div>
+                        <span class="save-badge">You save ₦{{ number_format($product->price - $product->sale_price) }} &mdash; {{ round((($product->price - $product->sale_price) / $product->price) * 100) }}% off</span>
                     @else
-                        <span class="curr-price">₦{{ number_format($product->price) }}</span>
+                        <div>
+                            <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; font-weight:700; color:var(--secondary-400);">Price</div>
+                            <span class="curr-price">₦{{ number_format($product->price) }}</span>
+                        </div>
                     @endif
                 </div>
 

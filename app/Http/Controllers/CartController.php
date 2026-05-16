@@ -122,8 +122,8 @@ class CartController extends Controller
 
         return response()->json([
             'success' => true,
-            'item_total' => $item->price * $request->quantity,
-            'cart_total' => $cart->fresh()->total,
+            'item_total' => round((float)$item->price * (int)$request->quantity),
+            'cart_total' => round((float)$cart->fresh()->total),
             'cart_count' => $cart->fresh()->item_count
         ]);
     }
@@ -139,7 +139,7 @@ class CartController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Removed from cart',
-            'cart_total' => $cart->fresh()->total,
+            'cart_total' => round((float)$cart->fresh()->total),
             'cart_count' => $cart->fresh()->item_count
         ]);
     }
