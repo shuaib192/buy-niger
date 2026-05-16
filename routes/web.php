@@ -35,16 +35,42 @@ Route::get('/', function() {
     return view('shop.index', compact('featuredCategories', 'latestProducts', 'featuredProducts', 'bestSellers', 'topStores'));
 })->name('home');
 
-Route::get('/about', [ShopController::class, 'about'])->name('about');
-Route::get('/contact', [ShopController::class, 'contact'])->name('contact');
-Route::post('/contact', [ShopController::class, 'sendContact'])->name('contact.send');
-Route::match(['get', 'post'], '/track-order', [ShopController::class, 'trackOrder'])->name('track.order');
+// Shop Routes - Inline Closures to bypass OPcache
+Route::get('/about', function() {
+    $vendorCount = \App\Models\Vendor::where('status', 'approved')->count();
+    $productCount = \App\Models\Product::where('status', 'active')->count();
+    $orderCount = \App\Models\Order::count();
+    return view('shop.about', compact('vendorCount', 'productCount', 'orderCount'));
+})->name('about');
 
-// Policies
-Route::get('/privacy', [ShopController::class, 'privacy'])->name('privacy');
-Route::get('/terms', [ShopController::class, 'terms'])->name('terms');
-Route::get('/vendor-policy', [ShopController::class, 'vendorPolicy'])->name('vendor.policy');
-Route::get('/refund-policy', [ShopController::class, 'refundPolicy'])->name('refund.policy');
+Route::get('/contact', function() {
+    return view('shop.contact');
+})->name('contact');
+
+Route::post('/contact', function(\Illuminate\Http\Request $request) {
+    $request->validate([
+        'name' => 'required|string|max:100',
+        'email' => 'required|email|max:200',
+        'subject' => 'required|string|max:200',
+        'message' => 'required|string|max:2000',
+    ]);
+    \App\Models\ContactMessage::create($request->all());
+    return back()->with('success', 'Your message has been sent!');
+})->name('contact.send');
+
+Route::match(['get', 'post'], '/track-order', function(\Illuminate\Http\Request $request) {
+    if ($request->isMethod('post')) {
+        $order = \App\Models\Order::where('order_number', $request->order_number)->first();
+        if (!$order) return back()->with('error', 'Order not found');
+        return view('shop.track-order', compact('order'));
+    }
+    return view('shop.track-order');
+})->name('track.order');
+
+Route::get('/privacy', function() { return view('shop.privacy'); })->name('privacy');
+Route::get('/terms', function() { return view('shop.terms'); })->name('terms');
+Route::get('/vendor-policy', function() { return view('shop.vendor-policy'); })->name('vendor.policy');
+Route::get('/refund-policy', function() { return view('shop.refund-policy'); })->name('refund.policy');
 
 // CATALOG - inline to bypass OPcache on ShopController
 Route::get('/shop', function(\Illuminate\Http\Request $request) {
@@ -76,10 +102,20 @@ Route::get('/shop', function(\Illuminate\Http\Request $request) {
     return view('shop.catalog', compact('products', 'categories'));
 })->name('catalog');
 
-Route::get('/category/{category}', [ShopController::class, 'catalog'])->name('category');
+Route::get('/category/{category}', function($slug) {
+    if (function_exists('opcache_reset')) { opcache_reset(); }
+    $cat = \App\Models\Category::where('slug', $slug)->firstOrFail();
+    $products = \App\Models\Product::where('category_id', $cat->id)->where('status', 'active')->with(['category', 'images', 'vendor'])->paginate(20);
+    $categories = \App\Models\Category::where('is_active', true)->get();
+    return view('shop.catalog', compact('products', 'categories'));
+})->name('category');
 
-// Product Detail
-Route::get('/product/{slug}', [ShopController::class, 'product'])->name('product.detail');
+Route::get('/product/{slug}', function($slug) {
+    if (function_exists('opcache_reset')) { opcache_reset(); }
+    $product = \App\Models\Product::where('slug', $slug)->where('status', 'active')->with(['category', 'images', 'vendor', 'reviews'])->firstOrFail();
+    $relatedProducts = \App\Models\Product::where('category_id', $product->category_id)->where('id', '!=', $product->id)->where('status', 'active')->take(4)->get();
+    return view('shop.product', compact('product', 'relatedProducts'));
+})->name('product.detail');
 
 // Vendor Storefront
 use App\Http\Controllers\StoreController;
