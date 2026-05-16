@@ -136,10 +136,15 @@ Route::get('/run-migration-secret-777', function() {
     }
 });
 
-// Redirect /home to /
-Route::get('/home', function () {
-    return redirect('/');
+// Emergency Debug Route
+Route::get('/debug-log-777', function() {
+    $path = storage_path('logs/laravel.log');
+    if (!file_exists($path)) return "Log file not found.";
+    $content = file_get_contents($path);
+    return "<pre>" . htmlspecialchars(substr($content, -5000)) . "</pre>";
 });
+
+// Redirect /home to /
 
 /*
 |--------------------------------------------------------------------------
