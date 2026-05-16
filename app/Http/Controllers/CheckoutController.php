@@ -63,9 +63,9 @@ class CheckoutController extends Controller
         $shippingMethods = ShippingMethod::active()->get();
 
         // Calculate vendor delivery fee (sum of unique vendor fees in cart)
-        $vendorDeliveryFee = $items->map(function($item) {
-            return $item->product->vendor ?? null;
-        })->filter()->unique('id')->sum('delivery_fee');
+        $vendorDeliveryFee = $items->pluck('product.vendor')
+            ->unique('id')
+            ->sum('delivery_fee');
 
         return view('shop.checkout', compact('cart', 'items', 'addresses', 'defaultAddress', 'shippingMethods', 'vendorDeliveryFee'));
     }
