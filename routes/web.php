@@ -49,7 +49,7 @@ Route::get('/clear-all-emergency-888', function() {
 });
 
 // Rename /shop to /products to break the poisoned cache
-Route::get('/products', [ShopController::class, 'index'])->name('catalog');
+Route::get('/products', [ShopController::class, 'catalog'])->name('catalog');
 Route::get('/shop', function() { return redirect()->route('catalog'); });
 Route::get('/category/{category}', [ShopController::class, 'catalog'])->name('category');
 
