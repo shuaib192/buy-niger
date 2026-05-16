@@ -38,8 +38,19 @@ Route::get('/terms', [ShopController::class, 'terms'])->name('terms');
 Route::get('/vendor-policy', [ShopController::class, 'vendorPolicy'])->name('vendor.policy');
 Route::get('/refund-policy', [ShopController::class, 'refundPolicy'])->name('refund.policy');
 
-// Catalog & Categories
-Route::get('/shop', [ShopController::class, 'catalog'])->name('catalog');
+// Catalog & Categories// EMERGENCY CLEAR
+Route::get('/clear-all-emergency-888', function() {
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    if (function_exists('opcache_reset')) { opcache_reset(); }
+    return "All Caches Cleared! Visit /products now.";
+});
+
+// Rename /shop to /products to break the poisoned cache
+Route::get('/products', [ShopController::class, 'index'])->name('catalog');
+Route::get('/shop', function() { return redirect()->route('catalog'); });
 Route::get('/category/{category}', [ShopController::class, 'catalog'])->name('category');
 
 // Product Detail
