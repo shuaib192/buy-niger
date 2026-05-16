@@ -39,7 +39,8 @@ Route::get('/vendor-policy', [ShopController::class, 'vendorPolicy'])->name('ven
 Route::get('/refund-policy', [ShopController::class, 'refundPolicy'])->name('refund.policy');
 
 // CATALOG
-Route::get('/shop', [ShopController::class, 'catalog'])->name('catalog');
+Route::get('/products', [ShopController::class, 'catalog'])->name('catalog');
+Route::get('/shop', function() { return redirect()->route('catalog'); });
 Route::get('/category/{category}', [ShopController::class, 'catalog'])->name('category');
 
 // Product Detail
