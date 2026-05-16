@@ -38,10 +38,19 @@
                         </div>
                         <div class="cart-item-price">
                             @if($item->product->sale_price && $item->product->sale_price < $item->product->price && !$item->variant)
-                                <span class="text-primary">₦{{ number_format($item->product->sale_price) }}</span>
-                                <span style="text-decoration: line-through; color: var(--secondary-400); font-size: 0.8rem; margin-left: 8px;">₦{{ number_format($item->product->price) }}</span>
+                                <div style="font-size:1rem; font-weight:800; color:var(--primary-600);">
+                                    Sale Price: ₦{{ number_format($item->product->sale_price) }}
+                                </div>
+                                <div style="font-size:0.8rem; color:var(--secondary-400); text-decoration:line-through;">
+                                    Was: ₦{{ number_format($item->product->price) }}
+                                </div>
+                                <div style="display:inline-block; margin-top:3px; font-size:0.7rem; background:#fef2f2; color:#dc2626; padding:2px 8px; border-radius:20px; font-weight:700;">
+                                    You save ₦{{ number_format($item->product->price - $item->product->sale_price) }}
+                                </div>
                             @else
-                                ₦{{ number_format($item->price) }}
+                                <div style="font-size:1rem; font-weight:800; color:var(--secondary-900);">
+                                    ₦{{ number_format($item->price) }}
+                                </div>
                             @endif
                         </div>
                     </div>

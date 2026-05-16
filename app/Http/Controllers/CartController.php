@@ -74,11 +74,12 @@ class CartController extends Controller
             $cartItem->increment('quantity', $quantity);
         } else {
             // Use the variant price if available, fallback to product's current_price
-            $price = $product->current_price;
+            // round() prevents floating point bugs (e.g. 1199.97 instead of 1200.00)
+            $price = round((float) $product->current_price, 2);
             if ($variantId) {
                 $variant = \App\Models\ProductVariant::find($variantId);
                 if ($variant && $variant->price > 0) {
-                    $price = $variant->price;
+                    $price = round((float) $variant->price, 2);
                 }
             }
 

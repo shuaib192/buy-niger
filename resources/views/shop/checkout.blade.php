@@ -106,45 +106,40 @@
                     <textarea name="notes" class="form-control" rows="3" placeholder="Any special instructions for delivery...">{{ old('notes') }}</textarea>
                 </div>
 
-                <!-- Shipping Method Selection -->
+                {{-- Delivery: Contact Vendor Directly --}}
                 <div class="checkout-section">
-                    <h3><i class="fas fa-truck mr-2"></i> Delivery Method</h3>
-                    <p class="section-hint">Choose how you'd like to receive your order</p>
-                    <div class="shipping-methods-grid">
-                        @foreach($shippingMethods as $index => $method)
-                        @php
-                            $isPickup = str_contains(strtolower($method->name), 'pickup');
-                            $methodCost = $isPickup ? 0 : $vendorDeliveryFee;
-                        @endphp
-                        <label class="shipping-card {{ $index === 0 ? 'selected' : '' }}">
-                            <input type="radio" name="shipping_method_id" value="{{ $method->id }}" data-cost="{{ $methodCost }}" {{ $index === 0 ? 'checked' : '' }}>
-                            <div class="shipping-card-inner">
-                                <div class="shipping-icon">
-                                    @if($isPickup)
-                                        <i class="fas fa-store"></i>
-                                    @elseif(str_contains(strtolower($method->name), 'vendor'))
-                                        <i class="fas fa-handshake"></i>
-                                    @else
-                                        <i class="fas fa-motorcycle"></i>
-                                    @endif
-                                </div>
-                                <div class="shipping-info">
-                                    <strong>{{ $method->name }}</strong>
-                                    <span class="shipping-desc">{{ $method->description }}</span>
-                                    <span class="shipping-eta"><i class="far fa-clock"></i> {{ $method->estimated_days }}</span>
-                                </div>
-                                <div class="shipping-price">
-                                    @if($methodCost > 0)
-                                        <span class="price-tag">₦{{ number_format($methodCost) }}</span>
-                                    @else
-                                        <span class="price-tag free">FREE</span>
-                                    @endif
-                                </div>
+                    <h3><i class="fas fa-truck mr-2"></i> Delivery</h3>
+                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:16px 20px; margin-bottom:16px;">
+                        <div style="display:flex; gap:12px; align-items:flex-start;">
+                            <i class="fas fa-info-circle" style="color:#16a34a; font-size:1.2rem; margin-top:2px; flex-shrink:0;"></i>
+                            <div>
+                                <strong style="display:block; color:#15803d; margin-bottom:4px;">Delivery is arranged directly with the vendor</strong>
+                                <p style="margin:0; font-size:0.875rem; color:#166534;">After placing your order, tap the WhatsApp button below to chat with the vendor and agree on delivery details &amp; cost.</p>
                             </div>
-                            <span class="shipping-check"><i class="fas fa-check"></i></span>
-                        </label>
-                        @endforeach
+                        </div>
                     </div>
+                    @php
+                        $checkoutVendors = $items->map(fn($i) => $i->product->vendor)->unique('id')->filter();
+                    @endphp
+                    @forelse($checkoutVendors as $vendor)
+                        @if($vendor->business_phone)
+                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $vendor->business_phone) }}?text={{ urlencode('Hi! I just placed an order on BuyNiger from your store (' . $vendor->store_name . '). I\'d like to arrange delivery. Please confirm my order details.') }}"
+                           target="_blank"
+                           style="display:flex; align-items:center; gap:14px; padding:14px 18px; background:#fff; border:2px solid #dcfce7; border-radius:14px; text-decoration:none; transition:all 0.2s; margin-bottom:10px;"
+                           onmouseover="this.style.borderColor='#22c55e'" onmouseout="this.style.borderColor='#dcfce7'">
+                            <div style="width:44px; height:44px; border-radius:50%; background:#25d366; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fab fa-whatsapp" style="color:white; font-size:1.4rem;"></i>
+                            </div>
+                            <div>
+                                <strong style="display:block; color:#0f172a; font-size:0.9375rem;">{{ $vendor->store_name }}</strong>
+                                <span style="font-size:0.8125rem; color:#64748b;">Tap to discuss delivery on WhatsApp</span>
+                            </div>
+                            <i class="fas fa-chevron-right" style="margin-left:auto; color:#94a3b8;"></i>
+                        </a>
+                        @endif
+                    @empty
+                        <p style="font-size:0.875rem; color:var(--secondary-500);">Vendor contact not available. Check your order confirmation email for details.</p>
+                    @endforelse
                 </div>
             </div>
 
@@ -166,7 +161,7 @@
                             </div>
                             <div class="item-info">
                                 <span class="item-name">{{ Str::limit($item->product->name, 30) }}</span>
-                                <span class="item-price">₦{{ number_format(($item->product->sale_price ?? $item->product->price) * $item->quantity) }}</span>
+                            <span class="item-price">₦{{ number_format($item->subtotal) }}</span>
                             </div>
                         </div>
                         @endif
@@ -188,19 +183,9 @@
                             <span>Subtotal</span>
                             <span>₦{{ number_format($cart->total) }}</span>
                         </div>
-                        <div class="summary-row" id="shippingRow">
-                            <span>Shipping</span>
-                            <span id="shippingCostDisplay">
-                                @php
-                                    $firstIsPickup = isset($shippingMethods[0]) && str_contains(strtolower($shippingMethods[0]->name), 'pickup');
-                                    $initialShipping = $firstIsPickup ? 0 : $vendorDeliveryFee;
-                                @endphp
-                                @if($initialShipping > 0)
-                                    ₦{{ number_format($initialShipping) }}
-                                @else
-                                    <span class="text-success">Free</span>
-                                @endif
-                            </span>
+                        <div class="summary-row">
+                            <span>Delivery</span>
+                            <span style="color:var(--secondary-500); font-size:0.8125rem;">Arrange with vendor</span>
                         </div>
                         <div class="summary-row discount-row" id="discountRow" style="display:none;">
                             <span><i class="fas fa-tag"></i> Coupon</span>
@@ -208,7 +193,7 @@
                         </div>
                         <div class="summary-row total">
                             <span>Total</span>
-                            <span id="orderTotalDisplay">₦{{ number_format($cart->total + $initialShipping) }}</span>
+                            <span id="orderTotalDisplay">₦{{ number_format($cart->total) }}</span>
                         </div>
                     </div>
 
@@ -586,31 +571,14 @@ function toggleNewAddress() {
     }
 }
 
-// ---- State ----
-const subtotal = {{ $cart->total }};
-let currentShipping = {{ $initialShipping ?? 0 }};
+// Shipping is handled by vendor directly — recalc only uses subtotal & discount
+const subtotal = {{ number_format($cart->total, 2, '.', '') }};
 let currentDiscount = 0;
 
 function recalcTotal() {
-    const total = subtotal + currentShipping - currentDiscount;
-    document.getElementById('orderTotalDisplay').textContent = '₦' + total.toLocaleString('en-NG');
+    const total = Math.max(0, subtotal - currentDiscount);
+    document.getElementById('orderTotalDisplay').textContent = '\u20a6' + total.toLocaleString('en-NG', {minimumFractionDigits: 0, maximumFractionDigits: 0});
 }
-
-// ---- Shipping ----
-document.querySelectorAll('input[name="shipping_method_id"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-        currentShipping = parseFloat(this.dataset.cost) || 0;
-        const shippingDisplay = document.getElementById('shippingCostDisplay');
-        if (currentShipping > 0) {
-            shippingDisplay.innerHTML = '₦' + currentShipping.toLocaleString('en-NG');
-        } else {
-            shippingDisplay.innerHTML = '<span class="text-success">Free</span>';
-        }
-        document.querySelectorAll('.shipping-card').forEach(c => c.classList.remove('selected'));
-        this.closest('.shipping-card').classList.add('selected');
-        recalcTotal();
-    });
-});
 
 // ---- Coupon ----
 function applyCoupon() {

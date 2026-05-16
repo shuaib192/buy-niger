@@ -38,7 +38,7 @@ class Cart extends Model
      */
     public function getTotalAttribute()
     {
-        return $this->items->sum('subtotal');
+        return round((float) $this->items->sum('subtotal'), 2);
     }
 
     /**

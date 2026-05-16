@@ -26,8 +26,15 @@
         <a href="{{ route('product.detail', $product->slug) }}" class="product-name">{{ Str::limit($product->name, 40) }}</a>
         <div class="product-price-row">
             @if($product->sale_price && $product->sale_price < $product->price)
-                <span class="product-price">₦{{ number_format($product->sale_price) }}</span>
-                <span class="product-old-price">₦{{ number_format($product->price) }}</span>
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                        <span class="product-price">₦{{ number_format($product->sale_price) }}</span>
+                        <span class="product-old-price">Was ₦{{ number_format($product->price) }}</span>
+                    </div>
+                    <span style="font-size:0.65rem; background:#fef2f2; color:#dc2626; padding:1px 7px; border-radius:20px; font-weight:700; width:fit-content;">
+                        Save ₦{{ number_format($product->price - $product->sale_price) }}
+                    </span>
+                </div>
             @else
                 <span class="product-price">₦{{ number_format($product->price) }}</span>
             @endif

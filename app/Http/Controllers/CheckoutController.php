@@ -131,7 +131,7 @@ class CheckoutController extends Controller
             'address_line_1' => 'nullable|required_if:new_address,1|max:500',
             'city' => 'nullable|required_if:new_address,1|max:100',
             'state' => 'nullable|required_if:new_address,1|max:100',
-            'shipping_method_id' => 'required|exists:shipping_methods,id',
+            'shipping_method_id' => 'nullable|exists:shipping_methods,id', // Delivery arranged with vendor directly
             'coupon_code' => 'nullable|string|max:50',
             'notes' => 'nullable|string|max:1000',
         ]);
@@ -166,17 +166,10 @@ class CheckoutController extends Controller
             // Generate tracking ID
             $trackingId = $this->generateTrackingId();
 
-            // Calculate shipping cost based on method + vendor fees
-            $shippingMethod = ShippingMethod::findOrFail($request->shipping_method_id);
-
-            // Pickup = free; Door Delivery & Vendor Delivery = sum of vendor fees
-            if (strtolower($shippingMethod->name) === 'pickup') {
-                $shippingCost = 0;
-            } else {
-                // Sum delivery fees from all unique vendors in the cart
-                $vendorIds = $cart->items->pluck('product.vendor_id')->unique();
-                $shippingCost = Vendor::whereIn('id', $vendorIds)->sum('delivery_fee');
-            }
+            // Delivery is arranged directly between buyer and vendor via WhatsApp
+            // The platform does not charge a shipping fee
+            $shippingCost = 0;
+            $shippingMethod = null;
 
             // Calculate coupon discount
             $discount = 0;
@@ -199,7 +192,7 @@ class CheckoutController extends Controller
                 'order_number' => 'BN-' . strtoupper(Str::random(8)),
                 'user_id' => Auth::id(),
                 'address_id' => $address->id,
-                'shipping_method_id' => $shippingMethod->id,
+                'shipping_method_id' => null, // Vendor-arranged delivery
                 'subtotal' => $cart->total,
                 'shipping_cost' => $shippingCost,
                 'tax' => 0,
@@ -216,7 +209,7 @@ class CheckoutController extends Controller
                     'city' => $address->city,
                     'state' => $address->state,
                     'tracking_id' => $trackingId,
-                    'shipping_method' => $shippingMethod->name,
+                    'shipping_method' => 'Arranged with Vendor',
                 ],
             ]);
 
