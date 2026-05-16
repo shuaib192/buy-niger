@@ -173,7 +173,7 @@ class Product extends Model
             return asset('images/no-product.svg');
         }
 
-        if (0 === strpos($path, 'http')) {
+        if (str_starts_with($path, 'http')) {
             return $path;
         }
 

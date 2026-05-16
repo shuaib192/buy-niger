@@ -114,7 +114,7 @@
                         </div>
                         <a href="{{ route('store.show', $product->vendor->store_slug) }}" class="btn btn-secondary btn-sm">Visit Store</a>
                         @if($product->vendor->business_phone)
-                        <a href="https://wa.me/{{ $product->vendor->whatsapp_number }}?text={{ urlencode('Hi! I\'m interested in "' . $product->name . '" listed on BuyNiger. Is it still available?') }}" target="_blank" class="btn btn-sm" style="background:#25d366;color:white;border:none;display:inline-flex;align-items:center;gap:4px;font-weight:600;">
+                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $product->vendor->business_phone) }}?text={{ urlencode('Hi! I\'m interested in "' . $product->name . '" listed on BuyNiger. Is it still available?') }}" target="_blank" class="btn btn-sm" style="background:#25d366;color:white;border:none;display:inline-flex;align-items:center;gap:4px;font-weight:600;">
                             <i class="fab fa-whatsapp"></i> WhatsApp
                         </a>
                         @endif

@@ -119,9 +119,7 @@
                         </div>
                     </div>
                     @php
-                        $checkoutVendors = $items->map(function($i) { 
-                            return optional($i->product)->vendor; 
-                        })->unique('id')->filter();
+                        $checkoutVendors = $items->map(fn($i) => $i->product->vendor)->unique('id')->filter();
                     @endphp
                     @forelse($checkoutVendors as $vendor)
                     <div style="border:1px solid #e2e8f0; border-radius:16px; overflow:hidden; margin-bottom:12px;">
@@ -132,7 +130,7 @@
 
                         @if($vendor->business_phone)
                         {{-- Option 1: Ask about Delivery --}}
-                        <a href="https://wa.me/{{ $vendor->whatsapp_number }}?text={{ urlencode('Hi ' . $vendor->store_name . '! I just placed an order on BuyNiger. I\'d like home delivery — please confirm my order and share your delivery cost and timeline.') }}"
+                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $vendor->business_phone) }}?text={{ urlencode('Hi ' . $vendor->store_name . '! I just placed an order on BuyNiger. I\'d like home delivery — please confirm my order and share your delivery cost and timeline.') }}"
                            target="_blank"
                            style="display:flex; align-items:center; gap:12px; padding:12px 16px; text-decoration:none; border-bottom:1px solid #f1f5f9; transition:background 0.2s;"
                            onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='transparent'">
@@ -147,7 +145,7 @@
                         </a>
 
                         {{-- Option 2: Pickup from Store --}}
-                        <a href="https://wa.me/{{ $vendor->whatsapp_number }}?text={{ urlencode('Hi ' . $vendor->store_name . '! I just placed an order on BuyNiger and I\'d like to come pick it up from your store. Please share your store address and when I can come.') }}"
+                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $vendor->business_phone) }}?text={{ urlencode('Hi ' . $vendor->store_name . '! I just placed an order on BuyNiger and I\'d like to come pick it up from your store. Please share your store address and when I can come.') }}"
                            target="_blank"
                            style="display:flex; align-items:center; gap:12px; padding:12px 16px; text-decoration:none; transition:background 0.2s;"
                            onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">

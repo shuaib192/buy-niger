@@ -48,7 +48,7 @@
                 </div>
                 <div class="store-actions">
                     @if($vendor->business_phone)
-                    <a href="https://wa.me/{{ $vendor->whatsapp_number }}?text={{ urlencode('Hi! I found your store on BuyNiger (' . $vendor->store_name . '). I\'d like to inquire about your products.') }}" target="_blank" class="btn btn-whatsapp" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#25d366;color:white;border:none;border-radius:12px;font-weight:600;font-size:14px;text-decoration:none;margin-bottom:8px;">
+                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $vendor->business_phone) }}?text={{ urlencode('Hi! I found your store on BuyNiger (' . $vendor->store_name . '). I\'d like to inquire about your products.') }}" target="_blank" class="btn btn-whatsapp" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#25d366;color:white;border:none;border-radius:12px;font-weight:600;font-size:14px;text-decoration:none;margin-bottom:8px;">
                         <i class="fab fa-whatsapp" style="font-size:18px;"></i> Contact on WhatsApp
                     </a>
                     @endif
