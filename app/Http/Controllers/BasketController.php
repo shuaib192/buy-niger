@@ -8,11 +8,6 @@
 
 namespace App\Http\Controllers;
 
-// DEBUG: Force error reporting
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 use App\Models\Product;
 use App\Models\Cart;
 use App\Models\CartItem;

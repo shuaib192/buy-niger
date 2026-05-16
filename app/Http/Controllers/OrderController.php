@@ -210,4 +210,32 @@ class OrderController extends Controller
         $order = Order::where('order_number', $orderNumber)->where('user_id', Auth::id())->firstOrFail();
         return view('shop.order-confirmation', compact('order'));
     }
+
+    public function applyCoupon(Request $request)
+    {
+        $request->validate(['code' => 'required|string']);
+        
+        $coupon = Coupon::where('code', strtoupper($request->code))->first();
+        
+        if (!$coupon || !$coupon->isValid()) {
+            return response()->json(['success' => false, 'message' => 'Invalid or expired coupon.']);
+        }
+
+        $cart = $this->getCart();
+        if ($coupon->min_spend && $cart->total < $coupon->min_spend) {
+            return response()->json(['success' => false, 'message' => 'Minimum spend of ₦' . number_format($coupon->min_spend) . ' required.']);
+        }
+
+        $discount = ($coupon->type === 'percentage') 
+            ? round($cart->total * ($coupon->value / 100), 2) 
+            : min($coupon->value, $cart->total);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Coupon applied!',
+            'discount' => $discount,
+            'discount_formatted' => '₦' . number_format($discount),
+            'new_total' => '₦' . number_format($cart->total - $discount)
+        ]);
+    }
 }

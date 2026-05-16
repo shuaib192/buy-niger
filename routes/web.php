@@ -87,11 +87,12 @@ Route::get('/wishlist', function() {
 // Checkout Routes (Auth Required)
 Route::middleware('auth')->group(function () {
     // Checkout - bypass cursed URLs
-    Route::get('/checkout-order-now', [OrderController::class, 'checkout'])->name('checkout');
+    Route::get('/checkout-order-now', [OrderController::class, 'checkout'])->name('checkout.index');
     Route::post('/checkout-order-now', [OrderController::class, 'process'])->name('checkout.process');
+    Route::post('/checkout/apply-coupon', [OrderController::class, 'applyCoupon'])->name('checkout.applyCoupon');
 
     Route::get('/checkout', function() {
-        return redirect()->route('checkout');
+        return redirect()->route('checkout.index');
     });
 
     Route::get('/order/confirmation/{orderNumber}', [OrderController::class, 'confirmation'])->name('checkout.confirmation');
