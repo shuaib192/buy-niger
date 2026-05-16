@@ -139,10 +139,11 @@ Route::get('/run-migration-secret-777', function() {
 // Emergency Test Route
 Route::get('/test-route-777', function() {
     try {
+        $now = now()->toDateTimeString();
         $product = \App\Models\Product::first();
-        return "Product loaded: " . ($product ? $product->name : "No products found");
+        return "Time: $now | Product loaded: " . ($product ? $product->name : "No products found");
     } catch (\Exception $e) {
-        return "Error loading product: " . $e->getMessage();
+        return "Time: $now | Error loading product: " . $e->getMessage();
     }
 });
 
