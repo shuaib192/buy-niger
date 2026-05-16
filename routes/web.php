@@ -39,7 +39,12 @@ Route::get('/vendor-policy', [ShopController::class, 'vendorPolicy'])->name('ven
 Route::get('/refund-policy', [ShopController::class, 'refundPolicy'])->name('refund.policy');
 
 // Catalog & Categories
-Route::get('/shop', [ShopController::class, 'catalog'])->name('catalog');
+Route::get('/shop', function(\Illuminate\Http\Request $request) {
+    if (function_exists('opcache_invalidate')) {
+        opcache_invalidate(app_path('Http/Controllers/ShopController.php'), true);
+    }
+    return app(ShopController::class)->catalog($request);
+})->name('catalog');
 Route::get('/category/{category}', [ShopController::class, 'catalog'])->name('category');
 
 // Product Detail
