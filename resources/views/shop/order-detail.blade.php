@@ -62,7 +62,19 @@
                         <div class="item-info">
                             <span class="item-name">{{ $item->product_name }}</span>
                             <span class="item-meta">Qty: {{ $item->quantity }} × ₦{{ number_format($item->price) }}</span>
-                            @if($order->status == 'delivered')
+                            <div style="margin-top: 4px;">
+                                @php
+                                    $itemBadge = match($item->status) {
+                                        'delivered' => 'success',
+                                        'shipped' => 'primary',
+                                        'processing' => 'info',
+                                        'cancelled' => 'danger',
+                                        default => 'warning'
+                                    };
+                                @endphp
+                                <span class="badge bg-{{ $itemBadge }}" style="font-size: 10px;">{{ ucfirst($item->status ?? 'Pending') }}</span>
+                            </div>
+                            @if(($item->status ?? '') == 'delivered' || $order->status == 'delivered')
                                 <a href="{{ route('shop.product', $item->product->slug ?? '#') }}?tab=reviews" class="rate-btn">
                                     <i class="fas fa-star"></i> Rate Product
                                 </a>

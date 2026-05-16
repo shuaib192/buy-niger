@@ -839,6 +839,19 @@ public function exportAnalytics(Request $request)
             ]);
         }
 
+        // Sync parent order status
+        $order = $orderItem->order;
+        $allItems = $order->items;
+        
+        $allDelivered = $allItems->every(function($i) { return $i->status === 'delivered'; });
+        $allShippedOrDelivered = $allItems->every(function($i) { return in_array($i->status, ['shipped', 'delivered']); });
+
+        if ($allDelivered && $order->status !== 'delivered') {
+            $order->updateStatus('delivered');
+        } elseif ($allShippedOrDelivered && !in_array($order->status, ['shipped', 'delivered', 'cancelled'])) {
+            $order->updateStatus('shipped');
+        }
+
         return back()->with('success', 'Order status updated to ' . ucfirst($request->status));
     }
 
