@@ -147,28 +147,36 @@
             <div class="premium-card mb-4 border-primary-highlight">
                 <div class="card-header-premium bg-primary-subtle"><h3><i class="fas fa-sliders-h mr-2"></i>Manage Order</h3></div>
                 <div class="card-body-premium">
-                    <form action="{{ route('vendor.orders.status', $orderItem->id) }}" method="POST">
-                        @csrf
-                        <div class="form-group-premium mb-3">
-                            <label>Update Status</label>
-                            <select name="status" class="form-select-premium" onchange="toggleTracking(this.value)">
-                                <option value="pending" {{ $orderItem->status == 'pending' ? 'selected' : '' }}>⏳ Pending</option>
-                                <option value="processing" {{ $orderItem->status == 'processing' ? 'selected' : '' }}>⚙️ Processing</option>
-                                <option value="shipped" {{ $orderItem->status == 'shipped' ? 'selected' : '' }}>🚚 Shipped</option>
-                                <option value="delivered" {{ $orderItem->status == 'delivered' ? 'selected' : '' }}>✅ Delivered</option>
-                                <option value="cancelled" {{ $orderItem->status == 'cancelled' ? 'selected' : '' }}>❌ Cancelled</option>
-                            </select>
+                    @if($orderItem->status == 'cancelled' || $orderItem->order->status == 'cancelled')
+                        <div class="p-3 bg-red-50 text-red-600 rounded-xl border border-red-100 font-bold text-center">
+                            <i class="fas fa-ban mb-2 d-block fa-2x"></i>
+                            ORDER CANCELLED
+                            <p class="font-normal text-xs mt-1">This order was cancelled and is now closed.</p>
                         </div>
-                        <div id="tracking-field" class="{{ $orderItem->status == 'shipped' ? '' : 'd-none' }} mb-3">
-                            <div class="form-group-premium">
-                                <label>Tracking Number</label>
-                                <input type="text" name="tracking_number" class="form-input-premium" value="{{ $orderItem->tracking_number }}" placeholder="e.g. DHL-X892">
+                    @else
+                        <form action="{{ route('vendor.orders.status', $orderItem->id) }}" method="POST">
+                            @csrf
+                            <div class="form-group-premium mb-3">
+                                <label>Update Status</label>
+                                <select name="status" class="form-select-premium" onchange="toggleTracking(this.value)">
+                                    <option value="pending" {{ $orderItem->status == 'pending' ? 'selected' : '' }}>⏳ Pending</option>
+                                    <option value="processing" {{ $orderItem->status == 'processing' ? 'selected' : '' }}>⚙️ Processing</option>
+                                    <option value="shipped" {{ $orderItem->status == 'shipped' ? 'selected' : '' }}>🚚 Shipped</option>
+                                    <option value="delivered" {{ $orderItem->status == 'delivered' ? 'selected' : '' }}>✅ Delivered</option>
+                                    <option value="cancelled" {{ $orderItem->status == 'cancelled' ? 'selected' : '' }}>❌ Cancelled</option>
+                                </select>
                             </div>
-                        </div>
-                        <button type="submit" class="btn-primary-premium w-100">
-                            <i class="fas fa-save mr-2"></i>Apply Update
-                        </button>
-                    </form>
+                            <div id="tracking-field" class="{{ $orderItem->status == 'shipped' ? '' : 'd-none' }} mb-3">
+                                <div class="form-group-premium">
+                                    <label>Tracking Number</label>
+                                    <input type="text" name="tracking_number" class="form-input-premium" value="{{ $orderItem->tracking_number }}" placeholder="e.g. DHL-X892">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary-premium w-100">
+                                <i class="fas fa-save mr-2"></i>Apply Update
+                            </button>
+                        </form>
+                    @endif
                 </div>
             </div>
 
@@ -293,6 +301,11 @@
     .action-btn-primary:hover { background: #dbeafe; color: #004ecc; }
 
     .gap-3 { gap: 1rem; } .gap-4 { gap: 1.5rem; } .g-4 > * { padding: 0.75rem; }
+
+    .bg-red-50 { background-color: #fef2f2; }
+    .text-red-600 { color: #dc2626; }
+    .border-red-100 { border-color: #fee2e2; }
+    .rounded-xl { border-radius: 16px; }
 
     @media print { .no-print { display: none !important; } .premium-card { border: none !important; box-shadow: none !important; } }
     @media (max-width: 768px) { .order-item-row { flex-direction: column; align-items: flex-start; } .order-header-card { flex-direction: column; align-items: flex-start; } }

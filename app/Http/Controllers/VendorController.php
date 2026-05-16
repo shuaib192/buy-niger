@@ -803,6 +803,11 @@ public function exportAnalytics(Request $request)
             ->where('id', $id)
             ->firstOrFail();
 
+        // Prevent modification if already cancelled
+        if ($orderItem->status == 'cancelled' || $orderItem->order->status == 'cancelled') {
+            return back()->with('error', 'This order has been cancelled and cannot be modified.');
+        }
+
         $oldStatus = $orderItem->status;
         $orderItem->update(['status' => $request->status]);
 

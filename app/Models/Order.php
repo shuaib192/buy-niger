@@ -189,6 +189,8 @@ class Order extends Model
                 break;
             case self::STATUS_CANCELLED:
                 $this->cancelled_at = now();
+                // Propagate cancellation to items
+                $this->items()->update(['status' => self::STATUS_CANCELLED]);
                 break;
         }
 
