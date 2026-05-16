@@ -167,13 +167,13 @@ class Product extends Model
         $image = $this->images()->where('is_primary', true)->first() 
                  ?? $this->images()->first();
         
-        $path = $image ? $image->image_path : $this->image_path;
+        $path = $image ? $image->image_path : null;
 
         if (empty($path)) {
             return asset('images/no-product.svg');
         }
 
-        if (str_starts_with($path, 'http')) {
+        if (is_string($path) && str_starts_with($path, 'http')) {
             return $path;
         }
 

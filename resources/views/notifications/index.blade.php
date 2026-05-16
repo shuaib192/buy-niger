@@ -9,7 +9,7 @@
     @elseif(auth()->user()->role_id == 3)
         @include('vendor.partials.sidebar')
     @else
-        @include('shop.partials.customer-sidebar')
+        @include('customer.partials.sidebar')
     @endif
 @endsection
 
