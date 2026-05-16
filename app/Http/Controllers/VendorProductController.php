@@ -98,6 +98,21 @@ class VendorProductController extends Controller
             }
         }
 
+        // Handle variants
+        if ($request->has('variants')) {
+            foreach ($request->variants as $variantData) {
+                if (!empty($variantData['size']) || !empty($variantData['color'])) {
+                    $product->variants()->create([
+                        'size' => $variantData['size'],
+                        'color' => $variantData['color'],
+                        'price' => !empty($variantData['price']) ? $variantData['price'] : null,
+                        'stock_quantity' => $variantData['stock'] ?? 0,
+                        'sku' => !empty($variantData['sku']) ? $variantData['sku'] : $product->sku . '-' . Str::random(4),
+                    ]);
+                }
+            }
+        }
+
         return redirect()->route('vendor.products')->with('success', 'Product created successfully!');
     }
 
@@ -153,6 +168,22 @@ class VendorProductController extends Controller
                     'sort_order' => $maxSort + $index + 1,
                     'is_primary' => $product->images()->count() === 0 && $index === 0,
                 ]);
+            }
+        }
+
+        // Handle variants (Delete existing and recreate to keep it simple for now)
+        if ($request->has('variants')) {
+            $product->variants()->delete();
+            foreach ($request->variants as $variantData) {
+                if (!empty($variantData['size']) || !empty($variantData['color'])) {
+                    $product->variants()->create([
+                        'size' => $variantData['size'],
+                        'color' => $variantData['color'],
+                        'price' => !empty($variantData['price']) ? $variantData['price'] : null,
+                        'stock_quantity' => $variantData['stock'] ?? 0,
+                        'sku' => !empty($variantData['sku']) ? $variantData['sku'] : $product->sku . '-' . Str::random(4),
+                    ]);
+                }
             }
         }
 

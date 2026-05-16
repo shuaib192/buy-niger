@@ -10,6 +10,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Transaction;
+use App\Models\VendorBankDetail;
+use App\Services\PaystackTransferService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -19,11 +21,13 @@ class PaymentController extends Controller
 {
     private $paystackSecretKey;
     private $paystackBaseUrl = 'https://api.paystack.co';
+    private $transferService;
 
-    public function __construct()
+    public function __construct(PaystackTransferService $transferService)
     {
         $this->middleware('auth')->except(['webhook']);
         $this->paystackSecretKey = config('services.paystack.secret_key');
+        $this->transferService = $transferService;
     }
 
     /**
@@ -116,15 +120,12 @@ class PaymentController extends Controller
                             'paid_at' => now(),
                         ]);
 
-                        // Update order items status and credit vendors
+                        // Update order items status
                         foreach ($order->items as $item) {
                             $item->update(['status' => 'processing']);
                             
-                            // Credit vendor balance (minus commission)
                             $vendor = $item->vendor;
                             if ($vendor) {
-                                $netAmount = $item->subtotal * (1 - ($vendor->commission_rate / 100));
-                                $vendor->increment('balance', $netAmount);
                                 $vendor->increment('total_sales', $item->subtotal);
 
                                 if ($item->product) {
@@ -133,8 +134,11 @@ class PaymentController extends Controller
                             }
                         }
 
+                        // Trigger Automatic Transfers to Vendors
+                        $this->processVendorPayouts($order);
+
                         return redirect()->route('checkout.confirmation', $order->order_number)
-                            ->with('success', 'Payment successful!');
+                            ->with('success', 'Payment successful and payout initiated!');
                     }
                 }
             }
@@ -181,11 +185,8 @@ class PaymentController extends Controller
                 foreach ($order->items as $item) {
                     $item->update(['status' => 'processing']);
                     
-                    // Credit vendor balance (minus commission)
                     $vendor = $item->vendor;
                     if ($vendor) {
-                        $netAmount = $item->subtotal * (1 - ($vendor->commission_rate / 100));
-                        $vendor->increment('balance', $netAmount);
                         $vendor->increment('total_sales', $item->subtotal);
 
                         if ($item->product) {
@@ -194,11 +195,82 @@ class PaymentController extends Controller
                     }
                 }
 
-                Log::info('Order ' . $order->order_number . ' marked as paid via webhook');
+                // Trigger Automatic Transfers to Vendors
+                $this->processVendorPayouts($order);
+
+                Log::info('Order ' . $order->order_number . ' marked as paid and payouts processed via webhook');
             }
         }
 
         return response()->json(['status' => 'success']);
+    }
+
+    /**
+     * Automatically transfer funds to vendors for an order.
+     */
+    private function processVendorPayouts(Order $order)
+    {
+        if (!$this->transferService->isConfigured()) {
+            Log::error('Payout error: Paystack Transfer Service not configured.');
+            return;
+        }
+
+        // Group items by vendor to handle multiple items from same vendor
+        $vendorTotals = [];
+        foreach ($order->items as $item) {
+            if (!$item->vendor_id) continue;
+            
+            $commissionRate = $item->vendor->commission_rate ?? 5.00; // Default 5%
+            $netAmount = $item->subtotal * (1 - ($commissionRate / 100));
+            
+            if (!isset($vendorTotals[$item->vendor_id])) {
+                $vendorTotals[$item->vendor_id] = 0;
+            }
+            $vendorTotals[$item->vendor_id] += $netAmount;
+        }
+
+        foreach ($vendorTotals as $vendorId => $amount) {
+            try {
+                $vendor = \App\Models\Vendor::find($vendorId);
+                $bankDetail = $vendor->bankDetails()->where('is_primary', true)->first();
+
+                if (!$bankDetail || !$bankDetail->account_number || !$bankDetail->bank_name) {
+                    Log::warning("Payout skipped for vendor {$vendor->store_name}: No primary bank details found.");
+                    continue;
+                }
+
+                // 1. Create/Get Recipient
+                $recipient = $this->transferService->createRecipient(
+                    $bankDetail->account_name ?? $vendor->store_name,
+                    $bankDetail->account_number,
+                    $bankDetail->bank_code ?? $this->transferService->resolveBankCodeByName($bankDetail->bank_name)
+                );
+
+                if (!$recipient['success']) {
+                    Log::error("Payout error for vendor {$vendor->store_name}: " . $recipient['message']);
+                    continue;
+                }
+
+                $recipientCode = $recipient['data']['recipient_code'];
+
+                // 2. Initiate Transfer
+                $transfer = $this->transferService->initiateTransfer(
+                    $amount,
+                    $recipientCode,
+                    'PAYOUT_' . $order->order_number . '_' . $vendorId . '_' . time(),
+                    "Payment for Order #{$order->order_number} on BuyNiger"
+                );
+
+                if ($transfer['success']) {
+                    Log::info("Automatic payout successful for vendor {$vendor->store_name}: ₦{$amount}");
+                } else {
+                    Log::error("Payout transfer failed for vendor {$vendor->store_name}: " . $transfer['message']);
+                }
+
+            } catch (\Exception $e) {
+                Log::error("Payout exception for vendor ID {$vendorId}: " . $e->getMessage());
+            }
+        }
     }
 
     /**

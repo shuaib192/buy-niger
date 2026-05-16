@@ -253,11 +253,19 @@
             if (btn) {
                 e.preventDefault();
                 const productId = btn.dataset.productId;
+                const variantInput = document.getElementById('selectedVariantId');
+                const variantId = variantInput ? variantInput.value : null;
+
+                // Check if variation is required but not selected
+                if (variantInput && document.querySelectorAll('.variant-group').length > 0 && !variantId) {
+                    showToast('Please select all available options (Size/Color)', 'error');
+                    return;
+                }
+
                 const qtyInput = document.getElementById('qty');
                 const quantity = qtyInput ? parseInt(qtyInput.value) : 1;
                 const icon = btn.querySelector('i');
                 const originalClass = icon.className;
-                const originalText = btn.innerHTML;
                 
                 icon.className = 'fas fa-spinner fa-spin';
                 btn.disabled = true;
@@ -268,7 +276,11 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ product_id: productId, quantity: quantity })
+                    body: JSON.stringify({ 
+                        product_id: productId, 
+                        variant_id: variantId, 
+                        quantity: quantity 
+                    })
                 })
                 .then(res => res.json())
                 .then(data => {

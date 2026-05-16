@@ -59,7 +59,7 @@
                 </div>
                 <div class="summary-row">
                     <span>Delivery</span>
-                    <span>Calculated at checkout</span>
+                    <span class="text-primary font-bold">Discuss with Vendor</span>
                 </div>
                 <div class="summary-row total">
                     <span>Total</span>
