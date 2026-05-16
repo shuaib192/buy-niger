@@ -25,16 +25,6 @@ use App\Http\Controllers\MessageController;
 |--------------------------------------------------------------------------
 */
 
-// Temporary Migration Route
-Route::get('/force-migrate-db', function () {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        return '<pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre><br><b>Success!</b>';
-    } catch (\Exception $e) {
-        return '<b>Error:</b> ' . $e->getMessage();
-    }
-});
-
 // Home
 Route::get('/', [ShopController::class, 'index'])->name('home');
 Route::get('/about', [ShopController::class, 'about'])->name('about');
