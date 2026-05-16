@@ -140,16 +140,16 @@ Route::get('/run-migration-secret-777', function() {
     }
 });
 
-// Shop Debug Route - shows exact error
+// Shop Debug Route - renders actual view to find crash
 Route::get('/shop-debug-777', function() {
     try {
         $categories = \App\Models\Category::where('is_active', true)->get();
         $products = \App\Models\Product::where('status', 'active')
             ->with(['category', 'images', 'vendor'])
             ->paginate(20);
-        return "OK! Found " . $products->total() . " products and " . $categories->count() . " categories. View rendering next...";
+        return view('shop.catalog', compact('products', 'categories'))->render();
     } catch (\Throwable $e) {
-        return "<pre>SHOP ERROR:\n" . $e->getMessage() . "\n\nFile: " . $e->getFile() . "\nLine: " . $e->getLine() . "\n\nTrace:\n" . $e->getTraceAsString() . "</pre>";
+        return "<pre>VIEW CRASH:\n" . $e->getMessage() . "\n\nFile: " . $e->getFile() . "\nLine: " . $e->getLine() . "\n\nTrace (first 5):\n" . implode("\n", array_slice(explode("\n", $e->getTraceAsString()), 0, 10)) . "</pre>";
     }
 });
 
