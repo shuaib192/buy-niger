@@ -48,6 +48,7 @@ Route::get('/refund-policy', [ShopController::class, 'refundPolicy'])->name('ref
 
 // CATALOG - inline to bypass OPcache on ShopController
 Route::get('/shop', function(\Illuminate\Http\Request $request) {
+    if (function_exists('opcache_reset')) { opcache_reset(); }
     $query = \App\Models\Product::where('status', 'active');
     if ($request->search) {
         $s = $request->search;
