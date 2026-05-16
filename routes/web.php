@@ -25,8 +25,16 @@ use App\Http\Controllers\MessageController;
 |--------------------------------------------------------------------------
 */
 
-// Home
-Route::get('/', [ShopController::class, 'index'])->name('home');
+// HOME - inline to bypass OPcache on ShopController
+Route::get('/', function() {
+    $featuredCategories = \App\Models\Category::where('is_active', true)->where('is_featured', true)->take(6)->get();
+    $latestProducts = \App\Models\Product::where('status', 'active')->latest()->take(8)->with('category', 'images')->get();
+    $featuredProducts = \App\Models\Product::where('status', 'active')->where('is_featured', true)->with('category', 'images')->take(8)->get();
+    $bestSellers = \App\Models\Product::where('status', 'active')->withCount('orderItems')->orderByDesc('order_items_count')->with('category', 'images')->take(8)->get();
+    $topStores = \App\Models\Vendor::approved()->orderByDesc('rating')->orderByDesc('total_sales')->take(6)->get();
+    return view('shop.index', compact('featuredCategories', 'latestProducts', 'featuredProducts', 'bestSellers', 'topStores'));
+})->name('home');
+
 Route::get('/about', [ShopController::class, 'about'])->name('about');
 Route::get('/contact', [ShopController::class, 'contact'])->name('contact');
 Route::post('/contact', [ShopController::class, 'sendContact'])->name('contact.send');
@@ -38,13 +46,35 @@ Route::get('/terms', [ShopController::class, 'terms'])->name('terms');
 Route::get('/vendor-policy', [ShopController::class, 'vendorPolicy'])->name('vendor.policy');
 Route::get('/refund-policy', [ShopController::class, 'refundPolicy'])->name('refund.policy');
 
-// Catalog & Categories
+// CATALOG - inline to bypass OPcache on ShopController
 Route::get('/shop', function(\Illuminate\Http\Request $request) {
-    if (function_exists('opcache_invalidate')) {
-        opcache_invalidate(app_path('Http/Controllers/ShopController.php'), true);
+    $query = \App\Models\Product::where('status', 'active');
+    if ($request->search) {
+        $s = $request->search;
+        $query->where(function($q) use ($s) {
+            $q->where('name', 'like', "%{$s}%")
+              ->orWhere('short_description', 'like', "%{$s}%")
+              ->orWhereHas('vendor', fn($vq) => $vq->where('store_name', 'like', "%{$s}%"));
+        });
     }
-    return app(ShopController::class)->catalog($request);
+    if ($request->category) {
+        $cat = \App\Models\Category::where('slug', $request->category)->first();
+        if ($cat) $query->where('category_id', $cat->id);
+    }
+    if ($request->min_price) $query->where('price', '>=', $request->min_price);
+    if ($request->max_price) $query->where('price', '<=', $request->max_price);
+    if ($request->rating)    $query->where('rating', '>=', $request->rating);
+    switch ($request->sort) {
+        case 'price_low':  $query->orderBy('price', 'asc'); break;
+        case 'price_high': $query->orderBy('price', 'desc'); break;
+        case 'avg_rating': $query->orderBy('rating', 'desc'); break;
+        default:           $query->latest(); break;
+    }
+    $products   = $query->with(['category', 'images', 'vendor'])->paginate(20);
+    $categories = \App\Models\Category::where('is_active', true)->get();
+    return view('shop.catalog', compact('products', 'categories'));
 })->name('catalog');
+
 Route::get('/category/{category}', [ShopController::class, 'catalog'])->name('category');
 
 // Product Detail
