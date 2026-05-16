@@ -107,6 +107,15 @@ class AuthController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
+        // Generate unique subdomain
+        $baseSubdomain = Str::slug($request->name);
+        $subdomain = $baseSubdomain;
+        $count = 1;
+        while (User::where('subdomain', $subdomain)->exists()) {
+            $subdomain = $baseSubdomain . $count;
+            $count++;
+        }
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -114,6 +123,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role_id' => 4, // Customer
             'is_active' => true,
+            'subdomain' => $subdomain,
         ]);
 
         // Fire event
@@ -158,6 +168,15 @@ class AuthController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
+        // Generate unique subdomain
+        $baseSubdomain = Str::slug($request->store_name);
+        $subdomain = $baseSubdomain;
+        $count = 1;
+        while (User::where('subdomain', $subdomain)->exists()) {
+            $subdomain = $baseSubdomain . $count;
+            $count++;
+        }
+
         // Create user
         $user = User::create([
             'name' => $request->name,
@@ -166,6 +185,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role_id' => 3, // Vendor
             'is_active' => true,
+            'subdomain' => $subdomain,
         ]);
 
         // Generate clean store slug

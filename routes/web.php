@@ -21,6 +21,21 @@ use App\Http\Controllers\MessageController;
 
 /*
 |--------------------------------------------------------------------------
+| Subdomain Routes (Wildcard)
+|--------------------------------------------------------------------------
+*/
+Route::domain('{subdomain}.' . env('APP_URL_BASE', 'buyniger.com'))->group(function () {
+    Route::get('/', function ($subdomain) {
+        $user = \App\Models\User::where('subdomain', $subdomain)->first();
+        if (!$user) {
+            return redirect('https://' . env('APP_URL_BASE', 'buyniger.com'));
+        }
+        return "Welcome to " . e($user->name) . "'s Subdomain! This is a test for: " . e($subdomain);
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
 | Public Shop Routes
 |--------------------------------------------------------------------------
 */
