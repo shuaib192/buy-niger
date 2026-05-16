@@ -15,7 +15,7 @@ class CartItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cart_id', 'product_id', 'quantity', 'price'];
+    protected $fillable = ['cart_id', 'product_id', 'product_variant_id', 'quantity', 'price'];
 
     /**
      * Get the cart.
@@ -34,10 +34,19 @@ class CartItem extends Model
     }
 
     /**
+     * Get the variant.
+     */
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+    }
+
+    /**
      * Get line total.
      */
     public function getSubtotalAttribute()
     {
-        return $this->price * $this->quantity;
+        $price = $this->price ?: ($this->product->current_price ?? 0);
+        return $price * $this->quantity;
     }
 }

@@ -255,6 +255,14 @@
                 const productId = btn.dataset.productId;
                 const qtyInput = document.getElementById('qty');
                 const quantity = qtyInput ? parseInt(qtyInput.value) : 1;
+                
+                // Variant Support
+                let variantId = null;
+                const selectedVariant = document.querySelector('input[name="product_variant_id"]:checked');
+                if (selectedVariant) {
+                    variantId = selectedVariant.value;
+                }
+
                 const icon = btn.querySelector('i');
                 const originalClass = icon.className;
                 const originalText = btn.innerHTML;
@@ -268,7 +276,11 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ product_id: productId, quantity: quantity })
+                    body: JSON.stringify({ 
+                        product_id: productId, 
+                        quantity: quantity,
+                        product_variant_id: variantId 
+                    })
                 })
                 .then(res => res.json())
                 .then(data => {

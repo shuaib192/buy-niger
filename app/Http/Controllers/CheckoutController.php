@@ -223,13 +223,16 @@ class CheckoutController extends Controller
             // Create order items and track vendors
             $vendorItems = [];
             foreach ($cart->items as $item) {
-                $price = $item->product->sale_price ?? $item->product->price;
+                $price = $item->price;
+                $variantName = $item->variant ? $item->variant->name : null;
                 
                 $orderItem = OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
+                    'product_variant_id' => $item->product_variant_id,
                     'vendor_id' => $item->product->vendor_id,
                     'product_name' => $item->product->name,
+                    'variant_name' => $variantName,
                     'price' => $price,
                     'quantity' => $item->quantity,
                     'subtotal' => $price * $item->quantity,
@@ -237,14 +240,15 @@ class CheckoutController extends Controller
                     'tracking_number' => $trackingId,
                 ]);
 
-                // Group items by vendor
+                // Group items by vendor for notifications
                 $vendorId = $item->product->vendor_id;
                 if (!isset($vendorItems[$vendorId])) {
                     $vendorItems[$vendorId] = [];
                 }
                 $vendorItems[$vendorId][] = $orderItem;
 
-                // Decrease stock
+                // Decrease stock (if it's a variant, handle that too?)
+                // For now, simple stock decrease on the main product
                 $item->product->decrement('quantity', $item->quantity);
             }
 

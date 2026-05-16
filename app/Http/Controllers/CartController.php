@@ -52,6 +52,7 @@ class CartController extends Controller
 
         $product = Product::findOrFail($request->product_id);
         $quantity = $request->quantity ?? 1;
+        $variantId = $request->product_variant_id; // Added variant support
 
         // Check stock
         if ($product->quantity < $quantity) {
@@ -63,16 +64,29 @@ class CartController extends Controller
 
         $cart = $this->getCart();
         
-        // Check if item already in cart
-        $cartItem = $cart->items()->where('product_id', $product->id)->first();
+        // Check if item already in cart (now including variant check)
+        $cartItem = $cart->items()
+            ->where('product_id', $product->id)
+            ->where('product_variant_id', $variantId)
+            ->first();
         
         if ($cartItem) {
             $cartItem->increment('quantity', $quantity);
         } else {
+            // Use the variant price if available, fallback to product's current_price
+            $price = $product->current_price;
+            if ($variantId) {
+                $variant = \App\Models\ProductVariant::find($variantId);
+                if ($variant && $variant->price > 0) {
+                    $price = $variant->price;
+                }
+            }
+
             $cart->items()->create([
                 'product_id' => $product->id,
+                'product_variant_id' => $variantId,
                 'quantity' => $quantity,
-                'price' => $product->sale_price ?? $product->price
+                'price' => $price
             ]);
         }
 

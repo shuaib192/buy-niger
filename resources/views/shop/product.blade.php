@@ -61,6 +61,22 @@
                     {{ $product->short_description }}
                 </div>
 
+                @if($product->variants->count() > 0)
+                <div class="p-variants mb-4">
+                    <label class="d-block mb-2 font-weight-bold" style="font-size: 0.875rem; color: var(--secondary-700);">Select Option</label>
+                    <div class="variant-grid" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        @foreach($product->variants as $variant)
+                            <div class="variant-item">
+                                <input type="radio" name="product_variant_id" id="v-{{ $variant->id }}" value="{{ $variant->id }}" class="variant-input" onchange="updateVariantPrice({{ $variant->price }}, '{{ $variant->name }}')" {{ $loop->first ? 'checked' : '' }}>
+                                <label for="v-{{ $variant->id }}" class="variant-label">
+                                    {{ $variant->name }}
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
                 <div class="p-actions">
                     <div class="quantity-picker">
                         <button type="button" onclick="decrementQty()"><i class="fas fa-minus"></i></button>
@@ -227,6 +243,12 @@
             if (btn) btn.classList.add('active');
         }
 
+        function updateVariantPrice(price, name) {
+            if (price > 0) {
+                document.querySelector('.curr-price').textContent = '₦' + price.toLocaleString();
+            }
+        }
+
         // Handle tab switching via URL
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -361,6 +383,28 @@
             color: var(--secondary-600);
             margin-bottom: 20px;
         }
+
+        /* -- Variants -- */
+        .variant-input { display: none; }
+        .variant-label {
+            display: inline-block;
+            padding: 8px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--secondary-600);
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+        }
+        .variant-input:checked + .variant-label {
+            border-color: var(--primary-600);
+            background: var(--primary-50);
+            color: var(--primary-700);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.1);
+        }
+        .variant-label:hover { border-color: var(--primary-300); }
 
         /* -- Actions -- */
         .p-actions {
