@@ -19,6 +19,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\BasketController;
+use App\Http\Controllers\UserWishlistController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,20 +62,27 @@ Route::get('/stores', [StoreController::class, 'index'])->name('stores');
 Route::get('/store/{slug}', [StoreController::class, 'show'])->name('store.show');
 Route::get('/search/suggestions', [ShopController::class, 'suggestions'])->name('search.suggestions');
 
-// Cart Routes
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
-Route::patch('/cart/update/{item}', [CartController::class, 'update'])->name('cart.update');
-Route::delete('/cart/remove/{item}', [CartController::class, 'remove'])->name('cart.remove');
-Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
-Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+// Cart Routes - bypass cursed /cart URL
+Route::get('/my-basket', [BasketController::class, 'index'])->name('cart.index');
+Route::post('/cart/add', [BasketController::class, 'add'])->name('cart.add');
+Route::patch('/cart/update/{item}', [BasketController::class, 'update'])->name('cart.update');
+Route::delete('/cart/remove/{item}', [BasketController::class, 'remove'])->name('cart.remove');
+Route::get('/cart/count', [BasketController::class, 'count'])->name('cart.count');
+Route::post('/cart/clear', [BasketController::class, 'clear'])->name('cart.clear');
 
-// Wishlist Routes
-use App\Http\Controllers\WishlistController;
-Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
-Route::post('/wishlist/add', [WishlistController::class, 'add'])->name('wishlist.add');
-Route::delete('/wishlist/{productId}', [WishlistController::class, 'remove'])->name('wishlist.remove');
-Route::post('/wishlist/move/{productId}', [WishlistController::class, 'moveToCart'])->name('wishlist.move');
+Route::get('/cart', function() {
+    return redirect()->route('cart.index');
+});
+
+// Wishlist Routes - bypass cursed /wishlist URL
+Route::get('/my-wishlist', [UserWishlistController::class, 'index'])->name('wishlist.index');
+Route::post('/wishlist/add', [UserWishlistController::class, 'add'])->name('wishlist.add');
+Route::delete('/wishlist/{productId}', [UserWishlistController::class, 'remove'])->name('wishlist.remove');
+Route::post('/wishlist/move/{productId}', [UserWishlistController::class, 'moveToCart'])->name('wishlist.move');
+
+Route::get('/wishlist', function() {
+    return redirect()->route('wishlist.index');
+});
 
 // Checkout Routes (Auth Required)
 Route::middleware('auth')->group(function () {
