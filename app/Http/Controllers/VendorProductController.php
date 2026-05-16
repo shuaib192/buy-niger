@@ -254,7 +254,8 @@ class VendorProductController extends Controller
      */
     private function authorizeProduct(Product $product)
     {
-        if ($product->vendor_id !== Auth::user()->vendor->id) {
+        $vendor = Auth::user()->vendor;
+        if (!$vendor || $product->vendor_id !== $vendor->id) {
             abort(403, 'Unauthorized');
         }
     }

@@ -4,7 +4,13 @@
 @section('page_title', 'Notifications')
 
 @section('sidebar')
-    @include('superadmin.partials.sidebar') <!-- Fallback sidebar, or generic -->
+    @if(auth()->user()->role_id == 1)
+        @include('superadmin.partials.sidebar')
+    @elseif(auth()->user()->role_id == 3)
+        @include('vendor.partials.sidebar')
+    @else
+        @include('shop.partials.customer-sidebar')
+    @endif
 @endsection
 
 @section('content')
