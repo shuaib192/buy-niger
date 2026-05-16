@@ -136,6 +136,11 @@ Route::get('/run-migration-secret-777', function() {
     }
 });
 
+// Emergency Test Route
+Route::get('/test-route-777', function() {
+    return "Hello World! Routing is working.";
+});
+
 // Emergency Debug Route
 Route::get('/debug-log-777', function() {
     $path = storage_path('logs/laravel.log');
