@@ -169,12 +169,12 @@ class Vendor extends Model
         $number = preg_replace('/[^0-9]/', '', $this->business_phone);
         
         // If it's a standard Nigerian 11-digit number starting with 0 (e.g. 080...)
-        if (strlen($number) === 11 && str_starts_with($number, '0')) {
+        if (strlen($number) === 11 && (0 === strpos($number, '0'))) {
             return '234' . substr($number, 1);
         }
         
         // If it's a 10-digit number (already missing the leading 0), assume Nigeria
-        if (strlen($number) === 10 && !str_starts_with($number, '234')) {
+        if (strlen($number) === 10 && (false === strpos($number, '234'))) {
             return '234' . $number;
         }
 
