@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('order_items', function (Blueprint $table) {
             if (!Schema::hasColumn('order_items', 'product_variant_id')) {
-                $table->foreignId('product_variant_id')->nullable()->constrained()->onDelete('set null')->after('product_id');
+                $table->foreignId('product_variant_id')->nullable()->constrained()->onDelete('set null');
             }
         });
     }

@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::table('vendors', function (Blueprint $table) {
             if (!Schema::hasColumn('vendors', 'paystack_subaccount_id')) {
-                $table->string('paystack_subaccount_id')->nullable()->after('business_name');
+                $table->string('paystack_subaccount_id')->nullable();
             }
             if (!Schema::hasColumn('vendors', 'bank_name')) {
-                $table->string('bank_name')->nullable()->after('paystack_subaccount_id');
+                $table->string('bank_name')->nullable();
             }
             if (!Schema::hasColumn('vendors', 'account_number')) {
-                $table->string('account_number')->nullable()->after('bank_name');
+                $table->string('account_number')->nullable();
             }
         });
     }
