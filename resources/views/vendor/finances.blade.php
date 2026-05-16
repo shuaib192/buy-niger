@@ -24,12 +24,12 @@
             <div class="fin-hero-hint">Ready for instant withdrawal to your bank</div>
         </div>
         <div class="fin-hero-right">
-            <button class="fin-withdraw-btn" data-bs-toggle="modal" data-bs-target="#payoutModal" {{ $stats['available_balance'] < 1000 ? 'disabled' : '' }}>
+            <button class="fin-withdraw-btn" data-bs-toggle="modal" data-bs-target="#payoutModal" {{ $stats['available_balance'] < 500 ? 'disabled' : '' }}>
                 <i class="fas fa-arrow-right"></i>
                 <span>Withdraw</span>
             </button>
-            @if($stats['available_balance'] < 1000)
-                <div class="fin-hero-note">Min. ₦1,000 to withdraw</div>
+            @if($stats['available_balance'] < 500)
+                <div class="fin-hero-note">Min. ₦500 to withdraw</div>
             @endif
         </div>
     </div>
@@ -214,9 +214,9 @@
                         <label>Withdrawal Amount</label>
                         <div class="fin-input-wrap">
                             <span class="fin-input-prefix">₦</span>
-                            <input type="number" name="amount" min="1000" max="{{ $stats['available_balance'] }}" required placeholder="Enter amount">
+                            <input type="number" name="amount" min="500" max="{{ $stats['available_balance'] }}" required placeholder="Enter amount">
                         </div>
-                        <small>Minimum: ₦1,000</small>
+                        <small>Minimum: ₦500</small>
                     </div>
 
                     <div class="fin-field">

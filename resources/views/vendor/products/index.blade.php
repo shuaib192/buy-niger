@@ -125,9 +125,6 @@
                                             <a href="#" onclick="if(confirm('Delete?')) document.getElementById('del-{{$product->id}}').submit()" class="btn btn-sm btn-outline-danger">
                                                 <i class="fas fa-trash"></i>
                                             </a>
-                                            <form id="del-{{$product->id}}" action="{{ route('vendor.products.destroy', $product->id) }}" method="POST" style="display:none;">
-                                                @csrf @method('DELETE')
-                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -145,6 +142,12 @@
                 </div>
             </form>
             
+            @foreach($products as $product)
+                <form id="del-{{$product->id}}" action="{{ route('vendor.products.destroy', $product->id) }}" method="POST" style="display:none;">
+                    @csrf @method('DELETE')
+                </form>
+            @endforeach
+
             <style>
                 .search-input-group {
                     position: relative;

@@ -1004,7 +1004,7 @@ public function exportAnalytics(Request $request)
         }
 
         $request->validate([
-            'amount' => 'required|numeric|min:1000',
+            'amount' => 'required|numeric|min:500',
             'bank_detail_id' => 'required|integer'
         ]);
 
