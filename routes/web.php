@@ -160,7 +160,18 @@ Route::get('/run-migration-secret-777', function() {
 });
 
 
-// Redirect /home to /
+// SECRET FIX ROUTE FOR CART PRICES
+Route::get('/fix-cart-prices-secret-999', function() {
+    $items = \App\Models\CartItem::whereNull('price')->orWhere('price', 0)->with('product')->get();
+    $count = 0;
+    foreach ($items as $item) {
+        if ($item->product) {
+            $item->update(['price' => $item->product->current_price]);
+            $count++;
+        }
+    }
+    return "Updated " . $count . " cart items with correct prices!";
+});
 
 /*
 |--------------------------------------------------------------------------

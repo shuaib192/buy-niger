@@ -34,25 +34,40 @@ class BasketController extends Controller
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
+            'product_variant_id' => 'nullable|exists:product_variants,id',
             'quantity' => 'required|integer|min:1',
         ]);
 
         $product = Product::findOrFail($request->product_id);
         
         if ($product->quantity < $request->quantity) {
-            return back()->with('error', 'Not enough stock available.');
+            $msg = 'Not enough stock available.';
+            return $request->ajax() ? response()->json(['success' => false, 'message' => $msg]) : back()->with('error', $msg);
         }
 
         $cart = Cart::firstOrCreate(['user_id' => Auth::id()]);
         
-        $cartItem = $cart->items()->where('product_id', $product->id)->first();
+        $cartItem = $cart->items()
+            ->where('product_id', $product->id)
+            ->where('product_variant_id', $request->product_variant_id)
+            ->first();
 
         if ($cartItem) {
             $cartItem->increment('quantity', $request->quantity);
         } else {
             $cart->items()->create([
                 'product_id' => $product->id,
+                'product_variant_id' => $request->product_variant_id,
                 'quantity' => $request->quantity,
+                'price' => $product->current_price, // SAVE THE PRICE!
+            ]);
+        }
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true, 
+                'message' => 'Product added to cart!',
+                'cart_count' => $cart->items->sum('quantity')
             ]);
         }
 
@@ -66,7 +81,7 @@ class BasketController extends Controller
     {
         $request->validate(['quantity' => 'required|integer|min:1']);
         
-        $item = CartItem::findOrFail($itemId);
+        $item = CartItem::with('product')->findOrFail($itemId);
         
         if ($item->product->quantity < $request->quantity) {
             return response()->json(['success' => false, 'message' => 'Not enough stock.'], 422);
@@ -77,8 +92,17 @@ class BasketController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cart updated.',
-            'item_subtotal' => number_format($item->quantity * $item->product->current_price),
-            'cart_total' => number_format($item->cart->total)
+            'item_total' => $item->quantity * $item->price,
+            'cart_total' => $item->cart->total,
+            'cart_count' => $item->cart->items->sum('quantity')
+        ]);
+    }
+
+    public function count()
+    {
+        $cart = Cart::where('user_id', Auth::id())->first();
+        return response()->json([
+            'count' => $cart ? $cart->items->sum('quantity') : 0
         ]);
     }
 
