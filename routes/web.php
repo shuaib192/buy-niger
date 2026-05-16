@@ -226,13 +226,13 @@ Route::middleware(['auth', 'role:3', 'vendor.approved'])->prefix('vendor')->name
     Route::get('/analytics/export', [VendorController::class, 'exportAnalytics'])->name('analytics.export');
 
     // Products
-    Route::get('/products', [VendorController::class, 'products'])->name('products');
-    Route::post('/products/bulk', [VendorController::class, 'bulkAction'])->name('products.bulk');
-    Route::get('/products/create', [VendorController::class, 'createProduct'])->name('products.create');
-    Route::post('/products', [VendorController::class, 'storeProduct'])->name('products.store');
-    Route::get('/products/{id}/edit', [VendorController::class, 'editProduct'])->name('products.edit');
-    Route::put('/products/{id}', [VendorController::class, 'updateProduct'])->name('products.update');
-    Route::delete('/products/{id}', [VendorController::class, 'destroyProduct'])->name('products.destroy');
+    Route::get('/products', [VendorProductController::class, 'index'])->name('products');
+    Route::post('/products/bulk', [VendorProductController::class, 'bulkAction'])->name('products.bulk');
+    Route::get('/products/create', [VendorProductController::class, 'create'])->name('products.create');
+    Route::post('/products', [VendorProductController::class, 'store'])->name('products.store');
+    Route::get('/products/{product}/edit', [VendorProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{product}', [VendorProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [VendorProductController::class, 'destroy'])->name('products.destroy');
 
     // Coupons
     Route::get('/coupons', [VendorController::class, 'coupons'])->name('coupons');

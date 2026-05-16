@@ -68,52 +68,56 @@ class VendorProductController extends Controller
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $vendor = Auth::user()->vendor;
+        try {
+            $vendor = Auth::user()->vendor;
 
-        $product = Product::create([
-            'vendor_id' => $vendor->id,
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'slug' => Str::slug($request->name) . '-' . Str::random(6),
-            'description' => $request->description,
-            'short_description' => Str::limit(strip_tags($request->description), 200),
-            'price' => $request->price,
-            'sale_price' => $request->compare_price,
-            'sku' => $request->sku ?? 'BN-' . strtoupper(Str::random(8)),
-            'quantity' => $request->quantity,
-            'low_stock_threshold' => 5,
-            'status' => 'active',
-        ]);
+            $product = Product::create([
+                'vendor_id' => $vendor->id,
+                'category_id' => $request->category_id,
+                'name' => $request->name,
+                'slug' => Str::slug($request->name) . '-' . Str::random(6),
+                'description' => $request->description,
+                'short_description' => Str::limit(strip_tags($request->description), 200),
+                'price' => $request->price,
+                'sale_price' => $request->compare_price,
+                'sku' => $request->sku ?? 'BN-' . strtoupper(Str::random(8)),
+                'quantity' => $request->quantity,
+                'low_stock_threshold' => 5,
+                'status' => 'active',
+            ]);
 
-        // Handle image uploads
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $index => $image) {
-                $path = $image->store('products', 'public');
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'image_path' => $path,
-                    'sort_order' => $index,
-                    'is_primary' => $index === 0,
-                ]);
-            }
-        }
-
-        // Handle variants
-        if ($request->has('variants')) {
-            foreach ($request->variants as $variantData) {
-                if (!empty($variantData['size']) || !empty($variantData['color'])) {
-                    $product->variants()->create([
-                        'size' => $variantData['size'],
-                        'color' => $variantData['color'],
-                        'price' => !empty($variantData['price']) ? $variantData['price'] : null,
-                        'stock_quantity' => $variantData['stock'] ?? 0,
-                        'sku' => !empty($variantData['sku']) ? $variantData['sku'] : $product->sku . '-' . Str::random(4),
+            // Handle image uploads
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $index => $image) {
+                    $path = $image->store('products', 'public');
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'image_path' => $path,
+                        'sort_order' => $index,
+                        'is_primary' => $index === 0,
                     ]);
                 }
             }
-        }
 
-        return redirect()->route('vendor.products')->with('success', 'Product created successfully!');
+            // Handle variants
+            if ($request->has('variants')) {
+                foreach ($request->variants as $variantData) {
+                    if (!empty($variantData['size']) || !empty($variantData['color'])) {
+                        $product->variants()->create([
+                            'size' => $variantData['size'] ?? null,
+                            'color' => $variantData['color'] ?? null,
+                            'price' => (!empty($variantData['price']) && is_numeric($variantData['price'])) ? $variantData['price'] : null,
+                            'stock_quantity' => is_numeric($variantData['stock'] ?? null) ? $variantData['stock'] : 0,
+                            'sku' => !empty($variantData['sku']) ? $variantData['sku'] : $product->sku . '-' . strtoupper(Str::random(4)),
+                        ]);
+                    }
+                }
+            }
+
+            return redirect()->route('vendor.products')->with('success', 'Product created successfully!');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Error creating product: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -205,6 +209,33 @@ class VendorProductController extends Controller
         $product->delete();
 
         return back()->with('success', 'Product deleted successfully!');
+    }
+
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|in:delete,activate,deactivate',
+            'ids' => 'required|array',
+            'ids.*' => 'exists:products,id'
+        ]);
+
+        $vendor = Auth::user()->vendor;
+        $products = Product::where('vendor_id', $vendor->id)->whereIn('id', $request->ids)->get();
+
+        foreach ($products as $product) {
+            if ($request->action === 'delete') {
+                foreach ($product->images as $image) {
+                     Storage::disk('public')->delete($image->image_path);
+                }
+                $product->delete();
+            } elseif ($request->action === 'activate') {
+                $product->update(['status' => 'active']);
+            } elseif ($request->action === 'deactivate') {
+                $product->update(['status' => 'inactive']);
+            }
+        }
+
+        return back()->with('success', 'Bulk action completed successfully!');
     }
 
     /**
