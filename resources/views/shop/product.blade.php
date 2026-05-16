@@ -48,12 +48,12 @@
                 </div>
 
                 <div class="p-price-block">
-                    @if($product->sale_price && $product->sale_price < $product->price)
-                        <span class="curr-price">₦{{ number_format($product->sale_price) }}</span>
-                        <span class="old-price">₦{{ number_format($product->price) }}</span>
-                        <span class="save-badge">Save {{ round((($product->price - $product->sale_price) / $product->price) * 100) }}%</span>
+                    @if($product->has_discount)
+                        <span class="curr-price">₦{{ number_format($product->current_price) }}</span>
+                        <span class="old-price">₦{{ number_format($product->original_price) }}</span>
+                        <span class="save-badge">Save {{ $product->discount_percentage }}%</span>
                     @else
-                        <span class="curr-price">₦{{ number_format($product->price) }}</span>
+                        <span class="curr-price">₦{{ number_format($product->current_price) }}</span>
                     @endif
                 </div>
 

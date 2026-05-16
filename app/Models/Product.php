@@ -138,16 +138,35 @@ class Product extends Model
     // Helpers
     public function getCurrentPriceAttribute(): float
     {
-        if ($this->sale_price && $this->sale_price < $this->price) {
-            return $this->sale_price;
+        if ($this->variants()->exists()) {
+            return (float) $this->variants()->min('price');
+        }
+
+        if ($this->sale_price && $this->sale_price > 0) {
+            return min($this->price, $this->sale_price);
         }
         return $this->price;
     }
 
+    public function getOriginalPriceAttribute(): float
+    {
+        if ($this->sale_price && $this->sale_price > 0) {
+            return max($this->price, $this->sale_price);
+        }
+        return $this->price;
+    }
+
+    public function getHasDiscountAttribute(): bool
+    {
+        return $this->sale_price && $this->sale_price > 0 && $this->sale_price != $this->price;
+    }
+
     public function getDiscountPercentageAttribute(): ?int
     {
-        if ($this->sale_price && $this->sale_price < $this->price) {
-            return (int) round((($this->price - $this->sale_price) / $this->price) * 100);
+        if ($this->has_discount) {
+            $orig = $this->original_price;
+            $curr = $this->current_price;
+            return (int) round((($orig - $curr) / $orig) * 100);
         }
         return null;
     }
