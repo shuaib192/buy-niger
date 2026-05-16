@@ -123,19 +123,7 @@
         <!-- Sidebar Column (Right) -->
         <div class="col-lg-4">
             <!-- 1. Status -->
-             <div class="dashboard-card border-0 shadow-sm mb-4">
-                <div class="dashboard-card-header bg-white border-0 pt-4 pb-0">
-                    <h3 class="h5 font-bold mb-1">Publishing</h3>
-                </div>
-                <div class="dashboard-card-body">
-                   <button type="submit" class="btn btn-primary btn-block shadow-sm py-2 mb-3 font-bold">
-                        <i class="fas fa-save mr-2"></i> Save Product
-                   </button>
-                    <a href="{{ route('vendor.products') }}" class="btn btn-outline-secondary btn-block border-0 text-secondary-500">
-                        Cancel
-                    </a>
-                </div>
-            </div>
+
 
             <!-- 2. Organization -->
             <div class="dashboard-card border-0 shadow-sm mb-4">
@@ -197,6 +185,20 @@
                         <input type="number" name="quantity" class="form-control" value="{{ old('quantity', 0) }}" min="0">
                          @error('quantity') <div class="text-danger text-xs mt-1">{{ $message }}</div> @enderror
                     </div>
+                </div>
+            </div>
+             <!-- 5. Publishing -->
+             <div class="dashboard-card border-0 shadow-sm mb-4">
+                <div class="dashboard-card-header bg-white border-0 pt-4 pb-0">
+                    <h3 class="h5 font-bold mb-1">Publishing</h3>
+                </div>
+                <div class="dashboard-card-body">
+                   <button type="submit" class="btn btn-primary btn-block shadow-sm py-2 mb-3 font-bold">
+                        <i class="fas fa-save mr-2"></i> Save Product
+                   </button>
+                    <a href="{{ route('vendor.products') }}" class="btn btn-outline-secondary btn-block border-0 text-secondary-500">
+                        Cancel
+                    </a>
                 </div>
             </div>
         </div>
