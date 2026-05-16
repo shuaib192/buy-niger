@@ -73,8 +73,14 @@ Route::get('/vendor-policy', function() { return view('shop.vendor-policy'); })-
 Route::get('/refund-policy', function() { return view('shop.refund-policy'); })->name('refund.policy');
 
 // CATALOG - inline to bypass OPcache on ShopController
+Route::get('/shop-test', function(\Illuminate\Http\Request $request) {
+    $query = \App\Models\Product::where('status', 'active');
+    $products   = $query->with(['category', 'images', 'vendor'])->paginate(20);
+    $categories = \App\Models\Category::where('is_active', true)->get();
+    return view('shop.catalog', compact('products', 'categories'));
+});
+
 Route::get('/shop', function(\Illuminate\Http\Request $request) {
-    if (function_exists('opcache_reset')) { opcache_reset(); }
     $query = \App\Models\Product::where('status', 'active');
     if ($request->search) {
         $s = $request->search;
