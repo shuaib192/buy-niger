@@ -58,6 +58,24 @@ class CheckoutController extends Controller
         }
 
         $items = $cart->items()->with('product.category', 'product.vendor')->get();
+        
+        // Auto-cleanup items where the product was deleted
+        $hasOrphans = false;
+        foreach ($items as $item) {
+            if (!$item->product) {
+                $item->delete();
+                $hasOrphans = true;
+            }
+        }
+        
+        if ($hasOrphans) {
+            $items = $cart->items()->with('product.category', 'product.vendor')->get();
+            $cart->load('items');
+            
+            if ($items->count() == 0) {
+                return redirect()->route('cart.index')->with('error', 'Your cart items are no longer available.');
+            }
+        }
         $addresses = Auth::user()->addresses ?? collect();
         $defaultAddress = $addresses->where('is_default', true)->first() ?? $addresses->first();
         $shippingMethods = ShippingMethod::active()->get();

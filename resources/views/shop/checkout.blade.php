@@ -119,7 +119,7 @@
                         </div>
                     </div>
                     @php
-                        $checkoutVendors = $items->map(fn($i) => $i->product->vendor)->unique('id')->filter();
+                        $checkoutVendors = $items->map(fn($i) => optional($i->product)->vendor)->unique('id')->filter();
                     @endphp
                     @forelse($checkoutVendors as $vendor)
                     <div style="border:1px solid #e2e8f0; border-radius:16px; overflow:hidden; margin-bottom:12px;">

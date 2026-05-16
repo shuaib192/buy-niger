@@ -37,6 +37,20 @@ class CartController extends Controller
         $cart = $this->getCart();
         $items = $cart->items()->with('product.category')->get();
         
+        // Auto-cleanup items where the product was deleted
+        $hasOrphans = false;
+        foreach ($items as $item) {
+            if (!$item->product) {
+                $item->delete();
+                $hasOrphans = true;
+            }
+        }
+        
+        if ($hasOrphans) {
+            $items = $cart->items()->with('product.category')->get();
+            $cart->load('items');
+        }
+        
         return view('shop.cart', compact('cart', 'items'));
     }
 

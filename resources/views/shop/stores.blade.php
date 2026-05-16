@@ -27,10 +27,22 @@
     <div class="stores-grid">
         @foreach($stores as $store)
         <a href="{{ route('store.show', $store->store_slug) }}" class="store-card">
-            <div class="store-card-banner" style="background: linear-gradient(135deg, {{ ['#3b82f6,#1d4ed8','#10b981,#059669','#8b5cf6,#6d28d9','#f59e0b,#d97706','#ef4444,#dc2626','#06b6d4,#0891b2'][array_rand(['#3b82f6,#1d4ed8','#10b981,#059669','#8b5cf6,#6d28d9','#f59e0b,#d97706','#ef4444,#dc2626','#06b6d4,#0891b2'])] }});">
+            @php
+                $bannerUrl = $store->banner ? asset('storage/' . $store->banner) : null;
+                $gradients = [
+                    '#3b82f6,#1d4ed8',
+                    '#10b981,#059669',
+                    '#8b5cf6,#6d28d9',
+                    '#f59e0b,#d97706',
+                    '#ef4444,#dc2626',
+                    '#06b6d4,#0891b2'
+                ];
+                $randomGradient = $gradients[array_rand($gradients)];
+            @endphp
+            <div class="store-card-banner" style="{{ $bannerUrl ? "background: url('{$bannerUrl}') center/cover no-repeat;" : "background: linear-gradient(135deg, {$randomGradient});" }}">
                 <div class="store-avatar">
-                    @if($store->store_logo)
-                        <img src="{{ asset('storage/' . $store->store_logo) }}" alt="{{ $store->store_name }}">
+                    @if($store->logo)
+                        <img src="{{ asset('storage/' . $store->logo) }}" alt="{{ $store->store_name }}">
                     @else
                         <span>{{ strtoupper(substr($store->store_name, 0, 2)) }}</span>
                     @endif
