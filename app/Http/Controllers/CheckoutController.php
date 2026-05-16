@@ -223,7 +223,7 @@ class CheckoutController extends Controller
             // Create order items and track vendors
             $vendorItems = [];
             foreach ($cart->items as $item) {
-                $price = $item->product->sale_price ?? $item->product->price;
+                $price = $item->product->current_price;
                 
                 $orderItem = OrderItem::create([
                     'order_id' => $order->id,

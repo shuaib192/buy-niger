@@ -211,67 +211,14 @@ Route::get('/debug-mail-config', function() {
 });
 
 // ============================================================
-// EMERGENCY FIX ROUTE - Diagnose + Fix 500
+// REDIRECTS & CLEANUP
 // ============================================================
-Route::get('/emergency-fix-500', function() {
-    $out = [];
-    
-    // 1. Reset OPcache
-    if (function_exists('opcache_reset')) { opcache_reset(); $out[] = "✅ OPcache reset"; }
-    
-    // 2. Delete ALL bootstrap cache files
-    foreach (glob(base_path('bootstrap/cache/*.php')) as $f) {
-        unlink($f); $out[] = "✅ Deleted cache: " . basename($f);
-    }
-    
-    // 3. Delete compiled views
-    $deleted = 0;
-    foreach (glob(storage_path('framework/views/*.php')) as $f) { unlink($f); $deleted++; }
-    $out[] = "✅ Deleted $deleted compiled views";
-    
-    // 4. Check what ShopController actually looks like on disk
-    $sc = app_path('Http/Controllers/ShopController.php');
-    $content = file_get_contents($sc);
-    $mtime = date('H:i:s d/m/Y', filemtime($sc));
-    $out[] = "";
-    $out[] = "=== ShopController on server ===";
-    $out[] = "Last modified: $mtime | Size: " . strlen($content) . " bytes";
-    $out[] = str_contains($content, 'Cache::flush()') ? "❌ BROKEN CODE FOUND: Cache::flush() still there!" : "✅ Cache::flush() removed - clean";
-    $out[] = str_contains($content, 'EMERGENCY CACHE CLEAR') ? "❌ EMERGENCY CACHE CLEAR block still there!" : "✅ No emergency block";
-    
-    // 5. Check web.php version
-    $web = file_get_contents(base_path('routes/web.php'));
-    $out[] = "";
-    $out[] = "=== web.php on server ===";
-    $out[] = "Last modified: " . date('H:i:s d/m/Y', filemtime(base_path('routes/web.php')));
-    $out[] = str_contains($web, 'inline to bypass OPcache') ? "✅ Inline closure version is live" : "❌ Old route version still running";
-    $out[] = str_contains($web, 'emergency-fix-500') ? "✅ This route is live!" : "❌ This file is OLD";
-    
-    // 6. Try to actually run the shop catalog now
-    $out[] = "";
-    $out[] = "=== Testing catalog query ===";
-    try {
-        $products = \App\Models\Product::where('status','active')->with(['category','images','vendor'])->paginate(20);
-        $cats = \App\Models\Category::where('is_active', true)->get();
-        $out[] = "✅ Query OK: " . $products->total() . " products, " . $cats->count() . " categories";
-        
-        // Try rendering view
-        $rendered = view('shop.catalog', compact('products'))->with('categories', $cats)->render();
-        $out[] = "✅ View rendered OK (" . strlen($rendered) . " bytes)";
-    } catch (\Throwable $e) {
-        $out[] = "❌ STILL FAILING: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine();
-    }
-    
-    return "<pre style='font-family:monospace;padding:20px'>" . implode("\n", $out) . "</pre>";
+Route::get('/shop', function() {
+    return redirect()->route('catalog');
 });
 
-Route::get('/run-migration-secret-777', function() {
-    $out = [];
-    if (function_exists('opcache_reset')) { opcache_reset(); $out[] = 'OPcache cleared'; }
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    $out[] = trim(\Illuminate\Support\Facades\Artisan::output());
-    foreach (glob(base_path('bootstrap/cache/*.php')) as $f) { unlink($f); $out[] = "Deleted " . basename($f); }
-    return "v7 | Done<br><pre>" . implode("\n", $out) . "</pre>";
+Route::get('/shop-test', function() {
+    return redirect()->route('catalog');
 });
 
 
