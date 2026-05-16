@@ -1022,7 +1022,7 @@ public function exportAnalytics(Request $request)
         }
 
         $request->validate([
-            'amount' => 'required|numeric|min:500',
+            'amount' => 'required|numeric|min:200',
             'bank_detail_id' => 'required|integer'
         ]);
 

@@ -64,13 +64,13 @@
                             <span class="item-meta">Qty: {{ $item->quantity }} × ₦{{ number_format($item->price) }}</span>
                             <div style="margin-top: 4px;">
                                 @php
-                                    $itemBadge = match($item->status) {
+                                    $badges = [
                                         'delivered' => 'success',
                                         'shipped' => 'primary',
                                         'processing' => 'info',
                                         'cancelled' => 'danger',
-                                        default => 'warning'
-                                    };
+                                    ];
+                                    $itemBadge = $badges[$item->status ?? ''] ?? 'warning';
                                 @endphp
                                 <span class="badge bg-{{ $itemBadge }}" style="font-size: 10px;">{{ ucfirst($item->status ?? 'Pending') }}</span>
                             </div>

@@ -214,9 +214,9 @@
                         <label>Withdrawal Amount</label>
                         <div class="fin-input-wrap">
                             <span class="fin-input-prefix">₦</span>
-                            <input type="number" name="amount" min="500" max="{{ $stats['available_balance'] }}" required placeholder="Enter amount">
+                            <input type="number" name="amount" min="200" max="{{ $stats['available_balance'] }}" required placeholder="Enter amount">
                         </div>
-                        <small>Minimum: ₦500</small>
+                        <small>Minimum: ₦200</small>
                     </div>
 
                     <div class="fin-field">
