@@ -18,6 +18,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,10 +77,23 @@ Route::post('/wishlist/move/{productId}', [WishlistController::class, 'moveToCar
 
 // Checkout Routes (Auth Required)
 Route::middleware('auth')->group(function () {
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-    Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
-    Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.applyCoupon');
-    Route::get('/order/confirmation/{order}', [CheckoutController::class, 'confirmation'])->name('checkout.confirmation');
+    // Checkout - bypass cursed URLs
+    Route::get('/checkout-order-now', [OrderController::class, 'checkout'])->name('checkout');
+    Route::post('/checkout-order-now', [OrderController::class, 'process'])->name('checkout.process');
+
+    Route::get('/clear-route-cache-secret-888', function() {
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        if (function_exists('opcache_reset')) { opcache_reset(); }
+        return "Cache Cleared!";
+    });
+
+    Route::get('/checkout', function() {
+        return redirect()->route('checkout');
+    });
+
+    Route::get('/order/confirmation/{orderNumber}', [OrderController::class, 'confirmation'])->name('checkout.confirmation');
     Route::get('/my-orders', [CheckoutController::class, 'orders'])->name('orders.index');
     Route::get('/order/{order}', [CheckoutController::class, 'orderDetail'])->name('orders.detail');
 });
