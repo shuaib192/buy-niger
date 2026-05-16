@@ -158,35 +158,70 @@ Route::get('/debug-mail-config', function() {
     ];
 });
 
-// Emergency Migration & Optimization Route - v6
-Route::get('/run-migration-secret-777', function() {
-    $output = [];
-    try {
-        if (function_exists('opcache_reset')) { opcache_reset(); $output[] = 'OPcache cleared'; }
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        $output[] = 'Migrations: ' . trim(\Illuminate\Support\Facades\Artisan::output());
-        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-        $output[] = 'Cache cleared';
-        \Illuminate\Support\Facades\Artisan::call('view:clear');
-        $output[] = 'Views cleared';
-        return "v6 | SUCCESS<br><pre>" . implode("\n", $output) . "</pre>";
-    } catch (\Throwable $e) {
-        return "v6 | FAILED: " . $e->getMessage() . "<br><pre>" . implode("\n", $output) . "</pre>";
+// ============================================================
+// EMERGENCY FIX ROUTE - Diagnose + Fix 500
+// ============================================================
+Route::get('/emergency-fix-500', function() {
+    $out = [];
+    
+    // 1. Reset OPcache
+    if (function_exists('opcache_reset')) { opcache_reset(); $out[] = "✅ OPcache reset"; }
+    
+    // 2. Delete ALL bootstrap cache files
+    foreach (glob(base_path('bootstrap/cache/*.php')) as $f) {
+        unlink($f); $out[] = "✅ Deleted cache: " . basename($f);
     }
+    
+    // 3. Delete compiled views
+    $deleted = 0;
+    foreach (glob(storage_path('framework/views/*.php')) as $f) { unlink($f); $deleted++; }
+    $out[] = "✅ Deleted $deleted compiled views";
+    
+    // 4. Check what ShopController actually looks like on disk
+    $sc = app_path('Http/Controllers/ShopController.php');
+    $content = file_get_contents($sc);
+    $mtime = date('H:i:s d/m/Y', filemtime($sc));
+    $out[] = "";
+    $out[] = "=== ShopController on server ===";
+    $out[] = "Last modified: $mtime | Size: " . strlen($content) . " bytes";
+    $out[] = str_contains($content, 'Cache::flush()') ? "❌ BROKEN CODE FOUND: Cache::flush() still there!" : "✅ Cache::flush() removed - clean";
+    $out[] = str_contains($content, 'EMERGENCY CACHE CLEAR') ? "❌ EMERGENCY CACHE CLEAR block still there!" : "✅ No emergency block";
+    
+    // 5. Check web.php version
+    $web = file_get_contents(base_path('routes/web.php'));
+    $out[] = "";
+    $out[] = "=== web.php on server ===";
+    $out[] = "Last modified: " . date('H:i:s d/m/Y', filemtime(base_path('routes/web.php')));
+    $out[] = str_contains($web, 'inline to bypass OPcache') ? "✅ Inline closure version is live" : "❌ Old route version still running";
+    $out[] = str_contains($web, 'emergency-fix-500') ? "✅ This route is live!" : "❌ This file is OLD";
+    
+    // 6. Try to actually run the shop catalog now
+    $out[] = "";
+    $out[] = "=== Testing catalog query ===";
+    try {
+        $products = \App\Models\Product::where('status','active')->with(['category','images','vendor'])->paginate(20);
+        $cats = \App\Models\Category::where('is_active', true)->get();
+        $out[] = "✅ Query OK: " . $products->total() . " products, " . $cats->count() . " categories";
+        
+        // Try rendering view
+        $rendered = view('shop.catalog', compact('products'))->with('categories', $cats)->render();
+        $out[] = "✅ View rendered OK (" . strlen($rendered) . " bytes)";
+    } catch (\Throwable $e) {
+        $out[] = "❌ STILL FAILING: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine();
+    }
+    
+    return "<pre style='font-family:monospace;padding:20px'>" . implode("\n", $out) . "</pre>";
 });
 
-// Shop Debug Route - renders actual view to find crash
-Route::get('/shop-debug-777', function() {
-    try {
-        $categories = \App\Models\Category::where('is_active', true)->get();
-        $products = \App\Models\Product::where('status', 'active')
-            ->with(['category', 'images', 'vendor'])
-            ->paginate(20);
-        return view('shop.catalog', compact('products', 'categories'))->render();
-    } catch (\Throwable $e) {
-        return "<pre>VIEW CRASH:\n" . $e->getMessage() . "\n\nFile: " . $e->getFile() . "\nLine: " . $e->getLine() . "\n\nTrace (first 5):\n" . implode("\n", array_slice(explode("\n", $e->getTraceAsString()), 0, 10)) . "</pre>";
-    }
+Route::get('/run-migration-secret-777', function() {
+    $out = [];
+    if (function_exists('opcache_reset')) { opcache_reset(); $out[] = 'OPcache cleared'; }
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    $out[] = trim(\Illuminate\Support\Facades\Artisan::output());
+    foreach (glob(base_path('bootstrap/cache/*.php')) as $f) { unlink($f); $out[] = "Deleted " . basename($f); }
+    return "v7 | Done<br><pre>" . implode("\n", $out) . "</pre>";
 });
+
 
 // Redirect /home to /
 
