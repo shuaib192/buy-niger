@@ -163,4 +163,20 @@ class Vendor extends Model
     {
         return url('/store/' . $this->store_slug);
     }
+    public function getWhatsAppNumberAttribute(): string
+    {
+        $number = preg_replace('/[^0-9]/', '', $this->business_phone);
+        
+        // If it's a standard Nigerian 11-digit number starting with 0 (e.g. 080...)
+        if ($number && strlen($number) === 11 && (0 === strpos($number, '0'))) {
+            return '234' . substr($number, 1);
+        }
+        
+        // If it's a 10-digit number (already missing the leading 0), assume Nigeria
+        if ($number && strlen($number) === 10 && (false === strpos($number, '234'))) {
+            return '234' . $number;
+        }
+
+        return (string) $number;
+    }
 }
