@@ -46,6 +46,7 @@ class PaymentController extends Controller
             'amount' => (int)($order->total * 100), // Paystack uses kobo
             'reference' => $reference,
             'callback_url' => route('payment.callback'),
+            'channels' => ['card', 'bank_transfer', 'ussd', 'bank'],
             'metadata' => [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,

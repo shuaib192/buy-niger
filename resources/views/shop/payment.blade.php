@@ -46,6 +46,10 @@
                         </div>
                     </div>
                 </div>
+                <div style="margin-top:12px; padding:12px 16px; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; display:flex; align-items:center; gap:10px;">
+                    <i class="fas fa-bolt" style="color:#059669; font-size:16px;"></i>
+                    <span style="font-size:13px; color:#065f46;"><strong>Tip:</strong> Choose <strong>Bank Transfer</strong> on the next screen for instant payment confirmation!</span>
+                </div>
             </div>
 
             <form action="{{ route('payment.initialize', $order->order_number) }}" method="POST">
