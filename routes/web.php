@@ -50,7 +50,7 @@ Route::get('/product/{slug}', [ShopController::class, 'product'])->name('product
 use App\Http\Controllers\StoreController;
 Route::get('/stores', [StoreController::class, 'index'])->name('stores');
 Route::get('/store/{slug}', [StoreController::class, 'show'])->name('store.show');
-Route::get('/search/suggestions', [ShopController::class, 'suggestions'])->name('search.suggestions');
+Route::get('/search/suggestions', [ShopController::class, 'suggestions'])->name('search.suggestions')->middleware('throttle:30,1');
 
 // Cart Routes
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -67,72 +67,43 @@ Route::post('/wishlist/add', [WishlistController::class, 'add'])->name('wishlist
 Route::delete('/wishlist/{productId}', [WishlistController::class, 'remove'])->name('wishlist.remove');
 Route::post('/wishlist/move/{productId}', [WishlistController::class, 'moveToCart'])->name('wishlist.move');
 
-// Checkout Routes (Auth Required)
+// Authenticated Routes (Checkout, Payment, Notifications, Chatbot, Vendor Application)
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ChatbotController;
+
 Route::middleware('auth')->group(function () {
+    // Checkout
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
     Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.applyCoupon');
     Route::get('/order/confirmation/{order}', [CheckoutController::class, 'confirmation'])->name('checkout.confirmation');
     Route::get('/my-orders', [CheckoutController::class, 'orders'])->name('orders.index');
     Route::get('/order/{order}', [CheckoutController::class, 'orderDetail'])->name('orders.detail');
-});
 
-// Payment Routes
-use App\Http\Controllers\PaymentController;
-
-Route::middleware('auth')->group(function () {
+    // Payment
     Route::get('/pay/{order}', [PaymentController::class, 'paymentPage'])->name('payment.page');
     Route::post('/pay/{order}', [PaymentController::class, 'initializePayment'])->name('payment.initialize');
     Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
-});
 
-// Notification Routes
-use App\Http\Controllers\NotificationController;
-
-Route::middleware('auth')->group(function () {
+    // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');
     Route::get('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
-});
 
-// Chatbot Routes
-use App\Http\Controllers\ChatbotController;
-
-Route::middleware('auth')->group(function () {
+    // Chatbot
     Route::get('/chatbot/open', [ChatbotController::class, 'open'])->name('chatbot.open');
     Route::post('/chatbot/send', [ChatbotController::class, 'send'])->name('chatbot.send');
     Route::get('/chatbot/history/{session}', [ChatbotController::class, 'history'])->name('chatbot.history');
+
+    // Vendor Application
+    Route::get('/become-a-vendor', [ShopController::class, 'showVendorApplication'])->name('vendor.apply');
+    Route::post('/become-a-vendor', [ShopController::class, 'submitVendorApplication'])->name('vendor.apply.submit');
 });
 
 // Paystack Webhook (no auth)
 Route::post('/webhook/paystack', [PaymentController::class, 'webhook'])->name('payment.webhook');
 
-// Vendor Application (for existing logged-in customers)
-Route::middleware('auth')->group(function () {
-    Route::get('/become-a-vendor', [ShopController::class, 'showVendorApplication'])->name('vendor.apply');
-    Route::post('/become-a-vendor', [ShopController::class, 'submitVendorApplication'])->name('vendor.apply.submit');
-});
-
-// Debug Mail Config
-Route::get('/debug-mail-config', function() {
-    return [
-        'app_name' => config('app.name'),
-        'mail_from_address' => config('mail.from.address'),
-        'mail_from_name' => config('mail.from.name'),
-        'mail_host' => config('mail.mailers.smtp.host'),
-        'mail_port' => config('mail.mailers.smtp.port'),
-    ];
-});
-
-// Emergency Migration Route
-Route::get('/run-migration-secret-777', function() {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        return "Migration Successful: " . \Illuminate\Support\Facades\Artisan::output();
-    } catch (\Exception $e) {
-        return "Migration Failed: " . $e->getMessage();
-    }
-});
 
 // Redirect /home to /
 Route::get('/home', function () {
@@ -145,7 +116,7 @@ Route::get('/home', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('guest')->group(function () {
+Route::middleware(['guest', 'throttle:10,1'])->group(function () {
     // Login
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
@@ -166,11 +137,12 @@ Route::middleware('guest')->group(function () {
 });
 
 // Email Verification (accessible without login)
-Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verification.show');
-Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verification.verify');
-Route::post('/verify-email/resend', [AuthController::class, 'resendVerificationCode'])->name('verification.resend');
+Route::middleware('throttle:10,1')->group(function () {
+    Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verification.show');
+    Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verification.verify');
+    Route::post('/verify-email/resend', [AuthController::class, 'resendVerificationCode'])->name('verification.resend');
+});
 
-// Logout (requires auth)
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 /*

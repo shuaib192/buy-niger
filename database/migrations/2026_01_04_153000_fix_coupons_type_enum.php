@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -14,7 +12,10 @@ return new class extends Migration
     {
         // Change 'type' column from ENUM('percentage','fixed') to VARCHAR(255)
         // to allow 'percent' value sent by the controller.
-        DB::statement("ALTER TABLE coupons MODIFY COLUMN type VARCHAR(255) NOT NULL");
+        // This statement is MySQL-specific; skip on SQLite (used in test environments).
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE coupons MODIFY COLUMN type VARCHAR(255) NOT NULL');
+        }
     }
 
     /**
@@ -25,6 +26,8 @@ return new class extends Migration
         // Attempt to revert back to ENUM, warning: this checks data compatibility
         // If 'percent' is in the DB, this will fail or truncate depending on SQL mode.
         // For safety in this fix-forward context, we might skip strict revert or just try.
-        // DB::statement("ALTER TABLE coupons MODIFY COLUMN type ENUM('percentage', 'fixed') NOT NULL DEFAULT 'percentage'");
+        // if (DB::getDriverName() === 'mysql') {
+        //     DB::statement("ALTER TABLE coupons MODIFY COLUMN type ENUM('percentage', 'fixed') NOT NULL DEFAULT 'percentage'");
+        // }
     }
 };

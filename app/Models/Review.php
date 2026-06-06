@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Model: Review
  */
 
@@ -20,7 +21,7 @@ class Review extends Model
         'user_id',
         'rating',
         'comment',
-        'is_approved'
+        'is_approved',
     ];
 
     /**

@@ -20,13 +20,7 @@ class ShopController extends Controller
      */
     public function index()
     {
-        // EMERGENCY CACHE CLEAR
-        try {
-            \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-            \Illuminate\Support\Facades\Cache::flush();
-        } catch (\Exception $e) {
-            // Ignore if fails
-        }
+        // Cache home page data for performance
 
         $cacheTime = 600; // 10 minutes
 
@@ -148,6 +142,7 @@ class ShopController extends Controller
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('status', 'active')
+            ->with(['images', 'category'])
             ->take(4)
             ->get();
 

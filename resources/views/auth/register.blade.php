@@ -20,6 +20,20 @@
     <form method="POST" action="{{ route('register') }}" id="registerForm">
         @csrf
 
+        <!-- Honeypot spam prevention field -->
+        <div style="display:none !important;" class="form-group-spam">
+            <label class="form-label" for="username_custom">Username (Leave Blank)</label>
+            <input 
+                type="text" 
+                id="username_custom" 
+                name="username_custom" 
+                class="form-input" 
+                placeholder="Do not fill this field"
+                autocomplete="off"
+                tabindex="-1"
+            >
+        </div>
+
         <!-- Full Name -->
         <div class="form-group">
             <label class="form-label" for="name">Full Name</label>

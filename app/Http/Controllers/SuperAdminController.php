@@ -1,26 +1,26 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Controller: SuperAdminController
  */
 
 namespace App\Http\Controllers;
 
-use App\Models\SystemSetting;
-use App\Models\FeatureToggle;
-use App\Models\Vendor;
-use App\Models\User;
-use App\Models\VendorPayout;
 use App\Models\AuditLog;
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\Dispute;
 use App\Models\DisputeMessage;
+use App\Models\FeatureToggle;
 use App\Models\Notification;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\SystemSetting;
+use App\Models\User;
+use App\Models\Vendor;
 use App\Models\VendorBankDetail;
+use App\Models\VendorPayout;
 use App\Services\PaystackTransferService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -61,7 +61,7 @@ class SuperAdminController extends Controller
     {
         $settings = SystemSetting::all()->groupBy('group');
         $features = FeatureToggle::all();
-        
+
         return view('superadmin.settings', compact('settings', 'features'));
     }
 
@@ -87,13 +87,13 @@ class SuperAdminController extends Controller
             Artisan::call('view:cache');
             Artisan::call('config:cache');
             Artisan::call('route:cache');
-            
+
             // Full cache flush to clear "Forever" cached settings
             \Illuminate\Support\Facades\Cache::flush();
 
             return back()->with('success', 'System optimized successfully! Caches have been cleared and rebuilt.');
         } catch (\Exception $e) {
-            return back()->with('error', 'Optimization failed: ' . $e->getMessage());
+            return back()->with('error', 'Optimization failed: '.$e->getMessage());
         }
     }
 
@@ -109,7 +109,7 @@ class SuperAdminController extends Controller
         }
 
         $vendors = $query->latest()->paginate(20);
-        
+
         return view('superadmin.vendors.index', compact('vendors'));
     }
 
@@ -118,7 +118,11 @@ class SuperAdminController extends Controller
      */
     public function vendorShow(Vendor $vendor)
     {
-        $vendor->load(['user', 'products', 'orders']);
+        $vendor->load(['user']);
+        $vendor->loadCount(['products as active_products_count' => function ($query) {
+            $query->where('status', 'active');
+        }]);
+
         return view('superadmin.vendors.show', compact('vendor'));
     }
 
@@ -128,6 +132,7 @@ class SuperAdminController extends Controller
     public function userShow(User $user)
     {
         $user->load(['role', 'orders', 'addresses']);
+
         return view('superadmin.users.show', compact('user'));
     }
 
@@ -138,7 +143,7 @@ class SuperAdminController extends Controller
     {
         $request->validate([
             'status' => 'required|in:approved,rejected,suspended',
-            'reason' => 'nullable|string'
+            'reason' => 'nullable|string',
         ]);
 
         $oldStatus = $vendor->status;
@@ -210,7 +215,7 @@ class SuperAdminController extends Controller
                 'user_id' => $user->id,
                 'type' => 'kyc_rejected',
                 'title' => '⚠️ KYC Rejected',
-                'message' => 'Your KYC verification was rejected. Reason: ' . ($request->reason ?? 'Not specified') . '. Please re-submit your documents.',
+                'message' => 'Your KYC verification was rejected. Reason: '.($request->reason ?? 'Not specified').'. Please re-submit your documents.',
                 'action_url' => route('vendor.settings'),
             ]);
         }
@@ -219,6 +224,7 @@ class SuperAdminController extends Controller
         $this->sendKycEmail($user, $vendor, $request->status, $request->reason);
 
         $label = $request->status === 'verified' ? 'verified' : 'rejected';
+
         return back()->with('success', "Vendor KYC has been {$label}. Notification & email sent.");
     }
 
@@ -265,13 +271,11 @@ class SuperAdminController extends Controller
                 <p style="color:#94a3b8;font-size:12px;text-align:center;">BuyNiger — Multi-Vendor Marketplace</p>
             </div>';
 
-            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($user, $subject, $emailBody) {
-                $message->to($user->email)
-                    ->subject($subject)
-                    ->html($emailBody);
-            });
+            \Illuminate\Support\Facades\Mail::to($user->email)->queue(
+                new \App\Mail\GenericEmail($subject, $emailBody)
+            );
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('KYC email failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('KYC email failed: '.$e->getMessage());
         }
     }
 
@@ -291,13 +295,13 @@ class SuperAdminController extends Controller
             'rejected' => [
                 'type' => 'vendor_rejected',
                 'title' => '❌ Store Application Rejected',
-                'message' => 'Your vendor application was not approved.' . ($reason ? " Reason: {$reason}" : '') . ' Please contact support for more details.',
+                'message' => 'Your vendor application was not approved.'.($reason ? " Reason: {$reason}" : '').' Please contact support for more details.',
                 'url' => route('contact'),
             ],
             'suspended' => [
                 'type' => 'vendor_suspended',
                 'title' => '⚠️ Store Suspended',
-                'message' => 'Your store has been suspended.' . ($reason ? " Reason: {$reason}" : '') . ' Please contact support to resolve this.',
+                'message' => 'Your store has been suspended.'.($reason ? " Reason: {$reason}" : '').' Please contact support to resolve this.',
                 'url' => route('contact'),
             ],
         ];
@@ -325,14 +329,14 @@ class SuperAdminController extends Controller
                     'subject' => 'BuyNiger — Vendor Application Update',
                     'iconBg' => '#ef4444', 'icon' => '✗',
                     'heading' => 'Application Not Approved',
-                    'body' => "Hello <strong>{$user->name}</strong>, unfortunately your vendor application for <strong>{$vendor->store_name}</strong> was not approved." . ($reason ? "<br><br><strong>Reason:</strong> {$reason}" : '') . '<br><br>Please contact our support team for more details.',
+                    'body' => "Hello <strong>{$user->name}</strong>, unfortunately your vendor application for <strong>{$vendor->store_name}</strong> was not approved.".($reason ? "<br><br><strong>Reason:</strong> {$reason}" : '').'<br><br>Please contact our support team for more details.',
                     'ctaText' => 'Contact Support', 'ctaUrl' => route('contact'), 'ctaBg' => '#ef4444',
                 ],
                 'suspended' => [
                     'subject' => 'BuyNiger — Store Suspension Notice',
                     'iconBg' => '#f59e0b', 'icon' => '⚠',
                     'heading' => 'Store Suspended',
-                    'body' => "Hello <strong>{$user->name}</strong>, your store <strong>{$vendor->store_name}</strong> has been suspended." . ($reason ? "<br><br><strong>Reason:</strong> {$reason}" : '') . '<br><br>Please contact our support team to resolve this.',
+                    'body' => "Hello <strong>{$user->name}</strong>, your store <strong>{$vendor->store_name}</strong> has been suspended.".($reason ? "<br><br><strong>Reason:</strong> {$reason}" : '').'<br><br>Please contact our support team to resolve this.',
                     'ctaText' => 'Contact Support', 'ctaUrl' => route('contact'), 'ctaBg' => '#f59e0b',
                 ],
             ];
@@ -354,13 +358,11 @@ class SuperAdminController extends Controller
                 <p style="color:#94a3b8;font-size:12px;text-align:center;">BuyNiger — Multi-Vendor Marketplace</p>
             </div>';
 
-            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($user, $emailConfig, $emailBody) {
-                $message->to($user->email)
-                    ->subject($emailConfig['subject'])
-                    ->html($emailBody);
-            });
+            \Illuminate\Support\Facades\Mail::to($user->email)->queue(
+                new \App\Mail\GenericEmail($emailConfig['subject'], $emailBody)
+            );
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Vendor status email failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Vendor status email failed: '.$e->getMessage());
         }
     }
 
@@ -385,11 +387,11 @@ class SuperAdminController extends Controller
         }
 
         if ($request->search) {
-            $query->where('order_number', 'like', '%' . $request->search . '%');
+            $query->where('order_number', 'like', '%'.$request->search.'%');
         }
 
         $orders = $query->latest()->paginate(20);
-        
+
         return view('superadmin.orders.index', compact('orders'));
     }
 
@@ -399,6 +401,7 @@ class SuperAdminController extends Controller
     public function orderShow(Order $order)
     {
         $order->load(['user', 'items.product', 'items.vendor']);
+
         return view('superadmin.orders.show', compact('order'));
     }
 
@@ -409,7 +412,7 @@ class SuperAdminController extends Controller
     {
         $request->validate([
             'status' => 'required|string',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
         ]);
 
         $oldStatus = $order->status;
@@ -441,7 +444,7 @@ class SuperAdminController extends Controller
         }
 
         $payouts = $query->latest()->paginate(20);
-        
+
         return view('superadmin.payouts.index', compact('payouts'));
     }
 
@@ -452,7 +455,7 @@ class SuperAdminController extends Controller
     {
         $request->validate([
             'status' => 'required|in:approved,rejected,processing,completed,failed',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
         ]);
 
         $payout = VendorPayout::with('vendor')->findOrFail($id);
@@ -472,7 +475,7 @@ class SuperAdminController extends Controller
 
         if ($requestedStatus === 'completed') {
             $transferResult = $this->processVendorTransfer($payout);
-            if (!$transferResult['success']) {
+            if (! $transferResult['success']) {
                 return back()->with('error', $transferResult['message']);
             }
 
@@ -484,7 +487,7 @@ class SuperAdminController extends Controller
                     'status' => 'completed',
                     'notes' => $request->notes,
                     'payment_details' => $details,
-                    'processed_at' => now()
+                    'processed_at' => now(),
                 ]);
             });
 
@@ -495,7 +498,7 @@ class SuperAdminController extends Controller
             $payout->update([
                 'status' => $requestedStatus,
                 'notes' => $request->notes,
-                'processed_at' => $requestedStatus === 'failed' ? now() : $payout->processed_at
+                'processed_at' => $requestedStatus === 'failed' ? now() : $payout->processed_at,
             ]);
 
             // On failure, release held funds back to the vendor once.
@@ -509,7 +512,7 @@ class SuperAdminController extends Controller
 
     protected function processVendorTransfer(VendorPayout $payout): array
     {
-        if (!$this->paystackTransferService->isConfigured()) {
+        if (! $this->paystackTransferService->isConfigured()) {
             return ['success' => false, 'message' => 'Paystack is not configured. Please set PAYSTACK_SECRET_KEY.'];
         }
 
@@ -518,32 +521,32 @@ class SuperAdminController extends Controller
             ->where('id', $bankDetailId)
             ->first();
 
-        if (!$bankDetail) {
+        if (! $bankDetail) {
             return ['success' => false, 'message' => 'Bank details for this payout were not found.'];
         }
 
         $bankCode = $bankDetail->bank_code;
         if (empty($bankCode)) {
             $bankCode = $this->paystackTransferService->resolveBankCodeByName($bankDetail->bank_name);
-            if (!$bankCode) {
+            if (! $bankCode) {
                 return ['success' => false, 'message' => 'Bank code is missing and could not be resolved from bank name. Update vendor bank details first.'];
             }
         }
 
         $recipientCode = data_get($payout->payment_details, 'recipient_code');
-        if (!$recipientCode) {
+        if (! $recipientCode) {
             $recipientResult = $this->paystackTransferService->createRecipient(
                 $bankDetail->account_name,
                 $bankDetail->account_number,
                 $bankCode
             );
 
-            if (!$recipientResult['success']) {
-                return ['success' => false, 'message' => 'Unable to create transfer recipient: ' . $recipientResult['message']];
+            if (! $recipientResult['success']) {
+                return ['success' => false, 'message' => 'Unable to create transfer recipient: '.$recipientResult['message']];
             }
 
             $recipientCode = data_get($recipientResult, 'data.recipient_code');
-            if (!$recipientCode) {
+            if (! $recipientCode) {
                 return ['success' => false, 'message' => 'Paystack did not return a recipient code.'];
             }
         }
@@ -555,11 +558,12 @@ class SuperAdminController extends Controller
             'Vendor withdrawal payout'
         );
 
-        if (!$transferResult['success']) {
-            return ['success' => false, 'message' => 'Transfer failed: ' . $transferResult['message']];
+        if (! $transferResult['success']) {
+            return ['success' => false, 'message' => 'Transfer failed: '.$transferResult['message']];
         }
 
         $transferResult['data']['recipient_code'] = $recipientCode;
+
         return $transferResult;
     }
 
@@ -582,8 +586,8 @@ class SuperAdminController extends Controller
         }
 
         if ($request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('email', 'like', '%'.$request->search.'%');
         }
 
         $users = $query->latest()->paginate(20);
@@ -598,13 +602,14 @@ class SuperAdminController extends Controller
     {
         // Prevent banning Super Admins
         if ($user->role_id === 1) {
-            return back()->with('error', "Super Admin accounts cannot be banned.");
+            return back()->with('error', 'Super Admin accounts cannot be banned.');
         }
 
-        $user->is_active = !$user->is_active;
+        $user->is_active = ! $user->is_active;
         $user->save();
 
         $action = $user->is_active ? 'activated' : 'banned';
+
         return back()->with('success', "User has been {$action}.");
     }
 
@@ -622,7 +627,7 @@ class SuperAdminController extends Controller
         }
 
         if ($request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         $products = $query->latest()->paginate(20);
@@ -640,7 +645,7 @@ class SuperAdminController extends Controller
         ]);
 
         $status = $request->status;
-        
+
         // Map 'rejected' and 'archived' to valid database enums
         if ($status === 'rejected' || $status === 'archived') {
             $status = 'inactive';
@@ -656,10 +661,11 @@ class SuperAdminController extends Controller
      */
     public function toggleProductFeature(Product $product)
     {
-        $product->is_featured = !$product->is_featured;
+        $product->is_featured = ! $product->is_featured;
         $product->save();
 
         $status = $product->is_featured ? 'featured' : 'unfeatured';
+
         return back()->with('success', "Product is now {$status}.");
     }
 
@@ -732,7 +738,7 @@ class SuperAdminController extends Controller
     {
         $request->validate([
             'status' => 'required|string|in:open,in_progress,resolved,escalated,closed',
-            'resolution_notes' => 'nullable|string'
+            'resolution_notes' => 'nullable|string',
         ]);
 
         $oldStatus = $dispute->status;
@@ -746,13 +752,13 @@ class SuperAdminController extends Controller
             $timestamp = now()->format('Y-m-d H:i');
             $user = auth()->user()->name;
             $newNote = "[{$timestamp} by {$user}]: {$request->resolution_notes}\n";
-            $updateData['resolution_notes'] = ($dispute->resolution_notes ?? '') . $newNote;
+            $updateData['resolution_notes'] = ($dispute->resolution_notes ?? '').$newNote;
 
             // Also add as a message in the thread
             DisputeMessage::create([
                 'dispute_id' => $dispute->id,
                 'user_id' => auth()->id(),
-                'message' => "Status changed to " . strtoupper($request->status) . ". " . $request->resolution_notes,
+                'message' => 'Status changed to '.strtoupper($request->status).'. '.$request->resolution_notes,
                 'is_admin' => true,
             ]);
         }
@@ -764,7 +770,7 @@ class SuperAdminController extends Controller
             'user_id' => $dispute->user_id,
             'type' => 'dispute_updated',
             'title' => 'Dispute Updated',
-            'message' => "Your dispute \"" . \Illuminate\Support\Str::limit($dispute->subject, 30) . "\" has been updated to: " . strtoupper($request->status) . '.',
+            'message' => 'Your dispute "'.\Illuminate\Support\Str::limit($dispute->subject, 30).'" has been updated to: '.strtoupper($request->status).'.',
             'action_url' => route('orders.detail', $dispute->order_id),
         ]);
 
@@ -784,9 +790,9 @@ class SuperAdminController extends Controller
             $user = $dispute->user;
 
             if ($type === 'status_change') {
-                $subject = 'BuyNiger — Dispute Update: ' . ucfirst($dispute->status);
+                $subject = 'BuyNiger — Dispute Update: '.ucfirst($dispute->status);
                 $heading = 'Dispute Status Updated';
-                $bodyText = "Hello <strong>{$user->name}</strong>, your dispute <strong>\"{$dispute->subject}\"</strong> has been updated to <strong>" . strtoupper($dispute->status) . "</strong>.";
+                $bodyText = "Hello <strong>{$user->name}</strong>, your dispute <strong>\"{$dispute->subject}\"</strong> has been updated to <strong>".strtoupper($dispute->status).'</strong>.';
                 if ($message) {
                     $bodyText .= "<br><br><strong>Admin Note:</strong> {$message}";
                 }
@@ -812,11 +818,11 @@ class SuperAdminController extends Controller
                 <p style="color:#94a3b8;font-size:12px;text-align:center;">BuyNiger — Multi-Vendor Marketplace</p>
             </div>';
 
-            \Illuminate\Support\Facades\Mail::send([], [], function ($msg) use ($user, $subject, $emailBody) {
-                $msg->to($user->email)->subject($subject)->html($emailBody);
-            });
+            \Illuminate\Support\Facades\Mail::to($user->email)->queue(
+                new \App\Mail\GenericEmail($subject, $emailBody)
+            );
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Dispute email failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Dispute email failed: '.$e->getMessage());
         }
     }
 
@@ -825,7 +831,7 @@ class SuperAdminController extends Controller
      */
     public function analytics()
     {
-        return view('superadmin.analytics.index'); 
+        return view('superadmin.analytics.index');
     }
 
     /**
@@ -833,7 +839,7 @@ class SuperAdminController extends Controller
      */
     public function userRoles()
     {
-        return view('superadmin.users.roles'); 
+        return view('superadmin.users.roles');
     }
 
     /**
@@ -866,9 +872,9 @@ class SuperAdminController extends Controller
     public function updateAiSettings(Request $request)
     {
         $settings = $request->input('settings', []);
-        
+
         // Gemini
-        if (!empty($settings['ai_gemini_key']) && $settings['ai_gemini_key'] !== '••••••••••') {
+        if (! empty($settings['ai_gemini_key']) && $settings['ai_gemini_key'] !== '••••••••••') {
             \App\Models\AIProvider::updateOrCreate(
                 ['name' => 'gemini'],
                 [
@@ -876,7 +882,7 @@ class SuperAdminController extends Controller
                     'credentials' => ['api_key' => $settings['ai_gemini_key']],
                     'model' => $settings['ai_gemini_model'] ?? 'gemini-pro',
                     'is_active' => isset($settings['ai_gemini_active']),
-                    'priority' => 2
+                    'priority' => 2,
                 ]
             );
         } elseif (isset($settings['ai_gemini_active'])) {
@@ -886,7 +892,7 @@ class SuperAdminController extends Controller
         }
 
         // OpenAI
-        if (!empty($settings['ai_openai_key']) && $settings['ai_openai_key'] !== '••••••••••') {
+        if (! empty($settings['ai_openai_key']) && $settings['ai_openai_key'] !== '••••••••••') {
             \App\Models\AIProvider::updateOrCreate(
                 ['name' => 'openai'],
                 [
@@ -894,7 +900,7 @@ class SuperAdminController extends Controller
                     'credentials' => ['api_key' => $settings['ai_openai_key']],
                     'model' => 'gpt-4',
                     'is_active' => isset($settings['ai_openai_active']),
-                    'priority' => 1
+                    'priority' => 1,
                 ]
             );
         } elseif (isset($settings['ai_openai_active'])) {
@@ -904,7 +910,7 @@ class SuperAdminController extends Controller
         }
 
         // Groq
-        if (!empty($settings['ai_groq_key']) && $settings['ai_groq_key'] !== '••••••••••') {
+        if (! empty($settings['ai_groq_key']) && $settings['ai_groq_key'] !== '••••••••••') {
             \App\Models\AIProvider::updateOrCreate(
                 ['name' => 'groq'],
                 [
@@ -912,7 +918,7 @@ class SuperAdminController extends Controller
                     'credentials' => ['api_key' => $settings['ai_groq_key']],
                     'model' => $settings['ai_groq_model'] ?? 'llama-3.3-70b-versatile',
                     'is_active' => isset($settings['ai_groq_active']),
-                    'priority' => 3
+                    'priority' => 3,
                 ]
             );
         } elseif (isset($settings['ai_groq_active'])) {
@@ -930,7 +936,7 @@ class SuperAdminController extends Controller
     public function toggleAiKillSwitch(Request $request)
     {
         $status = \App\Models\AIEmergencyStatus::firstOrCreate([]);
-        $status->kill_switch_enabled = !$status->kill_switch_enabled;
+        $status->kill_switch_enabled = ! $status->kill_switch_enabled;
         $status->triggered_by = auth()->id();
         $status->triggered_at = now();
         $status->save();
@@ -947,12 +953,14 @@ class SuperAdminController extends Controller
     public function auditLogs()
     {
         $logs = AuditLog::with('user')->latest()->paginate(50);
+
         return view('superadmin.audit.index', compact('logs'));
     }
 
     public function messages()
     {
         $messages = \App\Models\ContactMessage::latest()->paginate(15);
+
         return view('superadmin.messages.index', compact('messages'));
     }
 
@@ -961,19 +969,19 @@ class SuperAdminController extends Controller
         // Fetch completed orders (income) - eager load relationships to avoid N+1
         $orders = \App\Models\Order::where('payment_status', 'paid')
             ->orderBy('created_at', 'desc')
-            ->with('user') 
+            ->with('user')
             ->get()
             ->map(function ($order) {
-                return (object)[
+                return (object) [
                     'id' => $order->id,
                     'type' => 'income',
-                    'reference' => 'Order #' . $order->order_number,
+                    'reference' => 'Order #'.$order->order_number,
                     'amount' => $order->total,
                     'status' => 'completed',
                     'date' => $order->created_at,
                     'user' => $order->user ? $order->user->name : 'Unknown User', // Handle potential null user
                     'description' => 'Payment from customer',
-                    'related_model' => $order
+                    'related_model' => $order,
                 ];
             });
 
@@ -983,27 +991,27 @@ class SuperAdminController extends Controller
             ->with('vendor')
             ->get()
             ->map(function ($payout) {
-                return (object)[
+                return (object) [
                     'id' => $payout->id,
                     'type' => 'expense',
-                    'reference' => 'Payout #' . ($payout->reference ?? 'N/A'),
+                    'reference' => 'Payout #'.($payout->reference ?? 'N/A'),
                     'amount' => $payout->amount,
                     'status' => 'completed',
                     'date' => $payout->processed_at,
                     'user' => $payout->vendor ? $payout->vendor->store_name : 'Unknown Vendor',
                     'description' => 'Payout to vendor',
-                    'related_model' => $payout
+                    'related_model' => $payout,
                 ];
             });
 
         // Merge and sort
         $transactions = $orders->concat($payouts)->sortByDesc('date');
-        
+
         // Paginate manually
         $page = request()->get('page', 1);
         $perPage = 20;
         $sliced = $transactions->slice(($page - 1) * $perPage, $perPage)->values();
-        
+
         $paginatedTransactions = new \Illuminate\Pagination\LengthAwarePaginator(
             $sliced,
             $transactions->count(),
@@ -1031,7 +1039,8 @@ class SuperAdminController extends Controller
         if ($order) {
             // Determine prefix based on route
             $prefix = request()->is('admin/*') ? 'admin.' : 'superadmin.';
-            return redirect()->route($prefix . 'orders.show', $order->id);
+
+            return redirect()->route($prefix.'orders.show', $order->id);
         }
 
         return back()->with('error', 'Order not found with that ID or Tracking Number.');

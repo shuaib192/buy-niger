@@ -10,10 +10,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Transaction;
+use App\Models\Vendor;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
@@ -111,28 +114,7 @@ class PaymentController extends Controller
                     $order = Order::where('payment_reference', $reference)->first();
 
                     if ($order) {
-                        $order->update([
-                            'payment_status' => 'paid',
-                            'status' => 'paid',
-                            'paid_at' => now(),
-                        ]);
-
-                        // Update order items status and credit vendors
-                        foreach ($order->items as $item) {
-                            $item->update(['status' => 'processing']);
-                            
-                            // Credit vendor balance (minus commission)
-                            $vendor = $item->vendor;
-                            if ($vendor) {
-                                $netAmount = $item->subtotal * (1 - ($vendor->commission_rate / 100));
-                                $vendor->increment('balance', $netAmount);
-                                $vendor->increment('total_sales', $item->subtotal);
-
-                                if ($item->product) {
-                                    $item->product->increment('order_count', $item->quantity);
-                                }
-                            }
-                        }
+                        $this->markOrderAsPaid($order);
 
                         return redirect()->route('checkout.confirmation', $order->order_number)
                             ->with('success', 'Payment successful!');
@@ -173,33 +155,55 @@ class PaymentController extends Controller
             $order = Order::where('payment_reference', $reference)->first();
 
             if ($order && $order->payment_status === 'pending') {
-                $order->update([
-                    'payment_status' => 'paid',
-                    'status' => 'paid',
-                    'paid_at' => now(),
-                ]);
-
-                foreach ($order->items as $item) {
-                    $item->update(['status' => 'processing']);
-                    
-                    // Credit vendor balance (minus commission)
-                    $vendor = $item->vendor;
-                    if ($vendor) {
-                        $netAmount = $item->subtotal * (1 - ($vendor->commission_rate / 100));
-                        $vendor->increment('balance', $netAmount);
-                        $vendor->increment('total_sales', $item->subtotal);
-
-                        if ($item->product) {
-                            $item->product->increment('order_count', $item->quantity);
-                        }
-                    }
-                }
+                $this->markOrderAsPaid($order);
 
                 Log::info('Order ' . $order->order_number . ' marked as paid via webhook');
             }
         }
 
         return response()->json(['status' => 'success']);
+    }
+
+    /**
+     * Mark order as paid and credit vendors, safely wrapped in a database transaction with locks.
+     */
+    private function markOrderAsPaid(Order $order)
+    {
+        DB::transaction(function () use ($order) {
+            // Lock the order row to prevent concurrent webhook/callback runs
+            $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first();
+
+            if ($lockedOrder && $lockedOrder->payment_status === 'pending') {
+                $lockedOrder->update([
+                    'payment_status' => 'paid',
+                    'status' => 'paid',
+                    'paid_at' => now(),
+                ]);
+
+                // Update order items status and credit vendors
+                foreach ($lockedOrder->items as $item) {
+                    $item->update(['status' => 'processing']);
+                    
+                    // Credit vendor balance (minus commission)
+                    $vendor = $item->vendor;
+                    if ($vendor) {
+                        $lockedVendor = Vendor::where('id', $vendor->id)->lockForUpdate()->first();
+                        if ($lockedVendor) {
+                            $netAmount = $item->subtotal * (1 - ($lockedVendor->commission_rate / 100));
+                            $lockedVendor->increment('balance', $netAmount);
+                            $lockedVendor->increment('total_sales', $item->subtotal);
+
+                            if ($item->product) {
+                                $lockedProduct = Product::where('id', $item->product_id)->lockForUpdate()->first();
+                                if ($lockedProduct) {
+                                    $lockedProduct->increment('order_count', $item->quantity);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 
     /**

@@ -1,16 +1,17 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Controller: ReviewController
  */
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Review;
-use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -28,7 +29,13 @@ class ReviewController extends Controller
     {
         $request->validate([
             'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'required|string|min:5|max:1000',
+            'comment' => [
+                'required',
+                'string',
+                'min:5',
+                'max:1000',
+                new \App\Rules\NoHtml(),
+            ],
         ]);
 
         // Check if user has already reviewed this product
@@ -48,10 +55,10 @@ class ReviewController extends Controller
             ->where('status', 'delivered')
             ->exists();
 
-        if (!$hasPurchased) {
-             // We can choose to allow reviews even without purchase, but it's recommended to check.
-             // For now, let's just log it or allow it but maybe mark it as "Verified Purchase" in the future.
-             // return back()->with('error', 'You can only review products you have purchased and received.');
+        if (! $hasPurchased) {
+            // We can choose to allow reviews even without purchase, but it's recommended to check.
+            // For now, let's just log it or allow it but maybe mark it as "Verified Purchase" in the future.
+            // return back()->with('error', 'You can only review products you have purchased and received.');
         }
 
         Review::create([
@@ -77,7 +84,7 @@ class ReviewController extends Controller
             ->with('product')
             ->latest()
             ->paginate(10);
-            
+
         return view('customer.reviews.index', compact('reviews'));
     }
 
@@ -92,14 +99,20 @@ class ReviewController extends Controller
 
         $request->validate([
             'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'required|string|min:5|max:1000',
+            'comment' => [
+                'required',
+                'string',
+                'min:5',
+                'max:1000',
+                new \App\Rules\NoHtml(),
+            ],
         ]);
 
         $review->update([
             'rating' => $request->rating,
             'comment' => $request->comment,
         ]);
-        
+
         $this->updateProductRating($review->product);
 
         return back()->with('success', 'Review updated successfully');

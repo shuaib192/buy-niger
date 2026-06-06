@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Model: Vendor
  */
 
@@ -146,35 +147,38 @@ class Vendor extends Model
     public function getLogoUrlAttribute(): string
     {
         if ($this->logo) {
-            return asset('storage/' . $this->logo);
+            return asset('storage/'.$this->logo);
         }
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->store_name) . '&background=0066FF&color=fff&size=128';
+
+        return 'https://ui-avatars.com/api/?name='.urlencode($this->store_name).'&background=0066FF&color=fff&size=128';
     }
 
     public function getBannerUrlAttribute(): ?string
     {
         if ($this->banner) {
-            return asset('storage/' . $this->banner);
+            return asset('storage/'.$this->banner);
         }
+
         return null;
     }
 
     public function getStoreUrlAttribute(): string
     {
-        return url('/store/' . $this->store_slug);
+        return url('/store/'.$this->store_slug);
     }
+
     public function getWhatsAppNumberAttribute(): string
     {
         $number = preg_replace('/[^0-9]/', '', $this->business_phone);
-        
+
         // If it's a standard Nigerian 11-digit number starting with 0 (e.g. 080...)
-        if ($number && strlen($number) === 11 && (0 === strpos($number, '0'))) {
-            return '234' . substr($number, 1);
+        if ($number && strlen($number) === 11 && (strpos($number, '0') === 0)) {
+            return '234'.substr($number, 1);
         }
-        
+
         // If it's a 10-digit number (already missing the leading 0), assume Nigeria
-        if ($number && strlen($number) === 10 && (false === strpos($number, '234'))) {
-            return '234' . $number;
+        if ($number && strlen($number) === 10 && (strpos($number, '234') === false)) {
+            return '234'.$number;
         }
 
         return (string) $number;

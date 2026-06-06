@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Model: CartItem
  */
 
@@ -47,6 +48,7 @@ class CartItem extends Model
     public function getSubtotalAttribute()
     {
         $price = (float) ($this->price ?: ($this->product->current_price ?? 0));
+
         return round($price * $this->quantity, 2);
     }
 }

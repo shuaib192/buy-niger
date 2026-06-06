@@ -58,12 +58,22 @@ class VendorProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                new \App\Rules\NoHtml(),
+            ],
             'category_id' => 'required|exists:categories,id',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'compare_price' => 'nullable|numeric|min:0',
-            'sku' => 'nullable|string|max:100',
+            'sku' => [
+                'nullable',
+                'string',
+                'max:100',
+                new \App\Rules\NoHtml(),
+            ],
             'quantity' => 'required|integer|min:0',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -119,12 +129,22 @@ class VendorProductController extends Controller
         $this->authorizeProduct($product);
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                new \App\Rules\NoHtml(),
+            ],
             'category_id' => 'required|exists:categories,id',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'compare_price' => 'nullable|numeric|min:0',
-            'sku' => 'nullable|string|max:100',
+            'sku' => [
+                'nullable',
+                'string',
+                'max:100',
+                new \App\Rules\NoHtml(),
+            ],
             'quantity' => 'required|integer|min:0',
             'status' => 'in:active,inactive,draft',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',

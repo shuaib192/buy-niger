@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Model: Order
  */
 
@@ -54,13 +55,18 @@ class Order extends Model
 
     // Status constants
     const STATUS_PENDING = 'pending';
-    const STATUS_PAID = 'paid';
-    const STATUS_PROCESSING = 'processing';
-    const STATUS_SHIPPED = 'shipped';
-    const STATUS_DELIVERED = 'delivered';
-    const STATUS_CANCELLED = 'cancelled';
-    const STATUS_REFUNDED = 'refunded';
 
+    const STATUS_PAID = 'paid';
+
+    const STATUS_PROCESSING = 'processing';
+
+    const STATUS_SHIPPED = 'shipped';
+
+    const STATUS_DELIVERED = 'delivered';
+
+    const STATUS_CANCELLED = 'cancelled';
+
+    const STATUS_REFUNDED = 'refunded';
 
     // Relationships
     public function user()
@@ -109,8 +115,8 @@ class Order extends Model
         parent::boot();
 
         static::creating(function ($order) {
-            if (!$order->order_number) {
-                $order->order_number = 'BN-' . strtoupper(uniqid());
+            if (! $order->order_number) {
+                $order->order_number = 'BN-'.strtoupper(uniqid());
             }
         });
     }
@@ -154,7 +160,7 @@ class Order extends Model
 
     public function getFormattedTotalAttribute(): string
     {
-        return '₦' . number_format($this->total, 2);
+        return '₦'.number_format($this->total, 2);
     }
 
     public function getStatusBadgeAttribute(): string
@@ -175,7 +181,7 @@ class Order extends Model
     public function updateStatus(string $status, ?string $notes = null, ?User $user = null): void
     {
         $this->status = $status;
-        
+
         switch ($status) {
             case self::STATUS_PAID:
                 $this->paid_at = now();
@@ -205,8 +211,8 @@ class Order extends Model
         ]);
     }
 
-    public function getVendorsAttribute()
+    public function vendors()
     {
-        return Vendor::whereIn('id', $this->items->pluck('vendor_id')->unique())->get();
+        return $this->belongsToMany(Vendor::class, 'order_items', 'order_id', 'vendor_id')->distinct();
     }
 }

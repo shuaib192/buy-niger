@@ -1,4 +1,5 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Model: PriceHistory

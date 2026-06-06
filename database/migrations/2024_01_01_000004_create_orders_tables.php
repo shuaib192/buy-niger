@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Migration: Create Orders Tables
  */
 
@@ -65,7 +66,7 @@ return new class extends Migration
                 'shipped',      // On the way
                 'delivered',    // Received by customer
                 'cancelled',    // Cancelled
-                'refunded'      // Money returned
+                'refunded',      // Money returned
             ])->default('pending');
             $table->enum('payment_status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
             $table->string('payment_method')->nullable();
@@ -103,7 +104,7 @@ return new class extends Migration
                 'shipped',
                 'delivered',
                 'cancelled',
-                'refunded'
+                'refunded',
             ])->default('pending');
             $table->string('tracking_number')->nullable();
             $table->text('notes')->nullable();

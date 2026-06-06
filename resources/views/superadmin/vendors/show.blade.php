@@ -250,7 +250,7 @@
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span>Active Products</span>
-                    <strong>{{ $vendor->products->where('status', 'active')->count() }}</strong>
+                    <strong>{{ $vendor->active_products_count }}</strong>
                 </div>
                  <div class="d-flex justify-content-between">
                     <span>Rating</span>

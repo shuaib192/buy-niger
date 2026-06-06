@@ -18,7 +18,7 @@ class StockHistory extends Model
         'new_stock_level',
         'type',
         'reason',
-        'user_id'
+        'user_id',
     ];
 
     public function product()

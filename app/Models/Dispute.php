@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Model: Dispute
  */
 
@@ -33,9 +34,13 @@ class Dispute extends Model
 
     // Status constants
     const STATUS_OPEN = 'open';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_RESOLVED = 'resolved';
+
     const STATUS_ESCALATED = 'escalated';
+
     const STATUS_CLOSED = 'closed';
 
     public function user()
@@ -70,6 +75,7 @@ class Dispute extends Model
             'escalated' => 'danger',
             'closed' => 'secondary',
         ];
+
         return $badges[$this->status] ?? 'secondary';
     }
 
@@ -84,6 +90,7 @@ class Dispute extends Model
             'medium' => 'info',
             'low' => 'secondary',
         ];
+
         return $badges[$this->priority] ?? 'secondary';
     }
 }

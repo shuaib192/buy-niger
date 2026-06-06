@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Migration: AI Simulation, Permissions, and Enhanced Safety Tables
  * CRITICAL: These tables enable AI Shadow Mode and Permission Matrix
  */

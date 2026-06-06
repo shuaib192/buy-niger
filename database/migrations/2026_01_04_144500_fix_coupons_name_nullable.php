@@ -27,9 +27,9 @@ return new class extends Migration
             // We cannot easily revert to non-nullable without data loss if nulls were inserted
             // so we leave it or attempt to change back if we were sure.
             // For safety, we can leave it nullable or do nothing.
-             if (Schema::hasColumn('coupons', 'name')) {
+            if (Schema::hasColumn('coupons', 'name')) {
                 // $table->string('name')->nullable(false)->change(); // Risky
-             }
+            }
         });
     }
 };

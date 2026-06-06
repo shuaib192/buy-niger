@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class EmailCampaign extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'name',
         'subject',
@@ -21,13 +22,13 @@ class EmailCampaign extends Model
         'click_count',
         'scheduled_at',
         'sent_at',
-        'created_by'
+        'created_by',
     ];
 
     protected $casts = [
         'target_filters' => 'array',
         'scheduled_at' => 'datetime',
-        'sent_at' => 'datetime'
+        'sent_at' => 'datetime',
     ];
 
     public function creator()

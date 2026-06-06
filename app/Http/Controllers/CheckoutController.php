@@ -1,22 +1,23 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Controller: CheckoutController
  */
 
 namespace App\Http\Controllers;
 
+use App\Mail\NewOrderNotification;
+use App\Mail\OrderConfirmation;
+use App\Models\Address;
 use App\Models\Cart;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Address;
 use App\Models\ShippingMethod;
-use App\Models\Coupon;
 use App\Models\Vendor;
-use App\Mail\OrderConfirmation;
-use App\Mail\NewOrderNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -43,7 +44,7 @@ class CheckoutController extends Controller
      */
     private function generateTrackingId()
     {
-        return 'TRK-' . strtoupper(Str::random(10));
+        return 'TRK-'.strtoupper(Str::random(10));
     }
 
     /**
@@ -52,26 +53,26 @@ class CheckoutController extends Controller
     public function index()
     {
         $cart = $this->getCart();
-        
-        if (!$cart || $cart->items->count() == 0) {
+
+        if (! $cart || $cart->items->count() == 0) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty');
         }
 
         $items = $cart->items()->with('product.category', 'product.vendor')->get();
-        
+
         // Auto-cleanup items where the product was deleted
         $hasOrphans = false;
         foreach ($items as $item) {
-            if (!$item->product) {
+            if (! $item->product) {
                 $item->delete();
                 $hasOrphans = true;
             }
         }
-        
+
         if ($hasOrphans) {
             $items = $cart->items()->with('product.category', 'product.vendor')->get();
             $cart->load('items');
-            
+
             if ($items->count() == 0) {
                 return redirect()->route('cart.index')->with('error', 'Your cart items are no longer available.');
             }
@@ -97,16 +98,16 @@ class CheckoutController extends Controller
 
         $coupon = Coupon::where('code', strtoupper(trim($request->coupon_code)))->first();
 
-        if (!$coupon) {
+        if (! $coupon) {
             return response()->json(['success' => false, 'message' => 'Invalid coupon code.'], 422);
         }
 
-        if (!$coupon->isValid()) {
+        if (! $coupon->isValid()) {
             return response()->json(['success' => false, 'message' => 'This coupon has expired or reached its usage limit.'], 422);
         }
 
         $cart = $this->getCart();
-        if (!$cart) {
+        if (! $cart) {
             return response()->json(['success' => false, 'message' => 'Your cart is empty.'], 422);
         }
 
@@ -114,7 +115,7 @@ class CheckoutController extends Controller
         if ($coupon->min_spend && $cart->total < $coupon->min_spend) {
             return response()->json([
                 'success' => false,
-                'message' => 'Minimum spend of ₦' . number_format($coupon->min_spend) . ' required for this coupon.'
+                'message' => 'Minimum spend of ₦'.number_format($coupon->min_spend).' required for this coupon.',
             ], 422);
         }
 
@@ -131,7 +132,7 @@ class CheckoutController extends Controller
             'type' => $coupon->type,
             'value' => $coupon->value,
             'discount' => $discount,
-            'message' => 'Coupon applied! You save ₦' . number_format($discount),
+            'message' => 'Coupon applied! You save ₦'.number_format($discount),
         ]);
     }
 
@@ -154,14 +155,14 @@ class CheckoutController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $cart = $this->getCart();
-        
-        if (!$cart || $cart->items->count() == 0) {
+        $cart = \App\Models\Cart::where('user_id', Auth::id())->with('items.product', 'items.variant')->first();
+
+        if (! $cart || $cart->items->count() == 0) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty');
         }
 
         DB::beginTransaction();
-        
+
         try {
             // Handle address
             if ($request->new_address) {
@@ -195,7 +196,7 @@ class CheckoutController extends Controller
             $couponCode = null;
             if ($request->coupon_code) {
                 $coupon = Coupon::where('code', strtoupper(trim($request->coupon_code)))->first();
-                if ($coupon && $coupon->isValid() && (!$coupon->min_spend || $cart->total >= $coupon->min_spend)) {
+                if ($coupon && $coupon->isValid() && (! $coupon->min_spend || $cart->total >= $coupon->min_spend)) {
                     $couponCode = $coupon->code;
                     if ($coupon->type === 'percentage') {
                         $discount = round($cart->total * ($coupon->value / 100), 2);
@@ -207,7 +208,7 @@ class CheckoutController extends Controller
 
             // Create order
             $order = Order::create([
-                'order_number' => 'BN-' . strtoupper(Str::random(8)),
+                'order_number' => 'BN-'.strtoupper(Str::random(8)),
                 'user_id' => Auth::id(),
                 'address_id' => $address->id,
                 'shipping_method_id' => null, // Vendor-arranged delivery
@@ -221,7 +222,7 @@ class CheckoutController extends Controller
                 'payment_status' => 'pending',
                 'notes' => $request->notes,
                 'shipping_address' => [
-                    'name' => $address->first_name . ' ' . $address->last_name,
+                    'name' => $address->first_name.' '.$address->last_name,
                     'phone' => $address->phone,
                     'address' => $address->address_line_1,
                     'city' => $address->city,
@@ -234,15 +235,35 @@ class CheckoutController extends Controller
             // Create order items and track vendors
             $vendorItems = [];
             foreach ($cart->items as $item) {
+                $product = \App\Models\Product::lockForUpdate()->find($item->product_id);
+                if (!$product) {
+                    throw new \Exception('Product not found.');
+                }
+
+                $variant = null;
+                if ($item->product_variant_id) {
+                    $variant = \App\Models\ProductVariant::lockForUpdate()->find($item->product_variant_id);
+                    if (!$variant || $variant->product_id != $product->id) {
+                        throw new \Exception('Invalid product variant.');
+                    }
+                    if ($variant->stock_quantity < $item->quantity) {
+                        throw new \Exception("Product variant \"{$product->name} - {$variant->name}\" does not have enough stock.");
+                    }
+                } else {
+                    if ($product->quantity < $item->quantity) {
+                        throw new \Exception("Product \"{$product->name}\" does not have enough stock.");
+                    }
+                }
+
                 $price = $item->price;
-                $variantName = $item->variant ? $item->variant->name : null;
-                
+                $variantName = $variant ? $variant->name : null;
+
                 $orderItem = OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
                     'product_variant_id' => $item->product_variant_id,
-                    'vendor_id' => $item->product->vendor_id,
-                    'product_name' => $item->product->name,
+                    'vendor_id' => $product->vendor_id,
+                    'product_name' => $product->name,
                     'variant_name' => $variantName,
                     'price' => $price,
                     'quantity' => $item->quantity,
@@ -252,15 +273,37 @@ class CheckoutController extends Controller
                 ]);
 
                 // Group items by vendor for notifications
-                $vendorId = $item->product->vendor_id;
-                if (!isset($vendorItems[$vendorId])) {
+                $vendorId = $product->vendor_id;
+                if (! isset($vendorItems[$vendorId])) {
                     $vendorItems[$vendorId] = [];
                 }
                 $vendorItems[$vendorId][] = $orderItem;
 
-                // Decrease stock (if it's a variant, handle that too?)
-                // For now, simple stock decrease on the main product
-                $item->product->decrement('quantity', $item->quantity);
+                // Decrease stock
+                if ($variant) {
+                    $variant->decrement('stock_quantity', $item->quantity);
+                    // Log stock history for variant
+                    \App\Models\StockHistory::create([
+                        'product_id' => $product->id,
+                        'product_variant_id' => $variant->id,
+                        'change_amount' => -$item->quantity,
+                        'new_stock_level' => $variant->stock_quantity,
+                        'type' => 'adjustment',
+                        'reason' => 'Customer purchase (Order ' . $order->order_number . ')',
+                        'user_id' => Auth::id()
+                    ]);
+                } else {
+                    $product->decrement('quantity', $item->quantity);
+                    // Log stock history for product
+                    \App\Models\StockHistory::create([
+                        'product_id' => $product->id,
+                        'change_amount' => -$item->quantity,
+                        'new_stock_level' => $product->quantity,
+                        'type' => 'adjustment',
+                        'reason' => 'Customer purchase (Order ' . $order->order_number . ')',
+                        'user_id' => Auth::id()
+                    ]);
+                }
             }
 
             // Record coupon usage
@@ -285,24 +328,25 @@ class CheckoutController extends Controller
             try {
                 // Send confirmation to customer
                 $order->load('items.product', 'items.vendor');
-                Mail::to(Auth::user()->email)->send(new OrderConfirmation($order));
+                Mail::to(Auth::user()->email)->queue(new OrderConfirmation($order));
 
                 // Send notifications to each vendor
                 foreach ($vendorItems as $vendorId => $items) {
                     $vendor = Vendor::with('user')->find($vendorId);
                     if ($vendor && $vendor->user && $vendor->user->email) {
-                        Mail::to($vendor->user->email)->send(new NewOrderNotification($order, $vendor, $items));
+                        Mail::to($vendor->user->email)->queue(new NewOrderNotification($order, $vendor, $items));
                     }
                 }
             } catch (\Exception $e) {
                 // Log email error but don't fail the order
-                \Log::error('Order email failed: ' . $e->getMessage());
+                \Log::error('Order email failed: '.$e->getMessage());
             }
 
             return redirect()->route('payment.page', $order->id);
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return back()->with('error', 'Failed to create order. Please try again.');
         }
     }

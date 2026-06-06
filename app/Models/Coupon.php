@@ -1,4 +1,5 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Model: Coupon
@@ -34,13 +35,19 @@ class Coupon extends Model
     {
         return $this->belongsTo(Vendor::class);
     }
-    
+
     public function isValid()
     {
-        if (!$this->is_active) return false;
-        if ($this->expires_at && $this->expires_at->isPast()) return false;
-        if ($this->usage_limit && $this->used_count >= $this->usage_limit) return false;
-        
+        if (! $this->is_active) {
+            return false;
+        }
+        if ($this->expires_at && $this->expires_at->isPast()) {
+            return false;
+        }
+        if ($this->usage_limit && $this->used_count >= $this->usage_limit) {
+            return false;
+        }
+
         return true;
     }
 }

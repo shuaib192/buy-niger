@@ -1,46 +1,45 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * EventServiceProvider - Maps Events to Listeners
  * CRITICAL: Event-driven architecture configuration
  */
 
 namespace App\Providers;
 
+use App\Events\AIActionExecuted;
+use App\Events\AIActionProposed;
+use App\Events\CampaignLaunched;
+use App\Events\InventoryLow;
+// Events
+use App\Events\OrderPlaced;
+use App\Events\OrderStatusUpdated;
+use App\Events\PaymentCompleted;
+use App\Events\ProductCreated;
+use App\Events\RefundRequested;
+use App\Events\UserRegistered;
+use App\Events\VendorApproved;
+use App\Events\VendorRegistered;
+use App\Listeners\HandleAIProposal;
+use App\Listeners\IndexProductForSearch;
+use App\Listeners\LogAIExecution;
+use App\Listeners\NotifyAdminNewVendor;
+// Listeners
+use App\Listeners\NotifyVendorLowStock;
+use App\Listeners\ProcessNewOrder;
+use App\Listeners\ProcessPayment;
+use App\Listeners\ProcessRefundRequest;
+use App\Listeners\SendCampaignEmails;
+use App\Listeners\SendOrderStatusEmail;
+use App\Listeners\SendVendorApprovalEmail;
+use App\Listeners\SendWelcomeEmail;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
-
-// Events
-use App\Events\UserRegistered;
-use App\Events\VendorRegistered;
-use App\Events\VendorApproved;
-use App\Events\ProductCreated;
-use App\Events\InventoryLow;
-use App\Events\OrderPlaced;
-use App\Events\PaymentCompleted;
-use App\Events\OrderStatusUpdated;
-use App\Events\RefundRequested;
-use App\Events\AIActionProposed;
-use App\Events\AIActionExecuted;
-use App\Events\CampaignLaunched;
-
-// Listeners
-use App\Listeners\SendWelcomeEmail;
-use App\Listeners\NotifyAdminNewVendor;
-use App\Listeners\SendVendorApprovalEmail;
-use App\Listeners\IndexProductForSearch;
-use App\Listeners\NotifyVendorLowStock;
-use App\Listeners\ProcessNewOrder;
-use App\Listeners\ProcessPayment;
-use App\Listeners\SendOrderStatusEmail;
-use App\Listeners\ProcessRefundRequest;
-use App\Listeners\HandleAIProposal;
-use App\Listeners\LogAIExecution;
-use App\Listeners\SendCampaignEmails;
 
 class EventServiceProvider extends ServiceProvider
 {

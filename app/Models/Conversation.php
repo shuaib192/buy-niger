@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Model: Conversation
  */
 
@@ -53,11 +54,14 @@ class Conversation extends Model
 
     public function latestMessage()
     {
-        return $this->hasOne(Message::class)->latest();
+        return $this->hasOne(Message::class)->latestOfMany();
     }
 
     public function getUnreadCountForUserAttribute()
     {
+        if (isset($this->attributes['unread_messages_count'])) {
+            return (int) $this->attributes['unread_messages_count'];
+        }
         return $this->messages()
             ->where('sender_type', 'vendor')
             ->where('is_read', false)
@@ -66,6 +70,9 @@ class Conversation extends Model
 
     public function getUnreadCountForVendorAttribute()
     {
+        if (isset($this->attributes['unread_messages_count'])) {
+            return (int) $this->attributes['unread_messages_count'];
+        }
         return $this->messages()
             ->where('sender_type', 'customer')
             ->where('is_read', false)

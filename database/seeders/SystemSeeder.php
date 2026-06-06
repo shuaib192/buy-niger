@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Seeder: System Settings and Categories
  */
 
@@ -28,28 +29,28 @@ class SystemSeeder extends Seeder
             ['group' => 'general', 'key' => 'timezone', 'value' => 'Africa/Lagos', 'type' => 'string', 'is_public' => false],
             ['group' => 'general', 'key' => 'date_format', 'value' => 'd M, Y', 'type' => 'string', 'is_public' => false],
             ['group' => 'general', 'key' => 'maintenance_mode', 'value' => '0', 'type' => 'boolean', 'is_public' => false],
-            
+
             // Commission
             ['group' => 'commission', 'key' => 'default_commission_rate', 'value' => '10', 'type' => 'number', 'is_public' => false],
             ['group' => 'commission', 'key' => 'min_payout_amount', 'value' => '5000', 'type' => 'number', 'is_public' => false],
             ['group' => 'commission', 'key' => 'payout_hold_days', 'value' => '7', 'type' => 'number', 'is_public' => false],
-            
+
             // AI
             ['group' => 'ai', 'key' => 'default_provider', 'value' => 'grok', 'type' => 'string', 'is_public' => false],
             ['group' => 'ai', 'key' => 'ai_enabled', 'value' => '1', 'type' => 'boolean', 'is_public' => false],
             ['group' => 'ai', 'key' => 'auto_execute_enabled', 'value' => '0', 'type' => 'boolean', 'is_public' => false],
             ['group' => 'ai', 'key' => 'max_price_change_percent', 'value' => '20', 'type' => 'number', 'is_public' => false],
-            
+
             // Email
             ['group' => 'email', 'key' => 'from_name', 'value' => 'BuyNiger', 'type' => 'string', 'is_public' => false],
             ['group' => 'email', 'key' => 'from_email', 'value' => 'noreply@buyniger.com', 'type' => 'string', 'is_public' => false],
             ['group' => 'email', 'key' => 'support_email', 'value' => 'infor@buyniger.com', 'type' => 'string', 'is_public' => true],
-            
+
             // Social
             ['group' => 'social', 'key' => 'facebook_url', 'value' => '', 'type' => 'string', 'is_public' => true],
             ['group' => 'social', 'key' => 'twitter_url', 'value' => '', 'type' => 'string', 'is_public' => true],
             ['group' => 'social', 'key' => 'instagram_url', 'value' => '', 'type' => 'string', 'is_public' => true],
-            
+
             // Contact
             ['group' => 'contact', 'key' => 'phone', 'value' => '09019194418', 'type' => 'string', 'is_public' => true],
             ['group' => 'contact', 'key' => 'address', 'value' => 'P3 HUB OFFICE, OPP BOSSO EMIR JUNCTION, MINNA, NIGER STATE, NIGERIA', 'type' => 'string', 'is_public' => true],

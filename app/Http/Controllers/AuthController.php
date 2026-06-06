@@ -94,10 +94,32 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        // Honeypot spam bot check
+        if ($request->filled('username_custom')) {
+            // Silently redirect with success to trick the automated script into believing it succeeded
+            return redirect()->route('verification.show', ['email' => $request->email])
+                ->with('success', 'Account created successfully! Please check your email for the verification code.');
+        }
+
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|max:20',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                new \App\Rules\NoHtml(),
+            ],
+            'email' => [
+                'required',
+                'email',
+                'unique:users,email',
+                new \App\Rules\DisposableEmail(),
+            ],
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                new \App\Rules\NoHtml(),
+            ],
             'password' => 'required|min:8|confirmed',
         ], [
             'password.confirmed' => 'Passwords do not match.',
@@ -142,16 +164,63 @@ class AuthController extends Controller
      */
     public function vendorRegister(Request $request)
     {
+        // Honeypot spam bot check
+        if ($request->filled('username_custom')) {
+            // Silently redirect with success to trick the automated script into believing it succeeded
+            return redirect()->route('verification.show', ['email' => $request->email])
+                ->with('success', 'Vendor account created successfully! 🎉 Please verify your email first. Once verified, your store application will be reviewed and approved within 2 business days.');
+        }
+
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|max:20',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                new \App\Rules\NoHtml(),
+            ],
+            'email' => [
+                'required',
+                'email',
+                'unique:users,email',
+                new \App\Rules\DisposableEmail(),
+            ],
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                new \App\Rules\NoHtml(),
+            ],
             'password' => 'required|min:8|confirmed',
-            'store_name' => 'required|string|max:255',
-            'store_description' => 'nullable|string|max:1000',
-            'business_address' => 'required|string|max:500',
-            'city' => 'required|string|max:100',
-            'state' => 'required|string|max:100',
+            'store_name' => [
+                'required',
+                'string',
+                'max:255',
+                new \App\Rules\NoHtml(),
+            ],
+            'store_description' => [
+                'nullable',
+                'string',
+                'max:1000',
+                new \App\Rules\NoHtml(),
+            ],
+            'business_address' => [
+                'required',
+                'string',
+                'max:500',
+                new \App\Rules\NoHtml(),
+            ],
+            'city' => [
+                'required',
+                'string',
+                'max:100',
+                new \App\Rules\NoHtml(),
+            ],
+            'state' => [
+                'required',
+                'string',
+                'max:100',
+                new \App\Rules\NoHtml(),
+            ],
         ]);
 
         if ($validator->fails()) {
@@ -261,13 +330,14 @@ class AuthController extends Controller
         }
 
         $email = $request->email;
-        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $otp = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(8));
 
         // Store OTP (using password_reset_tokens table)
         \Illuminate\Support\Facades\DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $email],
             [
                 'token' => Hash::make($otp),
+                'attempts' => 0,
                 'created_at' => now(),
             ]
         );
@@ -297,17 +367,15 @@ class AuthController extends Controller
     </div>
 </div>';
 
-            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($email, $emailBody) {
-                $message->to($email)
-                    ->subject('BuyNiger — Your Password Reset Code')
-                    ->html($emailBody);
-            });
+            \Illuminate\Support\Facades\Mail::to($email)->queue(
+                new \App\Mail\GenericEmail('BuyNiger — Your Password Reset Code', $emailBody)
+            );
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Password reset email failed: ' . $e->getMessage());
         }
 
         return redirect()->route('password.reset', ['email' => $email])
-            ->with('success', 'A 6-digit OTP has been sent to your email. Check your inbox (and spam folder).');
+            ->with('success', 'An 8-character secure code has been sent to your email. Check your inbox (and spam folder).');
     }
 
     /**
@@ -325,16 +393,32 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
-            'otp' => 'required|string|size:6',
+            'otp' => 'required|string|size:8',
             'password' => 'required|min:8|confirmed',
         ], [
-            'otp.size' => 'OTP must be exactly 6 digits.',
+            'otp.size' => 'Code must be exactly 8 characters.',
             'password.confirmed' => 'Passwords do not match.',
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput(['email' => $request->email]);
         }
+
+        // Rate Limiting: IP-based and target-email-based (max 5 attempts per minute)
+        $emailKey = 'reset-otp-email:' . md5($request->email);
+        $ipKey = 'reset-otp-ip:' . $request->ip();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($emailKey, 5) || 
+            \Illuminate\Support\Facades\RateLimiter::tooManyAttempts($ipKey, 5)) {
+            $seconds = max(
+                \Illuminate\Support\Facades\RateLimiter::availableIn($emailKey), 
+                \Illuminate\Support\Facades\RateLimiter::availableIn($ipKey)
+            );
+            return back()->withErrors(['otp' => 'Too many attempts. Please try again in ' . $seconds . ' seconds.'])->withInput(['email' => $request->email]);
+        }
+
+        \Illuminate\Support\Facades\RateLimiter::hit($emailKey, 60);
+        \Illuminate\Support\Facades\RateLimiter::hit($ipKey, 60);
 
         // Verify OTP
         $resetRecord = \Illuminate\Support\Facades\DB::table('password_reset_tokens')
@@ -353,7 +437,19 @@ class AuthController extends Controller
 
         // Verify OTP hash
         if (!Hash::check($request->otp, $resetRecord->token)) {
-            return back()->withErrors(['otp' => 'Invalid OTP. Please try again.'])->withInput(['email' => $request->email]);
+            // Track failed attempts. If reaches 3, permanently invalidate token.
+            $attempts = isset($resetRecord->attempts) ? $resetRecord->attempts + 1 : 1;
+
+            if ($attempts >= 3) {
+                \Illuminate\Support\Facades\DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+                return back()->withErrors(['otp' => 'Too many failed reset attempts. This OTP has been invalidated. Please request a new one.'])->withInput(['email' => $request->email]);
+            }
+
+            \Illuminate\Support\Facades\DB::table('password_reset_tokens')
+                ->where('email', $request->email)
+                ->update(['attempts' => $attempts]);
+
+            return back()->withErrors(['otp' => 'Invalid code. ' . (3 - $attempts) . ' attempt(s) remaining.'])->withInput(['email' => $request->email]);
         }
 
         // Update password
@@ -363,6 +459,10 @@ class AuthController extends Controller
 
         // Delete used token
         \Illuminate\Support\Facades\DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        // Clear rate limiter upon success
+        \Illuminate\Support\Facades\RateLimiter::clear($emailKey);
+        \Illuminate\Support\Facades\RateLimiter::clear($ipKey);
 
         return redirect()->route('login')->with('success', 'Password reset successfully! Please log in with your new password.');
     }
@@ -374,11 +474,12 @@ class AuthController extends Controller
     {
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        // Store OTP in password_reset_tokens with type prefix
-        \Illuminate\Support\Facades\DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => 'verify_' . $user->email],
+        // Store OTP in dedicated email_otps table
+        \Illuminate\Support\Facades\DB::table('email_otps')->updateOrInsert(
+            ['email' => $user->email, 'type' => 'verify'],
             [
                 'token' => Hash::make($otp),
+                'attempts' => 0,
                 'created_at' => now(),
             ]
         );
@@ -406,11 +507,9 @@ class AuthController extends Controller
     </div>
 </div>';
 
-            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($user, $emailBody) {
-                $message->to($user->email)
-                    ->subject('BuyNiger — Verify Your Email Address')
-                    ->html($emailBody);
-            });
+            \Illuminate\Support\Facades\Mail::to($user->email)->queue(
+                new \App\Mail\GenericEmail('BuyNiger — Verify Your Email Address', $emailBody)
+            );
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Verification email failed: ' . $e->getMessage());
         }
@@ -440,8 +539,25 @@ class AuthController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        $resetRecord = \Illuminate\Support\Facades\DB::table('password_reset_tokens')
-            ->where('email', 'verify_' . $request->email)
+        // Rate Limiting: IP-based and target-email-based (max 5 attempts per minute)
+        $emailKey = 'verify-otp-email:' . md5($request->email);
+        $ipKey = 'verify-otp-ip:' . $request->ip();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($emailKey, 5) || 
+            \Illuminate\Support\Facades\RateLimiter::tooManyAttempts($ipKey, 5)) {
+            $seconds = max(
+                \Illuminate\Support\Facades\RateLimiter::availableIn($emailKey), 
+                \Illuminate\Support\Facades\RateLimiter::availableIn($ipKey)
+            );
+            return back()->withErrors(['otp' => 'Too many attempts. Please try again in ' . $seconds . ' seconds.'])->withInput();
+        }
+
+        \Illuminate\Support\Facades\RateLimiter::hit($emailKey, 60);
+        \Illuminate\Support\Facades\RateLimiter::hit($ipKey, 60);
+
+        $resetRecord = \Illuminate\Support\Facades\DB::table('email_otps')
+            ->where('email', $request->email)
+            ->where('type', 'verify')
             ->first();
 
         if (!$resetRecord) {
@@ -450,13 +566,26 @@ class AuthController extends Controller
 
         // Check expiry (15 minutes)
         if (now()->diffInMinutes($resetRecord->created_at) > 15) {
-            \Illuminate\Support\Facades\DB::table('password_reset_tokens')->where('email', 'verify_' . $request->email)->delete();
+            \Illuminate\Support\Facades\DB::table('email_otps')->where('email', $request->email)->where('type', 'verify')->delete();
             return back()->withErrors(['otp' => 'Code has expired. Please request a new one.'])->withInput();
         }
 
         // Verify OTP
         if (!Hash::check($request->otp, $resetRecord->token)) {
-            return back()->withErrors(['otp' => 'Invalid code. Please try again.'])->withInput();
+            // Track failed attempts. If reaches 3, permanently invalidate token.
+            $attempts = isset($resetRecord->attempts) ? $resetRecord->attempts + 1 : 1;
+
+            if ($attempts >= 3) {
+                \Illuminate\Support\Facades\DB::table('email_otps')->where('email', $request->email)->where('type', 'verify')->delete();
+                return back()->withErrors(['otp' => 'Too many failed verification attempts. This code has been invalidated. Please request a new one.'])->withInput();
+            }
+
+            \Illuminate\Support\Facades\DB::table('email_otps')
+                ->where('email', $request->email)
+                ->where('type', 'verify')
+                ->update(['attempts' => $attempts]);
+
+            return back()->withErrors(['otp' => 'Invalid code. ' . (3 - $attempts) . ' attempt(s) remaining.'])->withInput();
         }
 
         // Mark email as verified
@@ -464,7 +593,11 @@ class AuthController extends Controller
         $user->update(['email_verified_at' => now()]);
 
         // Delete used token
-        \Illuminate\Support\Facades\DB::table('password_reset_tokens')->where('email', 'verify_' . $request->email)->delete();
+        \Illuminate\Support\Facades\DB::table('email_otps')->where('email', $request->email)->where('type', 'verify')->delete();
+
+        // Clear rate limiter upon success
+        \Illuminate\Support\Facades\RateLimiter::clear($emailKey);
+        \Illuminate\Support\Facades\RateLimiter::clear($ipKey);
 
         // Log user in
         Auth::login($user);

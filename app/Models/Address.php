@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Model: Address
  */
 
@@ -53,8 +54,9 @@ class Address extends Model
             $this->address_line_2,
             $this->city,
             $this->state,
-            $this->country
+            $this->country,
         ]);
+
         return implode(', ', $parts);
     }
 
@@ -63,6 +65,6 @@ class Address extends Model
      */
     public function getFullNameAttribute()
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return $this->first_name.' '.$this->last_name;
     }
 }

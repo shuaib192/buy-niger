@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Model: Product
  */
 
@@ -132,7 +133,7 @@ class Product extends Model
     public function scopeOnSale($query)
     {
         return $query->whereNotNull('sale_price')
-                     ->whereColumn('sale_price', '<', 'price');
+            ->whereColumn('sale_price', '<', 'price');
     }
 
     // Helpers
@@ -141,6 +142,7 @@ class Product extends Model
         if ($this->sale_price && $this->sale_price < $this->price) {
             return $this->sale_price;
         }
+
         return $this->price;
     }
 
@@ -149,6 +151,7 @@ class Product extends Model
         if ($this->sale_price && $this->sale_price < $this->price) {
             return (int) round((($this->price - $this->sale_price) / $this->price) * 100);
         }
+
         return null;
     }
 
@@ -164,9 +167,14 @@ class Product extends Model
 
     public function getPrimaryImageUrlAttribute(): ?string
     {
-        $image = $this->images()->where('is_primary', true)->first() 
-                 ?? $this->images()->first();
-        
+        if ($this->relationLoaded('images')) {
+            $image = $this->images->first(fn($img) => $img->is_primary)
+                     ?? $this->images->first();
+        } else {
+            $image = $this->images()->where('is_primary', true)->first()
+                     ?? $this->images()->first();
+        }
+
         $path = $image ? $image->image_path : $this->image_path;
 
         if (empty($path)) {
@@ -177,12 +185,12 @@ class Product extends Model
             return $path;
         }
 
-        return asset('storage/' . $path);
+        return asset('storage/'.$path);
     }
 
     public function getFormattedPriceAttribute(): string
     {
-        return '₦' . number_format($this->current_price, 2);
+        return '₦'.number_format($this->current_price, 2);
     }
 
     public function incrementViewCount(): void

@@ -61,19 +61,38 @@ class CartController extends Controller
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
+            'product_variant_id' => 'nullable|exists:product_variants,id',
             'quantity' => 'integer|min:1|max:100'
         ]);
 
         $product = Product::findOrFail($request->product_id);
         $quantity = $request->quantity ?? 1;
-        $variantId = $request->product_variant_id; // Added variant support
+        $variantId = $request->product_variant_id;
 
-        // Check stock
-        if ($product->quantity < $quantity) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Not enough stock available'
-            ], 400);
+        // Check variant and its stock if variant is passed
+        $variant = null;
+        if ($variantId) {
+            $variant = \App\Models\ProductVariant::find($variantId);
+            if (!$variant || $variant->product_id != $product->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid product variant selected'
+                ], 400);
+            }
+            if ($variant->stock_quantity < $quantity) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not enough stock available for this option'
+                ], 400);
+            }
+        } else {
+            // Check product stock
+            if ($product->quantity < $quantity) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not enough stock available'
+                ], 400);
+            }
         }
 
         $cart = $this->getCart();
@@ -85,16 +104,26 @@ class CartController extends Controller
             ->first();
         
         if ($cartItem) {
+            $newQuantity = $cartItem->quantity + $quantity;
+            if ($variant && $variant->stock_quantity < $newQuantity) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not enough stock available for this option'
+                ], 400);
+            }
+            if (!$variant && $product->quantity < $newQuantity) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not enough stock available'
+                ], 400);
+            }
             $cartItem->increment('quantity', $quantity);
         } else {
             // Use the variant price if available, fallback to product's current_price
             // round() prevents floating point bugs (e.g. 1199.97 instead of 1200.00)
             $price = round((float) $product->current_price, 2);
-            if ($variantId) {
-                $variant = \App\Models\ProductVariant::find($variantId);
-                if ($variant && $variant->price > 0) {
-                    $price = round((float) $variant->price, 2);
-                }
+            if ($variant && $variant->price > 0) {
+                $price = round((float) $variant->price, 2);
             }
 
             $cart->items()->create([
@@ -122,14 +151,23 @@ class CartController extends Controller
         ]);
 
         $cart = $this->getCart();
-        $item = $cart->items()->findOrFail($itemId);
+        $item = $cart->items()->with('product', 'variant')->findOrFail($itemId);
         
         // Check stock
-        if ($item->product->quantity < $request->quantity) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Not enough stock'
-            ], 400);
+        if ($item->product_variant_id && $item->variant) {
+            if ($item->variant->stock_quantity < $request->quantity) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not enough stock for this option'
+                ], 400);
+            }
+        } else {
+            if ($item->product->quantity < $request->quantity) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not enough stock'
+                ], 400);
+            }
         }
 
         $item->update(['quantity' => $request->quantity]);

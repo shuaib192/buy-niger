@@ -88,6 +88,9 @@ class MessageController extends Controller
     {
         $conversations = Conversation::where('user_id', Auth::id())
             ->with(['vendor', 'latestMessage'])
+            ->withCount(['messages as unread_messages_count' => function ($query) {
+                $query->where('sender_type', 'vendor')->where('is_read', false);
+            }])
             ->orderByDesc('last_message_at')
             ->paginate(20);
 
@@ -104,6 +107,9 @@ class MessageController extends Controller
 
         $conversations = Conversation::where('vendor_id', $vendor->id)
             ->with(['user', 'latestMessage'])
+            ->withCount(['messages as unread_messages_count' => function ($query) {
+                $query->where('sender_type', 'customer')->where('is_read', false);
+            }])
             ->orderByDesc('last_message_at')
             ->paginate(20);
 

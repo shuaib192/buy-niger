@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class AIEmergencyStatus extends Model
 {
     use HasFactory;
+
     protected $table = 'ai_emergency_status';
 
     protected $fillable = [
@@ -15,13 +16,13 @@ class AIEmergencyStatus extends Model
         'kill_switch_enabled',
         'kill_switch_reason',
         'triggered_by',
-        'triggered_at'
+        'triggered_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'kill_switch_enabled' => 'boolean',
-        'triggered_at' => 'datetime'
+        'triggered_at' => 'datetime',
     ];
 
     public function triggerUser()

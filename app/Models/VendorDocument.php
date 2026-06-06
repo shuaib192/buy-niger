@@ -15,7 +15,7 @@ class VendorDocument extends Model
         'type',
         'path',
         'status',
-        'rejection_reason'
+        'rejection_reason',
     ];
 
     public function vendor()

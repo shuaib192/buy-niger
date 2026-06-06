@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class AIAction extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'vendor_id',
         'user_id',
@@ -27,7 +28,7 @@ class AIAction extends Model
         'rolled_back_at',
         'rollback_reason',
         'tokens_used',
-        'cost'
+        'cost',
     ];
 
     protected $casts = [
@@ -38,7 +39,7 @@ class AIAction extends Model
         'approved_at' => 'datetime',
         'executed_at' => 'datetime',
         'rolled_back_at' => 'datetime',
-        'cost' => 'decimal:6'
+        'cost' => 'decimal:6',
     ];
 
     public function user()
@@ -50,7 +51,7 @@ class AIAction extends Model
     {
         return $this->belongsTo(Vendor::class);
     }
-    
+
     public function provider()
     {
         return $this->belongsTo(AIProvider::class, 'ai_provider_id');

@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class AIProvider extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'ai_providers';
+
     protected $fillable = [
         'name',
         'display_name',
@@ -22,7 +23,7 @@ class AIProvider extends Model
         'capabilities',
         'cost_per_1k_tokens',
         'rate_limit_per_minute',
-        'priority'
+        'priority',
     ];
 
     protected $casts = [
@@ -30,6 +31,6 @@ class AIProvider extends Model
         'capabilities' => 'array',
         'is_active' => 'boolean',
         'is_default' => 'boolean',
-        'cost_per_1k_tokens' => 'decimal:6'
+        'cost_per_1k_tokens' => 'decimal:6',
     ];
 }

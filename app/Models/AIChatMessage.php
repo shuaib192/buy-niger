@@ -8,18 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 class AIChatMessage extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'ai_chat_messages';
+
     protected $fillable = [
         'session_id',
         'role',
         'content',
         'metadata',
-        'tokens'
+        'tokens',
     ];
 
     protected $casts = [
-        'metadata' => 'array'
+        'metadata' => 'array',
     ];
 
     public function session()

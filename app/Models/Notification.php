@@ -11,6 +11,7 @@ class Notification extends Model
     use HasFactory;
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -21,7 +22,7 @@ class Notification extends Model
         'message',
         'data',
         'action_url',
-        'read_at'
+        'read_at',
     ];
 
     protected $casts = [
@@ -33,7 +34,7 @@ class Notification extends Model
     public static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             if (empty($model->id)) {
                 $model->id = (string) Str::uuid();
@@ -45,7 +46,7 @@ class Notification extends Model
     {
         return $this->belongsTo(User::class);
     }
-    
+
     // Scopes
     public function scopeUnread($query)
     {

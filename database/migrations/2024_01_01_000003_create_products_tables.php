@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Migration: Create Categories and Products Tables
  */
 
@@ -79,13 +80,11 @@ return new class extends Migration
         Schema::create('product_variants', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->string('name'); // Size, Color
-            $table->string('value'); // Large, Red
             $table->string('sku')->nullable();
-            $table->decimal('price_adjustment', 15, 2)->default(0);
-            $table->integer('quantity')->default(0);
-            $table->string('image')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->string('size')->nullable();
+            $table->string('color')->nullable();
+            $table->decimal('price', 10, 2)->nullable();
+            $table->integer('stock_quantity')->default(0);
             $table->timestamps();
         });
 

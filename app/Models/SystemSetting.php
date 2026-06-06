@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Model: SystemSetting
  */
 
@@ -36,7 +37,9 @@ class SystemSetting extends Model
     {
         return Cache::rememberForever("setting.$key", function () use ($key, $default) {
             $setting = self::where('key', $key)->first();
-            if (!$setting) return $default;
+            if (! $setting) {
+                return $default;
+            }
 
             switch ($setting->type) {
                 case 'boolean': return filter_var($setting->value, FILTER_VALIDATE_BOOLEAN);
@@ -53,13 +56,14 @@ class SystemSetting extends Model
     public static function set(string $key, $value, string $group = 'general', string $type = 'string')
     {
         $settingValue = ($type === 'json' || is_array($value)) ? json_encode($value) : (string) $value;
-        
+
         $setting = self::updateOrCreate(
             ['key' => $key],
             ['value' => $settingValue, 'group' => $group, 'type' => $type]
         );
 
         Cache::forget("setting.$key");
+
         return $setting;
     }
 }

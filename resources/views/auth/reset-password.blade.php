@@ -40,9 +40,9 @@
 
                 <!-- OTP Input -->
                 <div class="form-group">
-                    <label>Enter 6-Digit Code</label>
+                    <label>Enter 8-Character Code</label>
                     <div class="otp-input-wrapper">
-                        <input type="text" name="otp" class="form-control otp-field" placeholder="123456" maxlength="6" autocomplete="off" autofocus required>
+                        <input type="text" name="otp" class="form-control otp-field" placeholder="ABC123XY" maxlength="8" autocomplete="off" autofocus required style="text-transform: uppercase;">
                     </div>
                     <small class="text-muted">Check your email inbox (and spam folder).</small>
                 </div>

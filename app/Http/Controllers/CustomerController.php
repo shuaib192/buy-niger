@@ -283,11 +283,7 @@ class CustomerController extends Controller
                 <p style="color:#94a3b8;font-size:12px;text-align:center;">BuyNiger — Multi-Vendor Marketplace</p>
             </div>';
 
-            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($user, $subject, $emailBody) {
-                $message->to($user->email)
-                    ->subject($subject)
-                    ->html($emailBody);
-            });
+            \Illuminate\Support\Facades\Mail::to($user->email)->queue(new \App\Mail\GenericEmail($subject, $emailBody));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Order cancellation email failed: ' . $e->getMessage());
         }

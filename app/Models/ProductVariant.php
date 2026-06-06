@@ -15,7 +15,7 @@ class ProductVariant extends Model
         'size',
         'color',
         'price',
-        'stock_quantity'
+        'stock_quantity',
     ];
 
     public function product()
@@ -29,9 +29,13 @@ class ProductVariant extends Model
     public function getNameAttribute()
     {
         $parts = [];
-        if ($this->size) $parts[] = "Size: " . $this->size;
-        if ($this->color) $parts[] = "Color: " . $this->color;
-        
-        return count($parts) > 0 ? implode(', ', $parts) : "Standard Option";
+        if ($this->size) {
+            $parts[] = 'Size: '.$this->size;
+        }
+        if ($this->color) {
+            $parts[] = 'Color: '.$this->color;
+        }
+
+        return count($parts) > 0 ? implode(', ', $parts) : 'Standard Option';
     }
 }

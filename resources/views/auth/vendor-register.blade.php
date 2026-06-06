@@ -20,6 +20,20 @@
     <form method="POST" action="{{ route('vendor.register.submit') }}" id="vendorForm">
         @csrf
 
+        <!-- Honeypot spam prevention field -->
+        <div style="display:none !important;" class="form-group-spam">
+            <label class="form-label" for="username_custom">Username (Leave Blank)</label>
+            <input 
+                type="text" 
+                id="username_custom" 
+                name="username_custom" 
+                class="form-input" 
+                placeholder="Do not fill this field"
+                autocomplete="off"
+                tabindex="-1"
+            >
+        </div>
+
         <!-- Personal Info Section -->
         <div style="margin-bottom: var(--spacing-md);">
             <h4 style="font-size: 0.875rem; color: var(--primary-600); text-transform: uppercase; letter-spacing: 0.05em;">Personal Information</h4>

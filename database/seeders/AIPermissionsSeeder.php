@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Seeder: AI Permissions and System Modes
  * CRITICAL: Sets up AI Shadow Mode and Permission Matrix
  */

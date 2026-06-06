@@ -556,12 +556,25 @@
         bnSendMsg();
     };
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     function bnAddMsg(text, type, id) {
         var msgs = document.getElementById('bnMessages');
         var div = document.createElement('div');
         if (id) div.id = id;
         div.className = 'bn-msg bn-msg-' + type;
-        div.innerHTML = text.replace(/\n/g, '<br>');
+        
+        // Escape HTML to prevent injection and XSS
+        var escaped = escapeHtml(text);
+        div.innerHTML = escaped.replace(/\n/g, '<br>');
         msgs.appendChild(div);
         msgs.scrollTop = msgs.scrollHeight;
     }

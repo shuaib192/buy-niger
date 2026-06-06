@@ -84,30 +84,60 @@ class VendorController extends Controller
      */
     private function getChartData($vendorId, $period)
     {
-        $data = [];
-        $labels = [];
         $query = OrderItem::where('vendor_id', $vendorId)->where('status', 'delivered');
 
         if ($period === 'daily') {
+            $startDate = now()->subDays(29)->startOfDay();
+            $grouped = (clone $query)
+                ->where('created_at', '>=', $startDate)
+                ->selectRaw('DATE(created_at) as date, SUM(subtotal) as total')
+                ->groupBy('date')
+                ->orderBy('date')
+                ->pluck('total', 'date')
+                ->toArray();
+
+            $labels = [];
+            $data = [];
             for ($i = 29; $i >= 0; $i--) {
                 $date = now()->subDays($i)->format('Y-m-d');
                 $labels[] = now()->subDays($i)->format('d M');
-                $data[] = $query->clone()->whereDate('created_at', $date)->sum('subtotal');
+                $data[] = (float) ($grouped[$date] ?? 0);
             }
         } elseif ($period === 'weekly') {
+            $startDate = now()->subWeeks(11)->startOfWeek();
+            $grouped = (clone $query)
+                ->where('created_at', '>=', $startDate)
+                ->selectRaw('YEARWEEK(created_at, 1) as yw, SUM(subtotal) as total')
+                ->groupBy('yw')
+                ->orderBy('yw')
+                ->pluck('total', 'yw')
+                ->toArray();
+
+            $labels = [];
+            $data = [];
             for ($i = 11; $i >= 0; $i--) {
-                $start = now()->subWeeks($i)->startOfWeek();
-                $end = now()->subWeeks($i)->endOfWeek();
-                $labels[] = 'Week ' . $start->format('W');
-                $data[] = $query->clone()->whereBetween('created_at', [$start, $end])->sum('subtotal');
+                $week = now()->subWeeks($i)->startOfWeek();
+                $yw = $week->format('oW');
+                $labels[] = 'Week ' . $week->format('W');
+                $data[] = (float) ($grouped[$yw] ?? 0);
             }
         } else { // monthly
+            $startDate = now()->subMonths(11)->startOfMonth();
+            $grouped = (clone $query)
+                ->where('created_at', '>=', $startDate)
+                ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as ym, SUM(subtotal) as total')
+                ->groupBy('ym')
+                ->orderBy('ym')
+                ->pluck('total', 'ym')
+                ->toArray();
+
+            $labels = [];
+            $data = [];
             for ($i = 11; $i >= 0; $i--) {
                 $month = now()->subMonths($i);
+                $ym = $month->format('Y-m');
                 $labels[] = $month->format('M Y');
-                $data[] = $query->clone()->whereMonth('created_at', $month->month)
-                    ->whereYear('created_at', $month->year)
-                    ->sum('subtotal');
+                $data[] = (float) ($grouped[$ym] ?? 0);
             }
         }
 
@@ -124,14 +154,20 @@ class VendorController extends Controller
         $query = OrderItem::where('vendor_id', $vendor->id)
             ->with('order.user', 'product');
 
-        // Status counts for tabs
+        // Status counts for tabs — single query instead of 6 separate ones
+        $statusCounts = OrderItem::where('vendor_id', $vendor->id)
+            ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
         $counts = [
-            'all' => OrderItem::where('vendor_id', $vendor->id)->count(),
-            'pending' => OrderItem::where('vendor_id', $vendor->id)->where('status', 'pending')->count(),
-            'processing' => OrderItem::where('vendor_id', $vendor->id)->where('status', 'processing')->count(),
-            'shipped' => OrderItem::where('vendor_id', $vendor->id)->where('status', 'shipped')->count(),
-            'delivered' => OrderItem::where('vendor_id', $vendor->id)->where('status', 'delivered')->count(),
-            'cancelled' => OrderItem::where('vendor_id', $vendor->id)->where('status', 'cancelled')->count(),
+            'all' => array_sum($statusCounts),
+            'pending' => $statusCounts['pending'] ?? 0,
+            'processing' => $statusCounts['processing'] ?? 0,
+            'shipped' => $statusCounts['shipped'] ?? 0,
+            'delivered' => $statusCounts['delivered'] ?? 0,
+            'cancelled' => $statusCounts['cancelled'] ?? 0,
         ];
 
         // Filter by status
@@ -964,14 +1000,6 @@ public function exportAnalytics(Request $request)
             $data['cac_document_path'] = $request->file('cac_document')->store('vendors/kyc', 'public');
         }
 
-        // If KYC data is being submitted, set status to pending for review
-        $kycFields = ['id_type', 'id_number', 'nin', 'bvn'];
-        $hasKycData = collect($kycFields)->contains(fn($f) => !empty($data[$f]));
-        if ($hasKycData && ($vendor->kyc_status ?? 'not_submitted') !== 'verified') {
-            $data['kyc_status'] = 'pending';
-        }
-
-        $vendor->update($data);
 
         // Update or create primary bank detail
         if ($request->bank_name && $request->account_number) {
@@ -1033,12 +1061,15 @@ public function exportAnalytics(Request $request)
             return back()->with('error', 'Invalid destination account selected.');
         }
 
-        if ($request->amount > $vendor->balance) {
-            return back()->with('error', 'Insufficient balance for this payout request.');
-        }
-
         DB::beginTransaction();
         try {
+            // Lock the vendor row for update to prevent concurrent balance checks and withdrawals
+            $vendor = Vendor::lockForUpdate()->find($vendor->id);
+
+            if ($request->amount > $vendor->balance) {
+                throw new \Exception('Insufficient balance for this payout request.');
+            }
+
             $payout = VendorPayout::create([
                 'vendor_id' => $vendor->id,
                 'amount' => $request->amount,

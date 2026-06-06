@@ -1,4 +1,5 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Migration: Create Coupons Table
@@ -12,7 +13,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('coupons')) {
+        if (! Schema::hasTable('coupons')) {
             Schema::create('coupons', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('vendor_id')->constrained()->cascadeOnDelete();
