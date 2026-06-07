@@ -360,7 +360,7 @@ class AuthController extends Controller
         <div style="background:#1e293b;border-radius:14px;padding:20px;margin-bottom:24px;">
             <span style="font-size:36px;font-weight:800;color:#60a5fa;letter-spacing:8px;">' . $otp . '</span>
         </div>
-        <p style="color:#94a3b8;font-size:13px;margin:0;">This code expires in <strong>15 minutes</strong>. Do not share it with anyone.</p>
+        <p style="color:#94a3b8;font-size:13px;margin:0;">This code expires in <strong>5 minutes</strong>. Do not share it with anyone.</p>
     </div>
     <div style="text-align:center;padding:20px;border-top:1px solid #e2e8f0;">
         <p style="color:#94a3b8;font-size:11px;margin:0;">If you did not request this, please ignore this email.</p>
@@ -429,8 +429,8 @@ class AuthController extends Controller
             return back()->withErrors(['otp' => 'No reset request found. Please request a new OTP.'])->withInput(['email' => $request->email]);
         }
 
-        // Check expiry (15 minutes)
-        if (now()->diffInMinutes($resetRecord->created_at) > 15) {
+        // Check expiry (5 minutes)
+        if (now()->diffInMinutes($resetRecord->created_at) > 5) {
             \Illuminate\Support\Facades\DB::table('password_reset_tokens')->where('email', $request->email)->delete();
             return back()->withErrors(['otp' => 'OTP has expired. Please request a new one.'])->withInput(['email' => $request->email]);
         }
@@ -500,7 +500,7 @@ class AuthController extends Controller
         <div style="background:#1e293b;border-radius:14px;padding:20px;margin-bottom:24px;">
             <span style="font-size:36px;font-weight:800;color:#60a5fa;letter-spacing:8px;">' . $otp . '</span>
         </div>
-        <p style="color:#94a3b8;font-size:13px;margin:0;">This code expires in <strong>15 minutes</strong>. Do not share it with anyone.</p>
+        <p style="color:#94a3b8;font-size:13px;margin:0;">This code expires in <strong>5 minutes</strong>. Do not share it with anyone.</p>
     </div>
     <div style="text-align:center;padding:20px;border-top:1px solid #e2e8f0;">
         <p style="color:#94a3b8;font-size:11px;margin:0;">If you did not create this account, please ignore this email.</p>
@@ -564,8 +564,8 @@ class AuthController extends Controller
             return back()->withErrors(['otp' => 'No verification code found. Please request a new one.'])->withInput();
         }
 
-        // Check expiry (15 minutes)
-        if (now()->diffInMinutes($resetRecord->created_at) > 15) {
+        // Check expiry (5 minutes)
+        if (now()->diffInMinutes($resetRecord->created_at) > 5) {
             \Illuminate\Support\Facades\DB::table('email_otps')->where('email', $request->email)->where('type', 'verify')->delete();
             return back()->withErrors(['otp' => 'Code has expired. Please request a new one.'])->withInput();
         }
