@@ -44,6 +44,22 @@ class User extends Authenticatable
         'is_active' => 'boolean',
     ];
 
+    /**
+     * The booted method of the model.
+     */
+    protected static function booted()
+    {
+        static::deleting(function ($user) {
+            if ($user->vendor) {
+                if (method_exists($user, 'isForceDeleting') && $user->isForceDeleting()) {
+                    $user->vendor->forceDelete();
+                } else {
+                    $user->vendor->delete();
+                }
+            }
+        });
+    }
+
     // Relationships
     public function role()
     {

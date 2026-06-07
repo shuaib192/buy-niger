@@ -22,82 +22,86 @@
         @csrf
         <div class="row g-4">
             <!-- General Settings -->
-            <div class="dashboard-card col-8">
-                <div class="dashboard-card-header">
-                    <h3>General Configuration</h3>
-                </div>
-                <div class="dashboard-card-body">
-                    <div class="form-group mb-4">
-                        <label class="form-label">Application Name</label>
-                        <input type="text" name="settings[app_name]" class="form-control" value="{{ \App\Models\SystemSetting::get('site_name', 'BuyNiger') }}">
+            <div class="col-8">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <h3>General Configuration</h3>
                     </div>
-
-                    <div class="settings-row">
-                        <div class="settings-col">
-                            <label class="form-label">Currency Symbol</label>
-                            <input type="text" name="settings[currency_symbol]" class="form-control" value="{{ \App\Models\SystemSetting::get('currency_symbol', '₦') }}">
+                    <div class="dashboard-card-body">
+                        <div class="form-group mb-4">
+                            <label class="form-label">Application Name</label>
+                            <input type="text" name="settings[app_name]" class="form-control" value="{{ \App\Models\SystemSetting::get('site_name', 'BuyNiger') }}">
                         </div>
-                        <div class="settings-col">
-                            <label class="form-label">Currency Code</label>
-                            <input type="text" name="settings[currency_code]" class="form-control" value="{{ \App\Models\SystemSetting::get('currency', 'NGN') }}">
+
+                        <div class="settings-row">
+                            <div class="settings-col">
+                                <label class="form-label">Currency Symbol</label>
+                                <input type="text" name="settings[currency_symbol]" class="form-control" value="{{ \App\Models\SystemSetting::get('currency_symbol', '₦') }}">
+                            </div>
+                            <div class="settings-col">
+                                <label class="form-label">Currency Code</label>
+                                <input type="text" name="settings[currency_code]" class="form-control" value="{{ \App\Models\SystemSetting::get('currency', 'NGN') }}">
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="settings-row mt-4">
-                        <div class="settings-col">
-                            <label class="form-label">Timezone</label>
-                            <select name="settings[timezone]" class="form-select">
-                                <option value="Africa/Lagos" selected>Africa/Lagos</option>
-                                <option value="UTC">UTC</option>
-                            </select>
+                        <div class="settings-row mt-4">
+                            <div class="settings-col">
+                                <label class="form-label">Timezone</label>
+                                <select name="settings[timezone]" class="form-select">
+                                    <option value="Africa/Lagos" selected>Africa/Lagos</option>
+                                    <option value="UTC">UTC</option>
+                                </select>
+                            </div>
+                            <div class="settings-col">
+                                <label class="form-label">Language</label>
+                                <select name="settings[language]" class="form-select">
+                                    <option value="en" selected>English</option>
+                                    <option value="fr">French</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="settings-col">
-                            <label class="form-label">Language</label>
-                            <select name="settings[language]" class="form-select">
-                                <option value="en" selected>English</option>
-                                <option value="fr">French</option>
-                            </select>
+
+                        <div class="form-group mt-4">
+                            <label class="form-label">Site Logo</label>
+                            <input type="file" name="logo" class="form-control">
+                            <small class="text-muted">Recommended: 200x50px PNG</small>
                         </div>
-                    </div>
 
-                    <div class="form-group mt-4">
-                        <label class="form-label">Site Logo</label>
-                        <input type="file" name="logo" class="form-control">
-                        <small class="text-muted">Recommended: 200x50px PNG</small>
-                    </div>
+                        <div class="form-group mt-4">
+                            <label class="form-label">Contact Email</label>
+                            <input type="email" name="settings[contact_email]" class="form-control" value="{{ \App\Models\SystemSetting::get('support_email', 'infor@buyniger.com') }}">
+                        </div>
 
-                    <div class="form-group mt-4">
-                        <label class="form-label">Contact Email</label>
-                        <input type="email" name="settings[contact_email]" class="form-control" value="{{ \App\Models\SystemSetting::get('support_email', 'infor@buyniger.com') }}">
-                    </div>
-
-                    <div class="form-group mt-4">
-                        <label class="form-label">Contact Phone</label>
-                        <input type="text" name="settings[phone]" class="form-control" value="{{ \App\Models\SystemSetting::get('phone', '09019194418') }}">
+                        <div class="form-group mt-4">
+                            <label class="form-label">Contact Phone</label>
+                            <input type="text" name="settings[phone]" class="form-control" value="{{ \App\Models\SystemSetting::get('phone', '09019194418') }}">
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Feature Toggles -->
-            <div class="dashboard-card col-4">
-                <div class="dashboard-card-header">
-                    <h3>Feature Toggles</h3>
-                </div>
-                <div class="dashboard-card-body">
-                    @foreach($features as $feature)
-                        <div class="feature-toggle-item">
-                            <div class="feature-info">
-                                <strong>{{ $feature->display_name }}</strong>
-                                @if($feature->description)
-                                    <small>{{ $feature->description }}</small>
-                                @endif
+            <div class="col-4">
+                <div class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <h3>Feature Toggles</h3>
+                    </div>
+                    <div class="dashboard-card-body">
+                        @foreach($features as $feature)
+                            <div class="feature-toggle-item">
+                                <div class="feature-info">
+                                    <strong>{{ $feature->display_name }}</strong>
+                                    @if($feature->description)
+                                        <small>{{ $feature->description }}</small>
+                                    @endif
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" name="features[{{ $feature->feature }}]" {{ $feature->is_enabled ? 'checked' : '' }}>
+                                    <span class="slider round"></span>
+                                </label>
                             </div>
-                            <label class="switch">
-                                <input type="checkbox" name="features[{{ $feature->feature }}]" {{ $feature->is_enabled ? 'checked' : '' }}>
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
                 </div>
             </div>
 

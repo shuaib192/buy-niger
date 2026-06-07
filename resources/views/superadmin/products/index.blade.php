@@ -15,18 +15,18 @@
     <div class="col-12">
         <div class="dashboard-card">
             <div class="dashboard-card-header">
-                <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center gap-3 w-100">
                     <h3>Products</h3>
-                    <form action="{{ route($prefix.'products') }}" method="GET" class="d-flex gap-2">
-                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <form action="{{ route($prefix.'products') }}" method="GET" class="d-flex flex-wrap gap-2 w-100 w-md-auto">
+                        <select name="status" class="form-select form-select-sm flex-grow-1 flex-md-grow-0" onchange="this.form.submit()" style="min-width: 120px;">
                             <option value="">All Statuses</option>
                             <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                             <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
                             <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
                             <option value="archived" {{ request('status') == 'archived' ? 'selected' : '' }}>Archived</option>
                         </select>
-                        <input type="text" name="search" class="form-control form-control-sm" placeholder="Search products..." value="{{ request('search') }}">
-                        <button type="submit" class="btn btn-primary btn-sm">Search</button>
+                        <input type="text" name="search" class="form-control form-control-sm flex-grow-1 flex-md-grow-0" placeholder="Search products..." value="{{ request('search') }}" style="min-width: 150px;">
+                        <button type="submit" class="btn btn-primary btn-sm w-100 w-md-auto">Search</button>
                     </form>
                 </div>
             </div>
