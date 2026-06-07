@@ -18,16 +18,17 @@
     $prefix = request()->is('admin*') ? 'admin.' : 'superadmin.';
 @endphp
 <div class="row g-4">
-    <div class="dashboard-card col-12">
-        <div class="dashboard-card-header">
-            <h3>All Vendors</h3>
-            <div style="display: flex; gap: var(--spacing-md);">
-                <a href="{{ route($prefix.'vendors', ['status' => 'pending']) }}" class="btn btn-sm {{ request('status') == 'pending' ? 'btn-primary' : 'btn-secondary' }}">Pending</a>
-                <a href="{{ route($prefix.'vendors', ['status' => 'approved']) }}" class="btn btn-sm {{ request('status') == 'approved' ? 'btn-primary' : 'btn-secondary' }}">Approved</a>
-                <a href="{{ route($prefix.'vendors') }}" class="btn btn-sm {{ !request('status') ? 'btn-primary' : 'btn-secondary' }}">All</a>
+    <div class="col-12">
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h3>All Vendors</h3>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ route($prefix.'vendors', ['status' => 'pending']) }}" class="btn btn-sm {{ request('status') == 'pending' ? 'btn-primary' : 'btn-secondary' }}">Pending</a>
+                    <a href="{{ route($prefix.'vendors', ['status' => 'approved']) }}" class="btn btn-sm {{ request('status') == 'approved' ? 'btn-primary' : 'btn-secondary' }}">Approved</a>
+                    <a href="{{ route($prefix.'vendors') }}" class="btn btn-sm {{ !request('status') ? 'btn-primary' : 'btn-secondary' }}">All</a>
+                </div>
             </div>
-        </div>
-        <div class="dashboard-card-body">
+            <div class="dashboard-card-body">
             <div class="table-responsive">
                 <table class="data-table">
                     <thead>
@@ -106,4 +107,5 @@
             </div>
         </div>
     </div>
+</div>
 @endsection

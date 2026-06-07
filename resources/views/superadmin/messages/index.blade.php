@@ -15,11 +15,11 @@
     <div class="col-12">
         <div class="dashboard-card">
             <div class="dashboard-card-header">
-                <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center gap-3 w-100">
                     <h3>Contact Messages</h3>
-                    <div class="d-flex gap-2">
-                        <form action="" method="GET" class="d-flex">
-                            <input type="text" name="search" class="form-control form-control-sm" placeholder="Search..." value="{{ request('search') }}">
+                    <div class="d-flex gap-2 w-100 w-md-auto">
+                        <form action="" method="GET" class="d-flex w-100">
+                            <input type="text" name="search" class="form-control form-control-sm w-100" placeholder="Search..." value="{{ request('search') }}" style="min-width: 150px;">
                         </form>
                     </div>
                 </div>

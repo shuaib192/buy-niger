@@ -15,23 +15,23 @@
     <div class="col-12">
         <div class="dashboard-card">
             <div class="dashboard-card-header">
-                <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center gap-3 w-100">
                     <div class="d-flex align-items-center gap-3">
                         <h3>All Users</h3>
                         <a href="{{ route($prefix.'users.export', request()->all()) }}" class="btn btn-success btn-sm">
                             <i class="fas fa-file-csv"></i> Export CSV
                         </a>
                     </div>
-                    <form action="{{ route($prefix.'users') }}" method="GET" class="d-flex gap-2">
-                        <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <form action="{{ route($prefix.'users') }}" method="GET" class="d-flex flex-wrap gap-2 w-100 w-md-auto">
+                        <select name="role" class="form-select form-select-sm flex-grow-1 flex-md-grow-0" onchange="this.form.submit()" style="min-width: 120px;">
                             <option value="">All Roles</option>
                             <option value="1" {{ request('role') == '1' ? 'selected' : '' }}>Super Admin</option>
                             <option value="2" {{ request('role') == '2' ? 'selected' : '' }}>Admin</option>
                             <option value="3" {{ request('role') == '3' ? 'selected' : '' }}>Vendor</option>
                             <option value="4" {{ request('role') == '4' ? 'selected' : '' }}>Customer</option>
                         </select>
-                        <input type="text" name="search" class="form-control form-control-sm" placeholder="Search users..." value="{{ request('search') }}">
-                        <button type="submit" class="btn btn-primary btn-sm">Search</button>
+                        <input type="text" name="search" class="form-control form-control-sm flex-grow-1 flex-md-grow-0" placeholder="Search users..." value="{{ request('search') }}" style="min-width: 150px;">
+                        <button type="submit" class="btn btn-primary btn-sm w-100 w-md-auto">Search</button>
                     </form>
                 </div>
             </div>
