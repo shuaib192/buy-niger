@@ -25,6 +25,16 @@ use App\Http\Controllers\MessageController;
 |--------------------------------------------------------------------------
 */
 
+// Temporary Secure Migration Route for Deployment
+Route::get('/run-migrations-secure-p3', function() {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        return 'Migration successful: <pre>' . \Illuminate\Support\Facades\Artisan::output() . '</pre>';
+    } catch (\Exception $e) {
+        return 'Migration failed: ' . $e->getMessage();
+    }
+});
+
 // Home
 Route::get('/', [ShopController::class, 'index'])->name('home');
 Route::get('/about', [ShopController::class, 'about'])->name('about');
