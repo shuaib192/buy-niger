@@ -1,7 +1,8 @@
 {{-- 
     BuyNiger AI - Multi-Vendor E-Commerce Platform
-    Written by Shuaibu Abdulmumin
-    View: Vendor — Add New Product — Premium v2.0
+    Written by Shuaibu Abdulmumin (08122598372, 07049906420)
+    
+    View: Create New Product
 --}}
 @extends('layouts.app')
 
@@ -15,106 +16,105 @@
 @section('content')
 <form action="{{ route('vendor.products.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
-    <div class="row g-4">
+    <div class="row">
         <!-- Main Column (Left) -->
         <div class="col-lg-8">
-            <!-- Basic Info -->
-            <div class="dashboard-card mb-4">
-                <div class="dashboard-card-header">
-                    <div>
-                        <h3 class="mb-0">Product Details</h3>
-                        <p class="text-muted small mb-0">Provide primary information and descriptions of your item.</p>
-                    </div>
+            <!-- 1. Basic Info -->
+            <div class="dashboard-card border-0 shadow-sm mb-4">
+                <div class="dashboard-card-header bg-white border-0 pt-4 pb-0">
+                    <h3 class="h5 font-bold mb-1">Product Information</h3>
+                    <p class="text-secondary-500 text-sm">Basic details about your product.</p>
                 </div>
                 <div class="dashboard-card-body">
                     <div class="form-group mb-4">
-                        <label class="form-label text-dark fw-semibold small">Product Title / Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control form-control-lg fw-bold" value="{{ old('name') }}" placeholder="e.g. Handcrafted Leather Sandal" required>
+                        <label class="form-label font-bold text-xs uppercase text-secondary-500">Product Name</label>
+                        <input type="text" name="name" class="form-control form-control-lg font-bold" value="{{ old('name') }}" placeholder="e.g. Premium Cotton T-Shirt" required>
                         @error('name') <div class="text-danger text-xs mt-1">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group mb-0">
-                        <label class="form-label text-dark fw-semibold small">Detailed Product Description <span class="text-danger">*</span></label>
-                        <textarea name="description" class="form-control" rows="6" placeholder="Provide detailed specifications, features, sizes, and care instructions..." required>{{ old('description') }}</textarea>
+                        <label class="form-label font-bold text-xs uppercase text-secondary-500">Description</label>
+                        <textarea name="description" class="form-control" rows="6" placeholder="Describe your product features and benefits..." required>{{ old('description') }}</textarea>
                          @error('description') <div class="text-danger text-xs mt-1">{{ $message }}</div> @enderror
                     </div>
                 </div>
             </div>
 
-            <!-- Media -->
-            <div class="dashboard-card mb-4">
-                <div class="dashboard-card-header">
+            <!-- 2. Media -->
+            <div class="dashboard-card border-0 shadow-sm mb-4">
+                <div class="dashboard-card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
                     <div>
-                        <h3 class="mb-0">Product Media & Gallery</h3>
-                        <p class="text-muted small mb-0">Upload high-resolution images to showcase your item.</p>
+                        <h3 class="h5 font-bold mb-1">Media</h3>
+                        <p class="text-secondary-500 text-sm">Upload high-quality images.</p>
                     </div>
                 </div>
                 <div class="dashboard-card-body">
-                    <div class="image-upload-area p-5 border border-dashed rounded-3 text-center bg-light" id="drop-zone" style="border-color: var(--border-color) !important; transition: all 0.2s;">
+                    <div class="image-upload-area" id="drop-zone">
                         <input type="file" name="images[]" id="images" multiple accept="image/*" style="display: none;">
-                        <label for="images" class="upload-label mb-0" style="cursor: pointer;">
-                            <i class="fas fa-cloud-arrow-up text-indigo fa-3x mb-3"></i>
-                            <div class="fw-bold text-dark">Click to browse gallery files</div>
-                            <small class="text-muted">or drag & drop images here</small>
+                        <label for="images" class="upload-label mb-0">
+                            <i class="fas fa-cloud-upload-alt text-primary-300 fa-3x mb-3"></i>
+                            <span class="font-bold text-secondary-700">Click to upload images</span>
+                            <small class="text-secondary-400">or drag and drop here</small>
                         </label>
                     </div>
                     <div id="image-preview" class="image-preview-grid mt-3"></div>
                 </div>
             </div>
 
-             <!-- Variants -->
-             <div class="dashboard-card mb-4">
-                <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+             <!-- 3. Variants -->
+             <div class="dashboard-card border-0 shadow-sm mb-4">
+                <div class="dashboard-card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
                     <div>
-                        <h3 class="mb-0">Product Custom Variants</h3>
-                        <p class="text-muted small mb-0">Specify size variations, colors, prices, and stock units.</p>
+                        <h3 class="h5 font-bold mb-1">Variants</h3>
+                        <p class="text-secondary-500 text-sm">Add different sizes or colors.</p>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" id="add-variant">
-                        <i class="fas fa-plus me-1"></i> Add Custom Option
+                    <button type="button" class="btn btn-sm btn-outline-primary shadow-sm" id="add-variant">
+                        <i class="fas fa-plus mr-1"></i> Add Option
                     </button>
                 </div>
                 <div class="dashboard-card-body">
                     <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
+                        <table class="table table-bordered mb-0">
+                            <thead class="bg-light">
                                 <tr>
-                                    <th>Size Code</th>
-                                    <th>Color Value</th>
-                                    <th>Price Adjust (₦)</th>
-                                    <th>Stock Qty</th>
-                                    <th>Variant SKU</th>
-                                    <th width="40"></th>
+                                    <th class="text-xs font-bold uppercase text-secondary-500 border-0">Size</th>
+                                    <th class="text-xs font-bold uppercase text-secondary-500 border-0">Color</th>
+                                    <th class="text-xs font-bold uppercase text-secondary-500 border-0">Price (₦)</th>
+                                    <th class="text-xs font-bold uppercase text-secondary-500 border-0">Stock</th>
+                                    <th class="text-xs font-bold uppercase text-secondary-500 border-0">SKU</th>
+                                    <th class="border-0" width="40"></th>
                                 </tr>
                             </thead>
                             <tbody id="variants-body"></tbody>
                         </table>
                     </div>
-                    <p class="text-muted small mt-3"><i class="fas fa-circle-info me-1"></i> Leaving variant prices blank defaults them to the base product price.</p>
+                    <p class="text-secondary-400 text-xs mt-3">Only fill what is necessary. Empty price uses base price.</p>
                 </div>
             </div>
             
-            <!-- SEO -->
-            <div class="dashboard-card">
-                <div class="dashboard-card-header">
-                    <div>
-                        <h3 class="mb-0">Search Engine Listing</h3>
-                        <p class="text-muted small mb-0">Control how search engine bots index and display this product listing.</p>
-                    </div>
+            <!-- 4. SEO -->
+            <div class="dashboard-card border-0 shadow-sm mb-4">
+                <div class="dashboard-card-header bg-white border-0 pt-4 pb-0">
+                    <h3 class="h5 font-bold mb-1">Search Engine Listing</h3>
+                    <p class="text-secondary-500 text-sm">Preview how your product appears in search results.</p>
                 </div>
                 <div class="dashboard-card-body">
-                    <div class="p-3 bg-light rounded-3 border mb-4" style="border-color: var(--border-color) !important;">
-                        <div class="text-success small mb-1" style="font-size:11px;">buyniger.com.ng > product > ...</div>
-                        <h5 class="text-primary fw-bold mb-1" id="preview-title" style="font-size: 1.05rem; font-family:'Outfit', sans-serif;">Product Title | BuyNiger</h5>
-                        <p class="text-muted small mb-0" id="preview-desc" style="line-height:1.4;">Provide a meta description below to preview search engine snippets...</p>
+                    <div class="form-group mb-4">
+                        <div class="seo-preview-card p-3 bg-light rounded border border-light mb-3">
+                            <div class="seo-preview-url text-success text-xs mb-1">buyniger.com.ng > product > ...</div>
+                            <div class="seo-preview-title h5 text-primary mb-1 font-bold" id="preview-title">Product Title | BuyNiger</div>
+                            <div class="seo-preview-desc text-secondary-600 text-sm" id="preview-desc">Your description...</div>
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label text-dark fw-semibold small">SEO Page Title Tag</label>
-                        <input type="text" name="meta_title" id="meta_title" class="form-control" placeholder="Meta Title">
-                    </div>
-                    <div>
-                        <label class="form-label text-dark fw-semibold small">SEO Meta Description</label>
-                        <textarea name="meta_description" id="meta_description" class="form-control" rows="3" placeholder="Brief description visible on search results"></textarea>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label font-bold text-xs uppercase text-secondary-500">Page Title</label>
+                            <input type="text" name="meta_title" id="meta_title" class="form-control" placeholder="SEO Title">
+                        </div>
+                         <div class="col-md-12">
+                            <label class="form-label font-bold text-xs uppercase text-secondary-500">Meta Description</label>
+                            <textarea name="meta_description" id="meta_description" class="form-control" rows="3" placeholder="SEO Description"></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -122,16 +122,19 @@
 
         <!-- Sidebar Column (Right) -->
         <div class="col-lg-4">
-            <!-- Organization -->
-            <div class="dashboard-card mb-4">
-                <div class="dashboard-card-header">
-                    <h3>Categories & Tags</h3>
+            <!-- 1. Status -->
+
+
+            <!-- 2. Organization -->
+            <div class="dashboard-card border-0 shadow-sm mb-4">
+                <div class="dashboard-card-header bg-white border-0 pt-4 pb-0">
+                    <h3 class="h5 font-bold mb-1">Organization</h3>
                 </div>
                 <div class="dashboard-card-body">
                     <div class="form-group mb-4">
-                         <label class="form-label text-dark fw-semibold small">Product Category <span class="text-danger">*</span></label>
-                         <select name="category_id" class="form-select" required>
-                            <option value="">Choose category...</option>
+                         <label class="form-label font-bold text-xs uppercase text-secondary-500">Category</label>
+                         <select name="category_id" class="form-control custom-select" required>
+                            <option value="">Select Category</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
                                     {{ $category->name }}
@@ -140,62 +143,61 @@
                         </select>
                          @error('category_id') <div class="text-danger text-xs mt-1">{{ $message }}</div> @enderror
                     </div>
-                    <div class="form-group">
-                        <label class="form-label text-dark fw-semibold small">Search Keywords / Tags</label>
-                        <input type="text" name="tags" class="form-control" value="{{ old('tags') }}" placeholder="e.g. Leather, Traditional, Gift">
-                        <small class="text-muted small mt-1 d-block">Comma-separated tags for storefront filters.</small>
+                    <div class="form-group mb-0">
+                        <label class="form-label font-bold text-xs uppercase text-secondary-500">Tags</label>
+                        <input type="text" name="tags" class="form-control" value="{{ old('tags') }}" placeholder="Vintage, Summer, Sale">
+                        <small class="text-secondary-400 text-xs">Comma separated.</small>
                     </div>
                 </div>
             </div>
 
-            <!-- Pricing -->
-             <div class="dashboard-card mb-4">
-                <div class="dashboard-card-header">
-                    <h3>Base Pricing</h3>
+            <!-- 3. Pricing -->
+             <div class="dashboard-card border-0 shadow-sm mb-4">
+                <div class="dashboard-card-header bg-white border-0 pt-4 pb-0">
+                    <h3 class="h5 font-bold mb-1">Pricing</h3>
                 </div>
                 <div class="dashboard-card-body">
                      <div class="form-group mb-4">
-                        <label class="form-label text-dark fw-semibold small">Base Listing Price (₦) <span class="text-danger">*</span></label>
-                        <input type="number" name="price" class="form-control form-control-lg fw-bold text-dark" value="{{ old('price') }}" min="0" step="0.01" placeholder="0.00" required>
+                        <label class="form-label font-bold text-xs uppercase text-secondary-500">Price (₦)</label>
+                        <input type="number" name="price" class="form-control font-bold text-dark" value="{{ old('price') }}" min="0" step="0.01" placeholder="0.00" required>
                          @error('price') <div class="text-danger text-xs mt-1">{{ $message }}</div> @enderror
                     </div>
-                    <div class="form-group">
-                        <label class="form-label text-dark fw-semibold small">Compare Strikethrough Price (₦)</label>
+                    <div class="form-group mb-0">
+                        <label class="form-label font-bold text-xs uppercase text-secondary-500">Compare Price (₦)</label>
                         <input type="number" name="compare_price" class="form-control" value="{{ old('compare_price') }}" min="0" step="0.01" placeholder="0.00">
-                        <small class="text-muted small mt-1 d-block">Original retail price shown as strikethrough.</small>
+                        <small class="text-secondary-400 text-xs">Original price (strikethrough).</small>
                     </div>
                 </div>
             </div>
 
-             <!-- Inventory -->
-             <div class="dashboard-card mb-4">
-                <div class="dashboard-card-header">
-                    <h3>Listing Inventory</h3>
+             <!-- 4. Inventory -->
+             <div class="dashboard-card border-0 shadow-sm mb-4">
+                <div class="dashboard-card-header bg-white border-0 pt-4 pb-0">
+                    <h3 class="h5 font-bold mb-1">Inventory</h3>
                 </div>
                 <div class="dashboard-card-body">
                      <div class="form-group mb-4">
-                        <label class="form-label text-dark fw-semibold small">Product Base SKU</label>
-                        <input type="text" name="sku" class="form-control" value="{{ old('sku') }}" placeholder="Auto-generated SKU code">
+                        <label class="form-label font-bold text-xs uppercase text-secondary-500">SKU (Stock Keeping Unit)</label>
+                        <input type="text" name="sku" class="form-control" value="{{ old('sku') }}" placeholder="Auto-generated if empty">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label text-dark fw-semibold small">Base Stock Quantity</label>
+                    <div class="form-group mb-0">
+                        <label class="form-label font-bold text-xs uppercase text-secondary-500">Quantity</label>
                         <input type="number" name="quantity" class="form-control" value="{{ old('quantity', 0) }}" min="0">
                          @error('quantity') <div class="text-danger text-xs mt-1">{{ $message }}</div> @enderror
                     </div>
                 </div>
             </div>
-            
-             <!-- Publishing Actions -->
-             <div class="dashboard-card">
-                <div class="dashboard-card-header bg-dark text-white">
-                    <h3 class="text-white">Publish Options</h3>
+             <!-- 5. Publishing -->
+             <div class="dashboard-card border-0 shadow-sm mb-4">
+                <div class="dashboard-card-header bg-white border-0 pt-4 pb-0">
+                    <h3 class="h5 font-bold mb-1">Publishing</h3>
                 </div>
-                <div class="dashboard-card-body d-flex flex-column gap-2">
-                   <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">
-                        <i class="fas fa-paper-plane me-1"></i> Publish Listing
+                <div class="dashboard-card-body">
+                   <button type="submit" class="btn btn-primary btn-block shadow-sm py-2 mb-3 font-bold">
+                        <i class="fas fa-save mr-2"></i> Save Product
                    </button>
-                    <a href="{{ route('vendor.products') }}" class="btn btn-outline-secondary w-100 rounded-pill py-2">
-                        Cancel & Exit
+                    <a href="{{ route('vendor.products') }}" class="btn btn-outline-secondary btn-block border-0 text-secondary-500">
+                        Cancel
                     </a>
                 </div>
             </div>
@@ -204,6 +206,24 @@
 </form>
 
 <style>
+    .image-upload-area {
+        border: 2px dashed #e2e8f0;
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        background: #f8fafc;
+        transition: all 0.2s;
+    }
+    .image-upload-area:hover {
+        border-color: #3b82f6;
+        background: #eff6ff;
+    }
+    .upload-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+    }
     .image-preview-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -214,7 +234,7 @@
         aspect-ratio: 1;
         border-radius: 8px;
         overflow: hidden;
-        border: 1px solid var(--border-color);
+        border: 1px solid #e2e8f0;
         cursor: grab;
     }
     .preview-item img {
@@ -240,9 +260,7 @@
         box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
 </style>
-@endpush
 
-@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
     // Image Preview & Sortable
@@ -264,7 +282,7 @@
         });
     }
 
-    // SEO Preview updates
+    // SEO Preview
     const inputs = ['meta_title', 'meta_description', 'name'];
     inputs.forEach(id => {
         const el = document.querySelector(`[name="${id}"]`);
@@ -273,26 +291,25 @@
 
     function updateSEO() {
         const title = document.querySelector('[name="meta_title"]').value || document.querySelector('[name="name"]').value || 'Product Title';
-        const desc = document.querySelector('[name="meta_description"]').value || 'Provide a meta description below to preview search engine snippets...';
+        const desc = document.querySelector('[name="meta_description"]').value || 'Your description...';
         document.getElementById('preview-title').innerText = title + ' | BuyNiger';
         document.getElementById('preview-desc').innerText = desc.substring(0, 150) + (desc.length > 150 ? '...' : '');
     }
 
-    // Add Variants option row dynamically
+    // Variants
     let vIndex = 0;
     document.getElementById('add-variant').addEventListener('click', () => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><input type="text" name="variants[${vIndex}][size]" class="form-control form-control-sm" placeholder="e.g. L"></td>
-            <td><input type="text" name="variants[${vIndex}][color]" class="form-control form-control-sm" placeholder="e.g. Blue"></td>
+            <td><input type="text" name="variants[${vIndex}][color]" class="form-control form-control-sm" placeholder="e.g. Red"></td>
             <td><input type="number" name="variants[${vIndex}][price]" class="form-control form-control-sm" placeholder="0.00"></td>
             <td><input type="number" name="variants[${vIndex}][stock]" class="form-control form-control-sm" value="0"></td>
-            <td><input type="text" name="variants[${vIndex}][sku]" class="form-control form-control-sm" placeholder="Variant SKU"></td>
-            <td class="text-end"><button type="button" class="btn btn-link text-danger btn-sm p-0" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button></td>
+            <td><input type="text" name="variants[${vIndex}][sku]" class="form-control form-control-sm"></td>
+            <td><button type="button" class="btn btn-link text-danger btn-sm p-0" onclick="this.closest('tr').remove()"><i class="fas fa-trash"></i></button></td>
         `;
         document.getElementById('variants-body').appendChild(tr);
         vIndex++;
     });
 </script>
-@endpush
 @endsection
