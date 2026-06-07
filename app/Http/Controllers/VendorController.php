@@ -1000,6 +1000,29 @@ public function exportAnalytics(Request $request)
             $data['cac_document_path'] = $request->file('cac_document')->store('vendors/kyc', 'public');
         }
 
+        // Trigger Automated KYC (NIN/BVN) Verification if provided and not already verified
+        $kycSuccessMessage = null;
+        if (($request->nin || $request->bvn) && $vendor->kyc_status !== 'verified') {
+            $data['kyc_status'] = 'pending'; // Default fallback to manual review
+            
+            $kycResult = \App\Services\KYCService::autoVerify(
+                $request->nin,
+                $request->bvn,
+                Auth::user()->name
+            );
+
+            if ($kycResult['success'] && $kycResult['auto_verified']) {
+                $data['kyc_status'] = 'verified';
+                $data['kyc_verified_at'] = now();
+                $kycSuccessMessage = "KYC verified automatically!";
+            } else {
+                $kycSuccessMessage = "KYC details submitted. " . $kycResult['message'];
+            }
+        }
+
+        // Save settings to database
+        $vendor->update($data);
+
 
         // Update or create primary bank detail
         if ($request->bank_name && $request->account_number) {
@@ -1013,7 +1036,12 @@ public function exportAnalytics(Request $request)
             );
         }
 
-        return back()->with('success', 'Store settings updated successfully!');
+        $msg = 'Store settings updated successfully!';
+        if ($kycSuccessMessage) {
+            $msg .= ' ' . $kycSuccessMessage;
+        }
+
+        return back()->with('success', $msg);
     }
     /**
      * Display vendor finance dashboard.
