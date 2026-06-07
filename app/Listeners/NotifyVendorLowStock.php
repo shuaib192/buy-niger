@@ -1,16 +1,17 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Listener: NotifyVendorLowStock
  */
 
 namespace App\Listeners;
 
 use App\Events\InventoryLow;
-use App\Jobs\SendPushNotification;
 use App\Jobs\ProcessAIAnalysis;
+use App\Jobs\SendPushNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class NotifyVendorLowStock implements ShouldQueue

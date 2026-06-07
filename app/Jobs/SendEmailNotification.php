@@ -1,29 +1,30 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Job: SendEmailNotification
  * Handles email sending in queue (async)
  */
 
 namespace App\Jobs;
 
-use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\DB;
 
 class SendEmailNotification implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $backoff = [10, 30, 60];
 
     public function __construct(
@@ -46,8 +47,9 @@ class SendEmailNotification implements ShouldQueue
                 ->where('is_active', true)
                 ->first();
 
-            if (!$template) {
+            if (! $template) {
                 Log::warning("Email template not found: {$this->templateName}");
+
                 return;
             }
 
@@ -94,7 +96,7 @@ class SendEmailNotification implements ShouldQueue
                 // email_logs table may not exist
             }
 
-            Log::error("Email failed to {$this->recipientEmail}: " . $e->getMessage());
+            Log::error("Email failed to {$this->recipientEmail}: ".$e->getMessage());
         }
     }
 
@@ -103,12 +105,13 @@ class SendEmailNotification implements ShouldQueue
         foreach ($data as $key => $value) {
             $template = str_replace("{{$key}}", $value, $template);
         }
+
         return $template;
     }
 
     public function failed(\Throwable $exception): void
     {
-        Log::error("Email job failed for {$this->recipientEmail}: " . $exception->getMessage());
+        Log::error("Email job failed for {$this->recipientEmail}: ".$exception->getMessage());
         \App\Services\MetricsService::recordJobFailure(self::class, 'emails');
     }
 }

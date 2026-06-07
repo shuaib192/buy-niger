@@ -1,15 +1,16 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Controller: VendorProductController
  */
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,6 +50,7 @@ class VendorProductController extends Controller
     public function create()
     {
         $categories = Category::where('is_active', true)->get();
+
         return view('vendor.products.create', compact('categories'));
     }
 
@@ -62,7 +64,7 @@ class VendorProductController extends Controller
                 'required',
                 'string',
                 'max:255',
-                new \App\Rules\NoHtml(),
+                new \App\Rules\NoHtml,
             ],
             'category_id' => 'required|exists:categories,id',
             'description' => 'required|string',
@@ -72,7 +74,7 @@ class VendorProductController extends Controller
                 'nullable',
                 'string',
                 'max:100',
-                new \App\Rules\NoHtml(),
+                new \App\Rules\NoHtml,
             ],
             'quantity' => 'required|integer|min:0',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -84,12 +86,12 @@ class VendorProductController extends Controller
             'vendor_id' => $vendor->id,
             'category_id' => $request->category_id,
             'name' => $request->name,
-            'slug' => Str::slug($request->name) . '-' . Str::random(6),
+            'slug' => Str::slug($request->name).'-'.Str::random(6),
             'description' => $request->description,
             'short_description' => Str::limit(strip_tags($request->description), 200),
             'price' => $request->price,
             'sale_price' => $request->compare_price,
-            'sku' => $request->sku ?? 'BN-' . strtoupper(Str::random(8)),
+            'sku' => $request->sku ?? 'BN-'.strtoupper(Str::random(8)),
             'quantity' => $request->quantity,
             'low_stock_threshold' => 5,
             'status' => 'active',
@@ -118,6 +120,7 @@ class VendorProductController extends Controller
     {
         $this->authorizeProduct($product);
         $categories = Category::where('is_active', true)->get();
+
         return view('vendor.products.edit', compact('product', 'categories'));
     }
 
@@ -133,7 +136,7 @@ class VendorProductController extends Controller
                 'required',
                 'string',
                 'max:255',
-                new \App\Rules\NoHtml(),
+                new \App\Rules\NoHtml,
             ],
             'category_id' => 'required|exists:categories,id',
             'description' => 'required|string',
@@ -143,7 +146,7 @@ class VendorProductController extends Controller
                 'nullable',
                 'string',
                 'max:100',
-                new \App\Rules\NoHtml(),
+                new \App\Rules\NoHtml,
             ],
             'quantity' => 'required|integer|min:0',
             'status' => 'in:active,inactive,draft',
@@ -204,6 +207,7 @@ class VendorProductController extends Controller
         $this->authorizeProduct($product);
         $newStatus = $product->status === 'active' ? 'inactive' : 'active';
         $product->update(['status' => $newStatus]);
+
         return back()->with('success', 'Product status updated!');
     }
 

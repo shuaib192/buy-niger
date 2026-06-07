@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Listener: ProcessNewOrder
  * CRITICAL: This is the main order processing listener
  */
@@ -10,10 +11,10 @@
 namespace App\Listeners;
 
 use App\Events\OrderPlaced;
+use App\Jobs\AggregateAnalytics;
+use App\Jobs\ProcessAIAnalysis;
 use App\Jobs\SendEmailNotification;
 use App\Jobs\SendPushNotification;
-use App\Jobs\ProcessAIAnalysis;
-use App\Jobs\AggregateAnalytics;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 
@@ -31,9 +32,9 @@ class ProcessNewOrder implements ShouldQueue
             [
                 'customer_name' => $order->user->name,
                 'order_number' => $order->order_number,
-                'order_total' => '₦' . number_format($order->total, 2),
+                'order_total' => '₦'.number_format($order->total, 2),
                 'order_items' => $this->formatOrderItems($order),
-                'order_url' => url('/order/' . $order->order_number),
+                'order_url' => url('/order/'.$order->order_number),
                 'tracking_url' => url('/track-order'),
             ],
             $order->user_id
@@ -51,8 +52,8 @@ class ProcessNewOrder implements ShouldQueue
                     $vendor->user_id,
                     'new_order',
                     'New Order Received!',
-                    "You have a new order #{$order->order_number} worth ₦" . number_format($vendorTotal, 2),
-                    '/vendor/orders/' . $order->id
+                    "You have a new order #{$order->order_number} worth ₦".number_format($vendorTotal, 2),
+                    '/vendor/orders/'.$order->id
                 );
             }
         }
@@ -92,8 +93,9 @@ class ProcessNewOrder implements ShouldQueue
     {
         $items = [];
         foreach ($order->items as $item) {
-            $items[] = "{$item->product_name} x {$item->quantity} - ₦" . number_format($item->subtotal, 2);
+            $items[] = "{$item->product_name} x {$item->quantity} - ₦".number_format($item->subtotal, 2);
         }
+
         return implode('<br>', $items);
     }
 }

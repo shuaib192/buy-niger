@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Listener: SendCampaignEmails
  */
 
@@ -18,8 +19,8 @@ class SendCampaignEmails implements ShouldQueue
     public function handle(CampaignLaunched $event): void
     {
         $campaign = DB::table('email_campaigns')->find($event->campaignId);
-        
-        if (!$campaign) {
+
+        if (! $campaign) {
             return;
         }
 
@@ -40,7 +41,7 @@ class SendCampaignEmails implements ShouldQueue
             SendEmailNotification::dispatch(
                 $recipient->email,
                 $recipient->name,
-                'campaign_' . $event->campaignId,
+                'campaign_'.$event->campaignId,
                 [
                     'customer_name' => $recipient->name,
                     'campaign_content' => $campaign->body,

@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Job: AggregateAnalytics
  * Handles analytics aggregation in queue (async)
  */
@@ -43,7 +44,7 @@ class AggregateAnalytics implements ShouldQueue
 
                 $query->where(function ($q) use ($productIds) {
                     $q->whereJsonContains('event_data->vendor_id', $this->vendorId)
-                      ->orWhereIn('event_data->product_id', $productIds);
+                        ->orWhereIn('event_data->product_id', $productIds);
                 });
             }
 
@@ -71,8 +72,8 @@ class AggregateAnalytics implements ShouldQueue
             $revenue = $ordersQuery->sum('total');
 
             // Calculate conversion rate
-            $conversionRate = $uniqueVisitors > 0 
-                ? round(($ordersCount / $uniqueVisitors) * 100, 2) 
+            $conversionRate = $uniqueVisitors > 0
+                ? round(($ordersCount / $uniqueVisitors) * 100, 2)
                 : 0;
 
             // Upsert daily analytics
@@ -93,17 +94,17 @@ class AggregateAnalytics implements ShouldQueue
                 ]
             );
 
-            Log::info("Analytics aggregated for {$this->date}" . ($this->vendorId ? " (vendor: {$this->vendorId})" : ''));
+            Log::info("Analytics aggregated for {$this->date}".($this->vendorId ? " (vendor: {$this->vendorId})" : ''));
 
         } catch (\Exception $e) {
-            Log::error("Analytics aggregation failed: " . $e->getMessage());
+            Log::error('Analytics aggregation failed: '.$e->getMessage());
             throw $e;
         }
     }
 
     public function failed(\Throwable $exception): void
     {
-        Log::error("Analytics aggregation job failed: " . $exception->getMessage());
+        Log::error('Analytics aggregation job failed: '.$exception->getMessage());
         \App\Services\MetricsService::recordJobFailure(self::class, 'analytics');
     }
 }

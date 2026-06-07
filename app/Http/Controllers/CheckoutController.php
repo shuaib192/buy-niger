@@ -236,14 +236,14 @@ class CheckoutController extends Controller
             $vendorItems = [];
             foreach ($cart->items as $item) {
                 $product = \App\Models\Product::lockForUpdate()->find($item->product_id);
-                if (!$product) {
+                if (! $product) {
                     throw new \Exception('Product not found.');
                 }
 
                 $variant = null;
                 if ($item->product_variant_id) {
                     $variant = \App\Models\ProductVariant::lockForUpdate()->find($item->product_variant_id);
-                    if (!$variant || $variant->product_id != $product->id) {
+                    if (! $variant || $variant->product_id != $product->id) {
                         throw new \Exception('Invalid product variant.');
                     }
                     if ($variant->stock_quantity < $item->quantity) {
@@ -289,8 +289,8 @@ class CheckoutController extends Controller
                         'change_amount' => -$item->quantity,
                         'new_stock_level' => $variant->stock_quantity,
                         'type' => 'adjustment',
-                        'reason' => 'Customer purchase (Order ' . $order->order_number . ')',
-                        'user_id' => Auth::id()
+                        'reason' => 'Customer purchase (Order '.$order->order_number.')',
+                        'user_id' => Auth::id(),
                     ]);
                 } else {
                     $product->decrement('quantity', $item->quantity);
@@ -300,8 +300,8 @@ class CheckoutController extends Controller
                         'change_amount' => -$item->quantity,
                         'new_stock_level' => $product->quantity,
                         'type' => 'adjustment',
-                        'reason' => 'Customer purchase (Order ' . $order->order_number . ')',
-                        'user_id' => Auth::id()
+                        'reason' => 'Customer purchase (Order '.$order->order_number.')',
+                        'user_id' => Auth::id(),
                     ]);
                 }
             }

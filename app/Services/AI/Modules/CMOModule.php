@@ -2,10 +2,9 @@
 
 namespace App\Services\AI\Modules;
 
-use App\Services\AI\AIService;
-use App\Models\Vendor;
 use App\Models\Product;
-use Illuminate\Support\Facades\DB;
+use App\Models\Vendor;
+use App\Services\AI\AIService;
 
 class CMOModule
 {
@@ -24,14 +23,14 @@ class CMOModule
         // Find products with high stock but low recent sales (stagnant inventory)
         // MVP: Just grab products with high stock for now
         $stagnantProducts = Product::where('vendor_id', $vendor->id)
-                                   ->where('stock_quantity', '>', 50)
-                                   ->take(5)
-                                   ->get();
-        
-        $productList = $stagnantProducts->map(fn($p) => "- {$p->name} (Stock: {$p->stock_quantity}, Price: ₦{$p->price})")->implode("\n");
+            ->where('stock_quantity', '>', 50)
+            ->take(5)
+            ->get();
+
+        $productList = $stagnantProducts->map(fn ($p) => "- {$p->name} (Stock: {$p->stock_quantity}, Price: ₦{$p->price})")->implode("\n");
 
         if (empty($productList)) {
-            $productList = "Inventory is moving well. No specific stagnant products identified.";
+            $productList = 'Inventory is moving well. No specific stagnant products identified.';
         }
 
         $prompt = "You are the AI Chief Marketing Officer (CMO) for '{$vendor->store_name}'.

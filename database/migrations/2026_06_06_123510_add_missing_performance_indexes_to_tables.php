@@ -23,6 +23,7 @@ return new class extends Migration
             } catch (\Throwable $e) {
                 // If we can't retrieve indexes, assume it doesn't exist
             }
+
             return false;
         };
 

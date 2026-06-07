@@ -34,7 +34,7 @@ class ReviewController extends Controller
                 'string',
                 'min:5',
                 'max:1000',
-                new \App\Rules\NoHtml(),
+                new \App\Rules\NoHtml,
             ],
         ]);
 
@@ -104,7 +104,7 @@ class ReviewController extends Controller
                 'string',
                 'min:5',
                 'max:1000',
-                new \App\Rules\NoHtml(),
+                new \App\Rules\NoHtml,
             ],
         ]);
 

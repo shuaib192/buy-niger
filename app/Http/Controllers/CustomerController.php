@@ -1,17 +1,18 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Controller: CustomerController
  */
 
 namespace App\Http\Controllers;
 
+use App\Models\Address;
 use App\Models\Order;
 use App\Models\Review;
 use App\Models\Wishlist;
-use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -89,7 +90,7 @@ class CustomerController extends Controller
 
         $user = Auth::user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Current password is incorrect']);
         }
 
@@ -106,6 +107,7 @@ class CustomerController extends Controller
     public function addresses()
     {
         $addresses = Address::where('user_id', Auth::id())->get();
+
         return view('customer.addresses', compact('addresses'));
     }
 
@@ -156,7 +158,7 @@ class CustomerController extends Controller
     public function setDefaultAddress($id)
     {
         Address::where('user_id', Auth::id())->update(['is_default' => false]);
-        
+
         $address = Address::where('user_id', Auth::id())->findOrFail($id);
         $address->update(['is_default' => true]);
 
@@ -199,7 +201,7 @@ class CustomerController extends Controller
         }
 
         // Check if order can be cancelled
-        if (!$order->canBeCancelled()) {
+        if (! $order->canBeCancelled()) {
             return back()->with('error', 'This order cannot be cancelled. Only pending, paid, or processing orders can be cancelled.');
         }
 
@@ -208,7 +210,7 @@ class CustomerController extends Controller
         ]);
 
         // Update order status
-        $order->updateStatus('cancelled', 'Cancelled by customer: ' . $request->reason, Auth::user());
+        $order->updateStatus('cancelled', 'Cancelled by customer: '.$request->reason, Auth::user());
 
         // Get all unique vendors from order items
         $order->load('items.vendor.user');
@@ -242,18 +244,20 @@ class CustomerController extends Controller
     {
         try {
             $user = $vendor->user;
-            if (!$user || !$user->email) return;
+            if (! $user || ! $user->email) {
+                return;
+            }
 
-            $subject = 'BuyNiger — Order Cancelled: #' . $order->order_number;
+            $subject = 'BuyNiger — Order Cancelled: #'.$order->order_number;
 
             // Build items list for the email
             $itemsHtml = '';
             foreach ($order->items->where('vendor_id', $vendor->id) as $item) {
                 $itemsHtml .= '<div style="padding:8px 0;border-bottom:1px solid #f1f5f9;">'
-                    . '<strong>' . $item->product_name . '</strong>'
-                    . ' × ' . $item->quantity
-                    . ' — ₦' . number_format($item->subtotal, 2)
-                    . '</div>';
+                    .'<strong>'.$item->product_name.'</strong>'
+                    .' × '.$item->quantity
+                    .' — ₦'.number_format($item->subtotal, 2)
+                    .'</div>';
             }
 
             $emailBody = '
@@ -265,19 +269,19 @@ class CustomerController extends Controller
                     <h2 style="margin:0;color:#1e293b;font-size:22px;">Order Cancelled</h2>
                 </div>
                 <p style="color:#475569;font-size:15px;line-height:1.7;">
-                    Hello <strong>' . $user->name . '</strong>, an order from your store <strong>' . $vendor->store_name . '</strong> has been cancelled by the customer.
+                    Hello <strong>'.$user->name.'</strong>, an order from your store <strong>'.$vendor->store_name.'</strong> has been cancelled by the customer.
                 </p>
                 <div style="background:#fef2f2;border-radius:12px;padding:16px;margin:16px 0;">
                     <div style="font-size:13px;color:#991b1b;font-weight:700;margin-bottom:8px;">CANCELLATION REASON</div>
-                    <p style="margin:0;color:#dc2626;font-size:14px;">' . e($reason) . '</p>
+                    <p style="margin:0;color:#dc2626;font-size:14px;">'.e($reason).'</p>
                 </div>
                 <div style="background:#f8fafc;border-radius:12px;padding:16px;margin:16px 0;">
-                    <div style="font-size:13px;color:#64748b;font-weight:700;margin-bottom:8px;">ORDER DETAILS — #' . $order->order_number . '</div>
-                    ' . $itemsHtml . '
-                    <div style="padding-top:12px;font-weight:700;">Total: ₦' . number_format($order->total, 2) . '</div>
+                    <div style="font-size:13px;color:#64748b;font-weight:700;margin-bottom:8px;">ORDER DETAILS — #'.$order->order_number.'</div>
+                    '.$itemsHtml.'
+                    <div style="padding-top:12px;font-weight:700;">Total: ₦'.number_format($order->total, 2).'</div>
                 </div>
                 <div style="text-align:center;margin:32px 0;">
-                    <a href="' . route('vendor.orders.show', $order->id) . '" style="display:inline-block;background:#ef4444;color:white;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:700;font-size:15px;">View Order</a>
+                    <a href="'.route('vendor.orders.show', $order->id).'" style="display:inline-block;background:#ef4444;color:white;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:700;font-size:15px;">View Order</a>
                 </div>
                 <hr style="border:none;border-top:1px solid #e2e8f0;margin:32px 0;">
                 <p style="color:#94a3b8;font-size:12px;text-align:center;">BuyNiger — Multi-Vendor Marketplace</p>
@@ -285,7 +289,7 @@ class CustomerController extends Controller
 
             \Illuminate\Support\Facades\Mail::to($user->email)->queue(new \App\Mail\GenericEmail($subject, $emailBody));
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Order cancellation email failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Order cancellation email failed: '.$e->getMessage());
         }
     }
 }

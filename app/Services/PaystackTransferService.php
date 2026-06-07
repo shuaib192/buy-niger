@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 class PaystackTransferService
 {
     private string $baseUrl = 'https://api.paystack.co';
+
     private ?string $secretKey;
 
     public function __construct()
@@ -16,13 +17,13 @@ class PaystackTransferService
 
     public function isConfigured(): bool
     {
-        return !empty($this->secretKey);
+        return ! empty($this->secretKey);
     }
 
     public function createRecipient(string $accountName, string $accountNumber, string $bankCode): array
     {
         $response = Http::withoutVerifying()->withToken($this->secretKey)
-            ->post($this->baseUrl . '/transferrecipient', [
+            ->post($this->baseUrl.'/transferrecipient', [
                 'type' => 'nuban',
                 'name' => $accountName,
                 'account_number' => $accountNumber,
@@ -32,7 +33,7 @@ class PaystackTransferService
 
         $json = $response->json();
 
-        if (!$response->successful() || !($json['status'] ?? false)) {
+        if (! $response->successful() || ! ($json['status'] ?? false)) {
             return [
                 'success' => false,
                 'message' => $json['message'] ?? 'Unable to create transfer recipient.',
@@ -50,7 +51,7 @@ class PaystackTransferService
     public function initiateTransfer(float $amount, string $recipientCode, string $reference, ?string $reason = null): array
     {
         $response = Http::withoutVerifying()->withToken($this->secretKey)
-            ->post($this->baseUrl . '/transfer', [
+            ->post($this->baseUrl.'/transfer', [
                 'source' => 'balance',
                 'amount' => (int) round($amount * 100), // Kobo
                 'recipient' => $recipientCode,
@@ -61,7 +62,7 @@ class PaystackTransferService
 
         $json = $response->json();
 
-        if (!$response->successful() || !($json['status'] ?? false)) {
+        if (! $response->successful() || ! ($json['status'] ?? false)) {
             return [
                 'success' => false,
                 'message' => $json['message'] ?? 'Transfer initiation failed.',
@@ -79,13 +80,13 @@ class PaystackTransferService
     public function resolveBankCodeByName(string $bankName): ?string
     {
         $response = Http::withoutVerifying()->withToken($this->secretKey)
-            ->get($this->baseUrl . '/bank', [
+            ->get($this->baseUrl.'/bank', [
                 'country' => 'nigeria',
                 'currency' => 'NGN',
             ]);
 
         $json = $response->json();
-        if (!$response->successful() || !($json['status'] ?? false)) {
+        if (! $response->successful() || ! ($json['status'] ?? false)) {
             return null;
         }
 

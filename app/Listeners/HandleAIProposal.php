@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Listener: HandleAIProposal
  */
 
@@ -18,7 +19,7 @@ class HandleAIProposal implements ShouldQueue
     public function handle(AIActionProposed $event): void
     {
         // If high risk or requires approval, notify admins
-        if (in_array($event->riskLevel, ['high', 'critical']) || !$event->autoExecutable) {
+        if (in_array($event->riskLevel, ['high', 'critical']) || ! $event->autoExecutable) {
             $admins = DB::table('users')
                 ->whereIn('role_id', [1, 2])
                 ->where('is_active', true)

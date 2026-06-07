@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Service: MetricsService
  * Handles system health metrics and observability
  */
@@ -11,7 +12,6 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 
 class MetricsService
 {
@@ -49,7 +49,7 @@ class MetricsService
             ]);
 
         } catch (\Exception $e) {
-            Log::error("Failed to record job failure metric: " . $e->getMessage());
+            Log::error('Failed to record job failure metric: '.$e->getMessage());
         }
     }
 
@@ -77,7 +77,7 @@ class MetricsService
             );
 
         } catch (\Exception $e) {
-            Log::error("Failed to record job success metric: " . $e->getMessage());
+            Log::error('Failed to record job success metric: '.$e->getMessage());
         }
     }
 
@@ -88,8 +88,12 @@ class MetricsService
     {
         try {
             $status = 'normal';
-            if ($failedJobs > 10) $status = 'warning';
-            if ($failedJobs > 50 || $pendingJobs > 1000) $status = 'critical';
+            if ($failedJobs > 10) {
+                $status = 'warning';
+            }
+            if ($failedJobs > 50 || $pendingJobs > 1000) {
+                $status = 'critical';
+            }
 
             DB::table('system_health_metrics')->insert([
                 'metric_type' => 'queue_health',
@@ -106,7 +110,7 @@ class MetricsService
             ]);
 
         } catch (\Exception $e) {
-            Log::error("Failed to record queue health: " . $e->getMessage());
+            Log::error('Failed to record queue health: '.$e->getMessage());
         }
     }
 
@@ -117,8 +121,12 @@ class MetricsService
     {
         try {
             $status = 'normal';
-            if ($latencyMs > 5000) $status = 'warning';
-            if ($latencyMs > 15000) $status = 'critical';
+            if ($latencyMs > 5000) {
+                $status = 'warning';
+            }
+            if ($latencyMs > 15000) {
+                $status = 'critical';
+            }
 
             DB::table('system_health_metrics')->insert([
                 'metric_type' => 'ai_latency',
@@ -131,7 +139,7 @@ class MetricsService
             ]);
 
         } catch (\Exception $e) {
-            Log::error("Failed to record AI latency: " . $e->getMessage());
+            Log::error('Failed to record AI latency: '.$e->getMessage());
         }
     }
 
@@ -153,7 +161,7 @@ class MetricsService
             ]);
 
         } catch (\Exception $e) {
-            Log::error("Failed to record payment failure: " . $e->getMessage());
+            Log::error('Failed to record payment failure: '.$e->getMessage());
         }
     }
 
@@ -193,7 +201,7 @@ class MetricsService
         foreach ($queues as $queue) {
             $pending = DB::table('jobs')->where('queue', $queue)->count();
             $failed = DB::table('failed_jobs')->where('queue', $queue)->count();
-            
+
             $status[$queue] = [
                 'pending' => $pending,
                 'failed' => $failed,
@@ -221,8 +229,13 @@ class MetricsService
             ->where('created_at', '>=', $lastHour)
             ->count();
 
-        if ($criticalMetrics > 0) return 'critical';
-        if ($warningMetrics > 5) return 'warning';
+        if ($criticalMetrics > 0) {
+            return 'critical';
+        }
+        if ($warningMetrics > 5) {
+            return 'warning';
+        }
+
         return 'healthy';
     }
 }

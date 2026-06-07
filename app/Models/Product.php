@@ -168,7 +168,7 @@ class Product extends Model
     public function getPrimaryImageUrlAttribute(): ?string
     {
         if ($this->relationLoaded('images')) {
-            $image = $this->images->first(fn($img) => $img->is_primary)
+            $image = $this->images->first(fn ($img) => $img->is_primary)
                      ?? $this->images->first();
         } else {
             $image = $this->images()->where('is_primary', true)->first()

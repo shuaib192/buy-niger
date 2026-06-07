@@ -14,8 +14,9 @@ class DisposableEmail implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!is_string($value)) {
+        if (! is_string($value)) {
             $fail('The :attribute is invalid.');
+
             return;
         }
 
@@ -23,14 +24,16 @@ class DisposableEmail implements ValidationRule
         $parts = explode('@', $email);
         if (count($parts) < 2) {
             $fail('The :attribute is invalid.');
+
             return;
         }
 
         $domain = $parts[1];
 
         // Ensure domain has a dot and a valid TLD of at least 2 characters
-        if (!str_contains($domain, '.') || strlen(substr(strrchr($domain, '.'), 1)) < 2) {
+        if (! str_contains($domain, '.') || strlen(substr(strrchr($domain, '.'), 1)) < 2) {
             $fail('The email address domain is invalid.');
+
             return;
         }
 
@@ -62,8 +65,9 @@ class DisposableEmail implements ValidationRule
 
         // Exact match or sub-domain check
         foreach ($blockedDomains as $blocked) {
-            if ($domain === $blocked || str_ends_with($domain, '.' . $blocked)) {
+            if ($domain === $blocked || str_ends_with($domain, '.'.$blocked)) {
                 $fail('Registration from temporary, disposable, or Tor-related email addresses is not permitted.');
+
                 return;
             }
         }
@@ -71,8 +75,9 @@ class DisposableEmail implements ValidationRule
         // 2. Perform MX Record verification to ensure the domain actually exists and can receive email.
         // This is a powerful mechanism to block auto-generated/fake domain spam bots.
         if (function_exists('checkdnsrr')) {
-            if (!checkdnsrr($domain, 'MX')) {
+            if (! checkdnsrr($domain, 'MX')) {
                 $fail('The email address domain does not appear to have valid mail servers.');
+
                 return;
             }
         }

@@ -1,4 +1,5 @@
 <?php
+
 // Emergency Cache Clear Script
 // Visit this via: https://buyniger.com/clear.php
 
@@ -9,26 +10,26 @@ $response = $kernel->handle(
     $request = Illuminate\Http\Request::capture()
 );
 
-echo "<h1>Clearing All Caches...</h1>";
+echo '<h1>Clearing All Caches...</h1>';
 
 try {
     \Illuminate\Support\Facades\Artisan::call('route:clear');
-    echo "Routes cleared...<br>";
+    echo 'Routes cleared...<br>';
     \Illuminate\Support\Facades\Artisan::call('config:clear');
-    echo "Config cleared...<br>";
+    echo 'Config cleared...<br>';
     \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    echo "General cache cleared...<br>";
+    echo 'General cache cleared...<br>';
     \Illuminate\Support\Facades\Artisan::call('view:clear');
-    echo "Views cleared...<br>";
-    
+    echo 'Views cleared...<br>';
+
     if (function_exists('opcache_reset')) {
         opcache_reset();
-        echo "OPcache reset successful!<br>";
+        echo 'OPcache reset successful!<br>';
     } else {
-        echo "OPcache reset function not found.<br>";
+        echo 'OPcache reset function not found.<br>';
     }
-    
-    echo "<h2>DONE! Now visit the site.</h2>";
+
+    echo '<h2>DONE! Now visit the site.</h2>';
 } catch (\Exception $e) {
-    echo "Error: " . $e->getMessage();
+    echo 'Error: '.$e->getMessage();
 }

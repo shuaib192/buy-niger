@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Listener: SendOrderStatusEmail
  */
 
@@ -40,8 +41,8 @@ class SendOrderStatusEmail implements ShouldQueue
                     'order_number' => $order->order_number,
                     'tracking_number' => $order->items->first()?->tracking_number ?? '',
                     'tracking_url' => url('/track-order'),
-                    'order_url' => url('/order/' . $order->order_number),
-                    'order_total' => '₦' . number_format($order->total, 2),
+                    'order_url' => url('/order/'.$order->order_number),
+                    'order_total' => '₦'.number_format($order->total, 2),
                 ],
                 $order->user_id
             );
@@ -60,9 +61,9 @@ class SendOrderStatusEmail implements ShouldQueue
         SendPushNotification::dispatch(
             $order->user_id,
             'order_status',
-            'Order Update - #' . $order->order_number,
+            'Order Update - #'.$order->order_number,
             $messages[$event->newStatus] ?? 'Your order status has been updated.',
-            '/order/' . $order->id
+            '/order/'.$order->id
         );
     }
 }

@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Job: ProcessAIAnalysis
  * Handles AI analysis and decision-making in queue (async)
  * CRITICAL: All AI decisions go through simulation first (Shadow Mode)
@@ -24,6 +25,7 @@ class ProcessAIAnalysis implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 2;
+
     public $timeout = 120; // AI calls can take time
 
     public function __construct(
@@ -41,7 +43,8 @@ class ProcessAIAnalysis implements ShouldQueue
             // Check if AI is enabled
             $aiMode = $this->getAIMode();
             if ($aiMode === 'off') {
-                Log::info("AI is disabled. Skipping analysis.");
+                Log::info('AI is disabled. Skipping analysis.');
+
                 return;
             }
 
@@ -55,20 +58,21 @@ class ProcessAIAnalysis implements ShouldQueue
                 $this->aiRole
             );
 
-            if (!$analysis['success']) {
-                Log::warning("AI analysis failed: " . ($analysis['error'] ?? 'Unknown error'));
+            if (! $analysis['success']) {
+                Log::warning('AI analysis failed: '.($analysis['error'] ?? 'Unknown error'));
+
                 return;
             }
 
             // If AI proposes an action, create a simulation record
-            if (!empty($analysis['proposed_action'])) {
+            if (! empty($analysis['proposed_action'])) {
                 $this->createSimulation($analysis);
             }
 
             Log::info("AI analysis completed for {$this->aiRole}: {$this->analysisType}");
 
         } catch (\Exception $e) {
-            Log::error("AI analysis error: " . $e->getMessage());
+            Log::error('AI analysis error: '.$e->getMessage());
             throw $e;
         }
     }
@@ -77,7 +81,7 @@ class ProcessAIAnalysis implements ShouldQueue
     {
         // Determine risk level based on action type and values
         $riskLevel = $this->assessRiskLevel($analysis);
-        
+
         // Check if action is auto-executable based on permissions
         $autoExecutable = $this->checkAutoExecutable($analysis, $riskLevel);
 
@@ -122,16 +126,26 @@ class ProcessAIAnalysis implements ShouldQueue
         // Critical actions
         if (in_array($action, ['refund', 'cancel_order', 'suspend_vendor', 'delete_product'])) {
             $amount = $params['amount'] ?? 0;
-            if ($amount > 50000) return 'critical';
-            if ($amount > 10000) return 'high';
+            if ($amount > 50000) {
+                return 'critical';
+            }
+            if ($amount > 10000) {
+                return 'high';
+            }
+
             return 'medium';
         }
 
         // Price changes
         if ($action === 'price_change') {
             $percentChange = abs($params['percentage'] ?? 0);
-            if ($percentChange > 20) return 'high';
-            if ($percentChange > 10) return 'medium';
+            if ($percentChange > 20) {
+                return 'high';
+            }
+            if ($percentChange > 10) {
+                return 'medium';
+            }
+
             return 'low';
         }
 
@@ -156,7 +170,7 @@ class ProcessAIAnalysis implements ShouldQueue
             ->where('key', 'ai_auto_execute_enabled')
             ->value('value');
 
-        if (!$autoExecuteEnabled || $autoExecuteEnabled === '0') {
+        if (! $autoExecuteEnabled || $autoExecuteEnabled === '0') {
             return false;
         }
 
@@ -167,7 +181,7 @@ class ProcessAIAnalysis implements ShouldQueue
             ->where('is_enabled', true)
             ->first();
 
-        if (!$permission) {
+        if (! $permission) {
             return false;
         }
 
@@ -183,7 +197,7 @@ class ProcessAIAnalysis implements ShouldQueue
         }
 
         // Check rate limits
-        if (!$this->checkRateLimits($analysis['proposed_action'])) {
+        if (! $this->checkRateLimits($analysis['proposed_action'])) {
             return false;
         }
 
@@ -196,11 +210,11 @@ class ProcessAIAnalysis implements ShouldQueue
             ->where('action', $action)
             ->where(function ($q) {
                 $q->whereNull('vendor_id')
-                  ->orWhere('vendor_id', $this->vendorId);
+                    ->orWhere('vendor_id', $this->vendorId);
             })
             ->first();
 
-        if (!$limit) {
+        if (! $limit) {
             return true; // No limit defined
         }
 
@@ -223,7 +237,7 @@ class ProcessAIAnalysis implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        Log::error("AI analysis job failed: " . $exception->getMessage());
+        Log::error('AI analysis job failed: '.$exception->getMessage());
         \App\Services\MetricsService::recordJobFailure(self::class, 'ai');
     }
 }

@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Job: ExecuteAIAction
  * Executes approved AI actions from simulation
  */
@@ -34,13 +35,15 @@ class ExecuteAIAction implements ShouldQueue
     {
         $simulation = DB::table('ai_simulations')->find($this->simulationId);
 
-        if (!$simulation) {
+        if (! $simulation) {
             Log::warning("AI simulation not found: {$this->simulationId}");
+
             return;
         }
 
         if ($simulation->executed) {
             Log::info("AI simulation already executed: {$this->simulationId}");
+
             return;
         }
 
@@ -51,6 +54,7 @@ class ExecuteAIAction implements ShouldQueue
 
         if ($aiMode !== 'live') {
             Log::info("AI not in live mode. Skipping execution for simulation: {$this->simulationId}");
+
             return;
         }
 
@@ -60,7 +64,8 @@ class ExecuteAIAction implements ShouldQueue
             ->exists();
 
         if ($killSwitch) {
-            Log::warning("AI kill switch is enabled. Blocking execution.");
+            Log::warning('AI kill switch is enabled. Blocking execution.');
+
             return;
         }
 
@@ -83,7 +88,7 @@ class ExecuteAIAction implements ShouldQueue
                 'status' => $result['success'] ? 'executed' : 'failed',
                 'reasoning' => $simulation->action_description,
                 'was_auto_executed' => $simulation->auto_executable,
-                'requires_approval' => !$simulation->auto_executable,
+                'requires_approval' => ! $simulation->auto_executable,
                 'approved_by' => $simulation->approved_by,
                 'approved_at' => $simulation->approved_at,
                 'executed_at' => now(),
@@ -129,7 +134,7 @@ class ExecuteAIAction implements ShouldQueue
             Log::info("AI action executed: {$simulation->proposed_action} (simulation: {$this->simulationId})");
 
         } catch (\Exception $e) {
-            Log::error("AI action execution failed: " . $e->getMessage());
+            Log::error('AI action execution failed: '.$e->getMessage());
 
             DB::table('ai_simulations')
                 ->where('id', $this->simulationId)
@@ -145,7 +150,7 @@ class ExecuteAIAction implements ShouldQueue
     protected function captureState($simulation): array
     {
         $params = json_decode($simulation->action_parameters, true) ?? [];
-        
+
         // Capture state based on action type
         return match ($simulation->proposed_action) {
             'price_change' => $this->captureProductState($params['product_id'] ?? null),
@@ -157,17 +162,23 @@ class ExecuteAIAction implements ShouldQueue
 
     protected function captureProductState(?int $productId): array
     {
-        if (!$productId) return [];
-        
+        if (! $productId) {
+            return [];
+        }
+
         $product = DB::table('products')->find($productId);
+
         return $product ? (array) $product : [];
     }
 
     protected function captureOrderState(?int $orderId): array
     {
-        if (!$orderId) return [];
-        
+        if (! $orderId) {
+            return [];
+        }
+
         $order = DB::table('orders')->find($orderId);
+
         return $order ? (array) $order : [];
     }
 
@@ -189,7 +200,7 @@ class ExecuteAIAction implements ShouldQueue
         $productId = $params['product_id'] ?? null;
         $newPrice = $params['new_price'] ?? null;
 
-        if (!$productId || !$newPrice) {
+        if (! $productId || ! $newPrice) {
             return ['success' => false, 'error' => 'Missing parameters'];
         }
 
@@ -217,7 +228,7 @@ class ExecuteAIAction implements ShouldQueue
     {
         $productId = $params['product_id'] ?? null;
 
-        if (!$productId) {
+        if (! $productId) {
             return ['success' => false, 'error' => 'Missing product_id'];
         }
 
@@ -233,7 +244,7 @@ class ExecuteAIAction implements ShouldQueue
         $userId = $params['user_id'] ?? null;
         $message = $params['message'] ?? null;
 
-        if (!$userId || !$message) {
+        if (! $userId || ! $message) {
             return ['success' => false, 'error' => 'Missing parameters'];
         }
 
@@ -250,8 +261,8 @@ class ExecuteAIAction implements ShouldQueue
     protected function executeCreatePromotion(array $params): array
     {
         // Create coupon
-        $code = $params['code'] ?? 'AI' . strtoupper(substr(uniqid(), -6));
-        
+        $code = $params['code'] ?? 'AI'.strtoupper(substr(uniqid(), -6));
+
         DB::table('coupons')->insert([
             'vendor_id' => $params['vendor_id'] ?? null,
             'code' => $code,
@@ -274,14 +285,14 @@ class ExecuteAIAction implements ShouldQueue
             ->where('action', $action)
             ->where(function ($q) use ($vendorId) {
                 $q->whereNull('vendor_id')
-                  ->orWhere('vendor_id', $vendorId);
+                    ->orWhere('vendor_id', $vendorId);
             })
             ->increment('current_daily_count');
     }
 
     public function failed(\Throwable $exception): void
     {
-        Log::error("AI action execution job failed: " . $exception->getMessage());
+        Log::error('AI action execution job failed: '.$exception->getMessage());
         \App\Services\MetricsService::recordJobFailure(self::class, 'ai');
     }
 }

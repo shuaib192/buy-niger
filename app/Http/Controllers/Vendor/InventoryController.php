@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Product;
 use App\Models\StockHistory;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class InventoryController extends Controller
 {
@@ -16,17 +16,17 @@ class InventoryController extends Controller
     public function index()
     {
         $vendor = Auth::user()->vendor;
-        
+
         $products = Product::where('vendor_id', $vendor->id)
             ->with(['category'])
             ->orderBy('quantity', 'asc') // Show low stock first
             ->paginate(10);
-            
+
         $logs = StockHistory::where('vendor_id', $vendor->id)
             ->with(['product', 'user'])
             ->latest()
             ->paginate(15);
-            
+
         return view('vendor.inventory.index', compact('products', 'logs'));
     }
 
@@ -37,22 +37,22 @@ class InventoryController extends Controller
     {
         $request->validate([
             'quantity' => 'required|integer|min:0',
-            'reason' => 'nullable|string'
+            'reason' => 'nullable|string',
         ]);
 
         $vendor = Auth::user()->vendor;
         $product = Product::where('vendor_id', $vendor->id)->findOrFail($productId);
-        
+
         $oldQuantity = $product->quantity;
         $newQuantity = $request->quantity;
-        
+
         if ($oldQuantity == $newQuantity) {
             return back()->with('info', 'No changes made to stock.');
         }
-        
+
         // Update product
         $product->update(['quantity' => $newQuantity]);
-        
+
         // Log history
         StockHistory::create([
             'vendor_id' => $vendor->id,
@@ -61,9 +61,9 @@ class InventoryController extends Controller
             'new_quantity' => $newQuantity,
             'type' => $newQuantity > $oldQuantity ? 'restock' : 'correction',
             'reason' => $request->reason ?? 'Manual update',
-            'user_id' => Auth::id()
+            'user_id' => Auth::id(),
         ]);
-        
+
         return back()->with('success', 'Stock updated successfully!');
     }
 }

@@ -1,23 +1,22 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Web Routes
  */
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\SuperAdminController;
-use App\Http\Controllers\VendorController;
-use App\Http\Controllers\VendorProductController;
-
-use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\VendorController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,7 +39,9 @@ Route::get('/refund-policy', [ShopController::class, 'refundPolicy'])->name('ref
 
 // CATALOG
 Route::get('/products', [ShopController::class, 'catalog'])->name('catalog');
-Route::get('/shop', function() { return redirect()->route('catalog'); });
+Route::get('/shop', function () {
+    return redirect()->route('catalog');
+});
 Route::get('/category/{category}', [ShopController::class, 'catalog'])->name('category');
 
 // Product Detail
@@ -48,6 +49,7 @@ Route::get('/product/{slug}', [ShopController::class, 'product'])->name('product
 
 // Vendor Storefront
 use App\Http\Controllers\StoreController;
+
 Route::get('/stores', [StoreController::class, 'index'])->name('stores');
 Route::get('/store/{slug}', [StoreController::class, 'show'])->name('store.show');
 Route::get('/search/suggestions', [ShopController::class, 'suggestions'])->name('search.suggestions')->middleware('throttle:30,1');
@@ -62,15 +64,16 @@ Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear')
 
 // Wishlist Routes
 use App\Http\Controllers\WishlistController;
+
 Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
 Route::post('/wishlist/add', [WishlistController::class, 'add'])->name('wishlist.add');
 Route::delete('/wishlist/{productId}', [WishlistController::class, 'remove'])->name('wishlist.remove');
 Route::post('/wishlist/move/{productId}', [WishlistController::class, 'moveToCart'])->name('wishlist.move');
 
 // Authenticated Routes (Checkout, Payment, Notifications, Chatbot, Vendor Application)
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentController;
 
 Route::middleware('auth')->group(function () {
     // Checkout
@@ -103,7 +106,6 @@ Route::middleware('auth')->group(function () {
 
 // Paystack Webhook (no auth)
 Route::post('/webhook/paystack', [PaymentController::class, 'webhook'])->name('payment.webhook');
-
 
 // Redirect /home to /
 Route::get('/home', function () {
@@ -172,7 +174,7 @@ Route::middleware(['auth', 'role:4'])->prefix('account')->name('customer.')->gro
     Route::get('/messages', [MessageController::class, 'indexCustomer'])->name('messages.index');
     Route::get('/messages/{id}', [MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{id}', [MessageController::class, 'send'])->name('messages.send');
-    
+
     // Disputes
     Route::post('/orders/{order}/dispute', [CustomerController::class, 'storeDispute'])->name('dispute.store');
 
@@ -189,7 +191,7 @@ Route::middleware(['auth', 'role:4'])->prefix('account')->name('customer.')->gro
 Route::middleware(['auth', 'role:3', 'vendor.approved'])->prefix('vendor')->name('vendor.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [VendorController::class, 'dashboard'])->name('dashboard');
-    
+
     // Inventory
     Route::get('/inventory', [VendorController::class, 'inventory'])->name('inventory');
     Route::post('/inventory/update-stock', [VendorController::class, 'updateStock'])->name('inventory.update');
@@ -212,13 +214,13 @@ Route::middleware(['auth', 'role:3', 'vendor.approved'])->prefix('vendor')->name
     Route::post('/coupons', [VendorController::class, 'storeCoupon'])->name('coupons.store');
     Route::delete('/coupons/{id}', [VendorController::class, 'destroyCoupon'])->name('coupons.destroy');
     Route::post('/coupons/toggle/{id}', [VendorController::class, 'toggleCouponStatus'])->name('coupons.toggle');
-    
+
     // Orders
     Route::get('/orders', [VendorController::class, 'orders'])->name('orders');
     Route::get('/orders/export', [VendorController::class, 'exportOrders'])->name('orders.export');
     Route::get('/orders/{id}', [VendorController::class, 'orderDetail'])->name('orders.show');
     Route::post('/orders/{id}/status', [VendorController::class, 'updateOrderStatus'])->name('orders.status');
-    
+
     // Settings
     Route::get('/settings', [VendorController::class, 'settings'])->name('settings');
     Route::post('/settings', [VendorController::class, 'updateSettings'])->name('settings.update');
@@ -247,7 +249,7 @@ Route::middleware(['auth', 'role:3', 'vendor.approved'])->prefix('vendor')->name
 Route::middleware(['auth', 'role:2'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
-    
+
     // Vendors
     Route::get('/vendors', [SuperAdminController::class, 'vendors'])->name('vendors');
     Route::get('/vendors/{vendor}', [SuperAdminController::class, 'vendorShow'])->name('vendors.show');
@@ -280,10 +282,10 @@ Route::middleware(['auth', 'role:2'])->prefix('admin')->name('admin.')->group(fu
 
     // Contact Messages
     Route::get('/messages', [SuperAdminController::class, 'messages'])->name('messages');
-    
+
     // Transactions
     Route::get('/transactions', [SuperAdminController::class, 'transactions'])->name('transactions');
-    
+
     // Order Tracking
     Route::post('/track', [SuperAdminController::class, 'trackOrder'])->name('track');
 });
@@ -341,7 +343,7 @@ Route::middleware(['auth', 'role:1'])->prefix('superadmin')->name('superadmin.')
     Route::get('/users/roles', [SuperAdminController::class, 'userRoles'])->name('users.roles');
     Route::get('/settings/payments', [SuperAdminController::class, 'paymentSettings'])->name('settings.payments');
     Route::get('/settings/email', [SuperAdminController::class, 'emailSettings'])->name('settings.email');
-    
+
     // Audit Logs
     Route::get('/audit-logs', [SuperAdminController::class, 'auditLogs'])->name('audit');
 
@@ -353,14 +355,14 @@ Route::middleware(['auth', 'role:1'])->prefix('superadmin')->name('superadmin.')
 
     // Order Tracking
     Route::post('/track', [SuperAdminController::class, 'trackOrder'])->name('track');
-    
+
     // AI Actions
     Route::post('/ai/settings', [SuperAdminController::class, 'updateAiSettings'])->name('ai.settings.update');
     Route::post('/ai/kill-switch', [SuperAdminController::class, 'toggleAiKillSwitch'])->name('ai.killswitch');
 
     // Email Templates
     Route::resource('email-templates', \App\Http\Controllers\EmailTemplateController::class)->names('email.templates');
-    
+
     // Email Campaigns
     Route::resource('email-campaigns', \App\Http\Controllers\EmailCampaignController::class)->names('email.campaigns');
 });

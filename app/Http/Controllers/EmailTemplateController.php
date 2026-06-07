@@ -13,6 +13,7 @@ class EmailTemplateController extends Controller
     public function index()
     {
         $templates = EmailTemplate::latest()->paginate(20);
+
         return view('superadmin.email.templates.index', compact('templates'));
     }
 
@@ -33,11 +34,11 @@ class EmailTemplateController extends Controller
             'name' => 'required|unique:email_templates',
             'subject' => 'required',
             'body' => 'required',
-            'variables' => 'nullable|string' // Input as comma-separated string, converted to array
+            'variables' => 'nullable|string', // Input as comma-separated string, converted to array
         ]);
 
-        $variables = $request->variables 
-            ? array_map('trim', explode(',', $request->variables)) 
+        $variables = $request->variables
+            ? array_map('trim', explode(',', $request->variables))
             : [];
 
         EmailTemplate::create([
@@ -45,7 +46,7 @@ class EmailTemplateController extends Controller
             'subject' => $request->subject,
             'body' => $request->body,
             'variables' => $variables,
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         return redirect()->route('superadmin.email.templates.index')->with('success', 'Template created successfully.');
@@ -65,14 +66,14 @@ class EmailTemplateController extends Controller
     public function update(Request $request, EmailTemplate $template)
     {
         $request->validate([
-            'name' => 'required|unique:email_templates,name,' . $template->id,
+            'name' => 'required|unique:email_templates,name,'.$template->id,
             'subject' => 'required',
             'body' => 'required',
-            'variables' => 'nullable|string'
+            'variables' => 'nullable|string',
         ]);
 
-        $variables = $request->variables 
-            ? array_map('trim', explode(',', $request->variables)) 
+        $variables = $request->variables
+            ? array_map('trim', explode(',', $request->variables))
             : [];
 
         $template->update([
@@ -91,6 +92,7 @@ class EmailTemplateController extends Controller
     public function destroy(EmailTemplate $template)
     {
         $template->delete();
+
         return back()->with('success', 'Template deleted successfully.');
     }
 }

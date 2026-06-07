@@ -3,13 +3,15 @@
 namespace App\Services\AI\Providers;
 
 use App\Services\AI\AIProviderInterface;
-use Illuminate\Support\Facades\Http;
 use Exception;
+use Illuminate\Support\Facades\Http;
 
 class OpenAIProvider implements AIProviderInterface
 {
     protected $apiKey;
+
     protected $model;
+
     protected $baseUrl = 'https://api.openai.com/v1';
 
     public function __construct(string $apiKey, string $model = 'gpt-4')
@@ -27,7 +29,7 @@ class OpenAIProvider implements AIProviderInterface
     public function generateChat(array $messages, array $config = []): array
     {
         $url = "{$this->baseUrl}/chat/completions";
-        
+
         $response = Http::withToken($this->apiKey)->post($url, [
             'model' => $this->model,
             'messages' => $messages,
@@ -36,7 +38,7 @@ class OpenAIProvider implements AIProviderInterface
         ]);
 
         if ($response->failed()) {
-            throw new Exception("OpenAI API Error: " . $response->body());
+            throw new Exception('OpenAI API Error: '.$response->body());
         }
 
         $data = $response->json();
@@ -49,19 +51,19 @@ class OpenAIProvider implements AIProviderInterface
                 'input_tokens' => $usage['prompt_tokens'],
                 'output_tokens' => $usage['completion_tokens'],
             ],
-            'meta' => $data
+            'meta' => $data,
         ];
     }
 
     public function analyzeImage(string $imagePath, string $prompt): array
     {
         $url = "{$this->baseUrl}/chat/completions";
-        
+
         // Open/Read image
-        if (!file_exists($imagePath)) {
+        if (! file_exists($imagePath)) {
             throw new Exception("Image not found: $imagePath");
         }
-        
+
         $imageData = base64_encode(file_get_contents($imagePath));
         $mimeType = mime_content_type($imagePath);
 
@@ -75,17 +77,17 @@ class OpenAIProvider implements AIProviderInterface
                         [
                             'type' => 'image_url',
                             'image_url' => [
-                                'url' => "data:{$mimeType};base64,{$imageData}"
-                            ]
-                        ]
-                    ]
-                ]
+                                'url' => "data:{$mimeType};base64,{$imageData}",
+                            ],
+                        ],
+                    ],
+                ],
             ],
-            'max_tokens' => 1000
+            'max_tokens' => 1000,
         ]);
 
         if ($response->failed()) {
-            throw new Exception("OpenAI Vision API Error: " . $response->body());
+            throw new Exception('OpenAI Vision API Error: '.$response->body());
         }
 
         $data = $response->json();
@@ -98,7 +100,7 @@ class OpenAIProvider implements AIProviderInterface
                 'input_tokens' => $usage['prompt_tokens'],
                 'output_tokens' => $usage['completion_tokens'],
             ],
-            'meta' => $data
+            'meta' => $data,
         ];
     }
 
@@ -107,10 +109,10 @@ class OpenAIProvider implements AIProviderInterface
         // GPT-4 pricing approx
         // Input: $0.03 / 1k
         // Output: $0.06 / 1k
-        
+
         $inputCost = ($inputTokens / 1000) * 0.03;
         $outputCost = ($outputTokens / 1000) * 0.06;
-        
+
         return $inputCost + $outputCost;
     }
 }

@@ -2,10 +2,10 @@
 
 namespace App\Services\AI\Modules;
 
-use App\Services\AI\AIService;
-use App\Models\Vendor;
-use App\Models\User;
 use App\Models\Dispute;
+use App\Models\User;
+use App\Models\Vendor;
+use App\Services\AI\AIService;
 
 class CROModule
 {
@@ -51,7 +51,7 @@ class CROModule
         // MVP: Analyze last login or order date
         $lastOrder = $user->orders()->latest()->first();
         $daysSinceLastOrder = $lastOrder ? $lastOrder->created_at->diffInDays(now()) : 999;
-        
+
         $prompt = "Analyze churn risk for customer '{$user->name}'.
         Last order was $daysSinceLastOrder days ago.
         

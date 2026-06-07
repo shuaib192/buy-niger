@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Listener: LogAIExecution
  */
 
@@ -50,7 +51,7 @@ class LogAIExecution implements ShouldQueue
             Log::info("AI action executed: {$event->action} by {$event->aiRole}");
         } else {
             Log::warning("AI action failed: {$event->action} by {$event->aiRole}");
-            MetricsService::recordJobFailure('AIAction:' . $event->action, 'ai');
+            MetricsService::recordJobFailure('AIAction:'.$event->action, 'ai');
         }
     }
 }

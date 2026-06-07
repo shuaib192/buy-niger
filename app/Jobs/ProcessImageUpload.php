@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Job: ProcessImageUpload
  * Handles image processing in queue (async)
  */
@@ -45,27 +46,27 @@ class ProcessImageUpload implements ShouldQueue
 
             $tempFile = Storage::disk('local')->path($this->tempPath);
 
-            if (!file_exists($tempFile)) {
+            if (! file_exists($tempFile)) {
                 throw new \Exception("Temp file not found: {$this->tempPath}");
             }
 
             // Process each size
             foreach ($this->sizes as $sizeName => $dimensions) {
                 $outputPath = $this->generateOutputPath($sizeName);
-                
+
                 $image = Image::make($tempFile);
-                
+
                 // Resize maintaining aspect ratio
                 $image->fit($dimensions['width'], $dimensions['height'], function ($constraint) {
                     $constraint->upsize();
                 });
-                
+
                 // Optimize
                 $image->encode('jpg', 85);
-                
+
                 // Save
                 Storage::disk('public')->put($outputPath, $image->stream());
-                
+
                 Log::info("Image processed: {$outputPath}");
             }
 
@@ -84,7 +85,7 @@ class ProcessImageUpload implements ShouldQueue
             Log::info("Image processing completed for: {$this->purpose}");
 
         } catch (\Exception $e) {
-            Log::error("Image processing failed: " . $e->getMessage());
+            Log::error('Image processing failed: '.$e->getMessage());
             throw $e;
         }
     }
@@ -121,7 +122,7 @@ class ProcessImageUpload implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        Log::error("Image processing job failed: " . $exception->getMessage());
+        Log::error('Image processing job failed: '.$exception->getMessage());
         \App\Services\MetricsService::recordJobFailure(self::class, 'images');
     }
 }

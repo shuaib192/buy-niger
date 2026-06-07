@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\OrderItem;
-use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 
 class AnalyticsController extends Controller
 {
@@ -47,7 +45,7 @@ class AnalyticsController extends Controller
             ->groupBy('date')
             ->orderBy('date')
             ->get();
-            
+
         $chartLabels = $revenueData->pluck('date');
         $chartValues = $revenueData->pluck('total');
 

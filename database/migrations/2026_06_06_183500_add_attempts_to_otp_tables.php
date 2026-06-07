@@ -10,7 +10,7 @@ return new class extends Migration
     {
         if (Schema::hasTable('email_otps')) {
             Schema::table('email_otps', function (Blueprint $table) {
-                if (!Schema::hasColumn('email_otps', 'attempts')) {
+                if (! Schema::hasColumn('email_otps', 'attempts')) {
                     $table->integer('attempts')->default(0);
                 }
             });
@@ -18,7 +18,7 @@ return new class extends Migration
 
         if (Schema::hasTable('password_reset_tokens')) {
             Schema::table('password_reset_tokens', function (Blueprint $table) {
-                if (!Schema::hasColumn('password_reset_tokens', 'attempts')) {
+                if (! Schema::hasColumn('password_reset_tokens', 'attempts')) {
                     $table->integer('attempts')->default(0);
                 }
             });

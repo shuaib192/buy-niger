@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Groq AI Provider Implementation
  */
 
@@ -15,7 +16,9 @@ use Illuminate\Support\Facades\Log;
 class GroqProvider implements AIProviderInterface
 {
     protected string $apiKey;
+
     protected string $model;
+
     protected string $baseUrl = 'https://api.groq.com/openai/v1';
 
     public function __construct(array $config)
@@ -28,12 +31,12 @@ class GroqProvider implements AIProviderInterface
     {
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer '.$this->apiKey,
                 'Content-Type' => 'application/json',
-            ])->post($this->baseUrl . '/chat/completions', [
+            ])->post($this->baseUrl.'/chat/completions', [
                 'model' => $options['model'] ?? $this->model,
                 'messages' => [
-                    ['role' => 'user', 'content' => $prompt]
+                    ['role' => 'user', 'content' => $prompt],
                 ],
                 'max_tokens' => $options['max_tokens'] ?? 1024,
                 'temperature' => $options['temperature'] ?? 0.7,
@@ -41,12 +44,12 @@ class GroqProvider implements AIProviderInterface
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return $data['choices'][0]['message']['content'] ?? 'No response generated.';
             }
 
             Log::error('Groq API error', ['response' => $response->body()]);
-            throw new \Exception('Groq API request failed: ' . $response->status());
-
+            throw new \Exception('Groq API request failed: '.$response->status());
         } catch (\Exception $e) {
             Log::error('Groq provider error', ['error' => $e->getMessage()]);
             throw $e;
@@ -56,17 +59,17 @@ class GroqProvider implements AIProviderInterface
     public function generateChat(array $messages, array $options = []): string
     {
         try {
-            $formattedMessages = array_map(function($msg) {
+            $formattedMessages = array_map(function ($msg) {
                 return [
                     'role' => $msg['role'] ?? 'user',
-                    'content' => $msg['content'] ?? ''
+                    'content' => $msg['content'] ?? '',
                 ];
             }, $messages);
 
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Authorization' => 'Bearer '.$this->apiKey,
                 'Content-Type' => 'application/json',
-            ])->post($this->baseUrl . '/chat/completions', [
+            ])->post($this->baseUrl.'/chat/completions', [
                 'model' => $options['model'] ?? $this->model,
                 'messages' => $formattedMessages,
                 'max_tokens' => $options['max_tokens'] ?? 1024,
@@ -75,11 +78,11 @@ class GroqProvider implements AIProviderInterface
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return $data['choices'][0]['message']['content'] ?? 'No response generated.';
             }
 
             throw new \Exception('Groq chat request failed');
-
         } catch (\Exception $e) {
             Log::error('Groq chat error', ['error' => $e->getMessage()]);
             throw $e;
@@ -97,6 +100,7 @@ class GroqProvider implements AIProviderInterface
         // Groq is very affordable - approximate costs
         $inputCost = ($inputTokens / 1000) * 0.0001;  // ~$0.0001 per 1K tokens
         $outputCost = ($outputTokens / 1000) * 0.0002; // ~$0.0002 per 1K tokens
+
         return $inputCost + $outputCost;
     }
 }

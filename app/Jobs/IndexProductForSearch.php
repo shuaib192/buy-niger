@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Job: IndexProductForSearch
  * Handles search indexing in queue (async)
  */
@@ -48,7 +49,7 @@ class IndexProductForSearch implements ShouldQueue
                 $searchService->deleteProduct($this->productId);
             } else {
                 $product = Product::with(['vendor', 'category', 'images', 'tags'])->find($this->productId);
-                
+
                 if ($product) {
                     $searchService->indexProduct($product);
                 }
@@ -73,14 +74,14 @@ class IndexProductForSearch implements ShouldQueue
                     'updated_at' => now(),
                 ]);
 
-            Log::error("Product indexing failed: " . $e->getMessage());
+            Log::error('Product indexing failed: '.$e->getMessage());
             throw $e;
         }
     }
 
     public function failed(\Throwable $exception): void
     {
-        Log::error("Search indexing job failed: " . $exception->getMessage());
+        Log::error('Search indexing job failed: '.$exception->getMessage());
         \App\Services\MetricsService::recordJobFailure(self::class, 'search');
     }
 }

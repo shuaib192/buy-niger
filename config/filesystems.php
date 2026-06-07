@@ -39,7 +39,7 @@ return [
         'public' => [
             'driver' => 'local',
             // 'root' => storage_path('app/public'), // Old path
-            'root' => $_SERVER['DOCUMENT_ROOT'] . '/storage', // New direct public path
+            'root' => $_SERVER['DOCUMENT_ROOT'].'/storage', // New direct public path
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
             'throw' => false,

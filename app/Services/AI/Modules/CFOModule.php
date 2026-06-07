@@ -2,9 +2,9 @@
 
 namespace App\Services\AI\Modules;
 
-use App\Services\AI\AIService;
-use App\Models\Vendor;
 use App\Models\Order;
+use App\Models\Vendor;
+use App\Services\AI\AIService;
 
 class CFOModule
 {
@@ -46,7 +46,7 @@ class CFOModule
 
         $prompt = "Analyze this order for fraud risk:
         - Amount: ₦{$signals['amount']}
-        - User Account Age: " . $signals['user_created_at']->diffForHumans() . "
+        - User Account Age: ".$signals['user_created_at']->diffForHumans()."
         - Address: {$signals['shipping_address']}
         
         Risk Level (Low/Medium/High)? Reason?";
@@ -59,7 +59,7 @@ class CFOModule
      */
     public function forecastCashFlow(Vendor $vendor)
     {
-        $prompt = "Based on the last 3 months of consistent sales data (avg ₦1M/month) and upcoming holiday season, forecast the cash flow for the next month.";
+        $prompt = 'Based on the last 3 months of consistent sales data (avg ₦1M/month) and upcoming holiday season, forecast the cash flow for the next month.';
 
         return $this->ai->generateText($prompt, 'CFO', 'cash_flow_forecast');
     }

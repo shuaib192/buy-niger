@@ -1,15 +1,16 @@
 <?php
+
 /**
  * BuyNiger AI Chatbot Controller - Fixed Version
  */
 
 namespace App\Http\Controllers;
 
-use App\Models\AIChatSession;
 use App\Models\AIChatMessage;
-use App\Services\AI\AIService;
-use App\Services\AI\AIDataHelper;
+use App\Models\AIChatSession;
 use App\Services\AI\AIActionHelper;
+use App\Services\AI\AIDataHelper;
+use App\Services\AI\AIService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -20,29 +21,30 @@ class ChatbotController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             $session = AIChatSession::where('user_id', $user->id)
                 ->where('status', 'active')
                 ->first();
 
-            if (!$session) {
+            if (! $session) {
                 $session = AIChatSession::create([
                     'user_id' => $user->id,
                     'session_type' => 'support',
                     'status' => 'active',
                     'context' => [],
-                    'message_count' => 0
+                    'message_count' => 0,
                 ]);
             }
 
             return response()->json([
                 'success' => true,
                 'session_id' => $session->id,
-                'messages' => AIChatMessage::where('session_id', $session->id)->orderBy('created_at')->take(30)->get()
+                'messages' => AIChatMessage::where('session_id', $session->id)->orderBy('created_at')->take(30)->get(),
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Chatbot open: ' . $e->getMessage());
+            Log::error('Chatbot open: '.$e->getMessage());
+
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
@@ -52,7 +54,7 @@ class ChatbotController extends Controller
         try {
             $request->validate([
                 'session_id' => 'required',
-                'message' => 'required|string|max:1000'
+                'message' => 'required|string|max:1000',
             ]);
 
             $user = Auth::user();
@@ -66,7 +68,7 @@ class ChatbotController extends Controller
             AIChatMessage::create([
                 'session_id' => $session->id,
                 'role' => 'user',
-                'content' => $request->message
+                'content' => $request->message,
             ]);
 
             // 1. Check for actionable commands (pass session for context)
@@ -77,36 +79,36 @@ class ChatbotController extends Controller
                 $response = $actionResult['message'];
             } else {
                 // 2. Use AI with data context
-                $aiService = new AIService();
-                
-                if (!$aiService->isEnabled()) {
-                    $response = "⚠️ AI is not configured. Please ask admin to add Groq API key in AI Settings.";
+                $aiService = new AIService;
+
+                if (! $aiService->isEnabled()) {
+                    $response = '⚠️ AI is not configured. Please ask admin to add Groq API key in AI Settings.';
                 } else {
                     $dataHelper = new AIDataHelper($user);
                     $systemPrompt = $this->buildSystemPrompt($user, $session, $dataHelper, $actionHelper);
-                    
+
                     // Get recent messages for context
                     $recentMessages = AIChatMessage::where('session_id', $session->id)
                         ->orderBy('created_at', 'desc')
                         ->take(6)
                         ->get()
                         ->reverse()
-                        ->map(fn($m) => ['role' => $m->role, 'content' => $m->content])
+                        ->map(fn ($m) => ['role' => $m->role, 'content' => $m->content])
                         ->values()
                         ->toArray();
-                    
+
                     $messages = array_merge(
                         [['role' => 'system', 'content' => $systemPrompt]],
                         $recentMessages
                     );
-                    
+
                     try {
                         $response = $aiService->chat($messages);
                         // Clean markdown formatting from response
                         $response = $this->cleanResponse($response);
                     } catch (\Exception $e) {
-                        Log::error('AI Error: ' . $e->getMessage());
-                        $response = "❌ AI Error: " . $e->getMessage();
+                        Log::error('AI Error: '.$e->getMessage());
+                        $response = '❌ AI Error: '.$e->getMessage();
                     }
                 }
             }
@@ -115,7 +117,7 @@ class ChatbotController extends Controller
             $aiMessage = AIChatMessage::create([
                 'session_id' => $session->id,
                 'role' => 'assistant',
-                'content' => $response
+                'content' => $response,
             ]);
 
             $session->increment('message_count');
@@ -123,7 +125,8 @@ class ChatbotController extends Controller
             return response()->json(['success' => true, 'message' => $aiMessage]);
 
         } catch (\Exception $e) {
-            Log::error('Chatbot send: ' . $e->getMessage());
+            Log::error('Chatbot send: '.$e->getMessage());
+
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
@@ -132,8 +135,8 @@ class ChatbotController extends Controller
     {
         $fullContext = $dataHelper->getFullContext();
         $actions = $actionHelper->getAvailableActions();
-        
-        $sessionContext = "";
+
+        $sessionContext = '';
         if ($session->context) {
             if (isset($session->context['last_product_id'])) {
                 $sessionContext = "\nLast created product: #{$session->context['last_product_id']} - {$session->context['last_product_name']}";
@@ -199,15 +202,22 @@ Good: 'Your available balance is N225,000.'";
         $response = str_replace('₦', 'N', $response);
         // Clean up excess newlines
         $response = preg_replace('/\n{3,}/', "\n\n", $response);
-        
+
         return trim($response);
     }
 
     private function getUserRole($user): string
     {
-        if (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin()) return 'superadmin';
-        if (method_exists($user, 'isAdmin') && $user->isAdmin()) return 'admin';
-        if (method_exists($user, 'isVendor') && $user->isVendor()) return 'vendor';
+        if (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin()) {
+            return 'superadmin';
+        }
+        if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
+            return 'admin';
+        }
+        if (method_exists($user, 'isVendor') && $user->isVendor()) {
+            return 'vendor';
+        }
+
         return 'customer';
     }
 
@@ -217,9 +227,9 @@ Good: 'Your available balance is N225,000.'";
         if ($session->user_id !== Auth::id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
+
         return response()->json([
-            'messages' => AIChatMessage::where('session_id', $sessionId)->orderBy('created_at')->get()
+            'messages' => AIChatMessage::where('session_id', $sessionId)->orderBy('created_at')->get(),
         ]);
     }
 }
-

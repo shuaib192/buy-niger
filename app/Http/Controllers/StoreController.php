@@ -1,15 +1,16 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Controller: StoreController - Public Vendor Storefront
  */
 
 namespace App\Http\Controllers;
 
-use App\Models\Vendor;
 use App\Models\Product;
+use App\Models\Vendor;
 use Illuminate\Http\Request;
 
 class StoreController extends Controller
@@ -26,8 +27,8 @@ class StoreController extends Controller
             $search = $request->q;
             $query->where(function ($q) use ($search) {
                 $q->where('store_name', 'like', "%{$search}%")
-                  ->orWhere('store_description', 'like', "%{$search}%")
-                  ->orWhere('city', 'like', "%{$search}%");
+                    ->orWhere('store_description', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%");
             });
         }
 
@@ -52,15 +53,15 @@ class StoreController extends Controller
         // Search within store
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
         // Category filter
         if ($request->filled('category')) {
-            $query->whereHas('category', function($q) {
+            $query->whereHas('category', function ($q) {
                 $q->where('slug', request('category'));
             });
         }

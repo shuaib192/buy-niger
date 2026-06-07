@@ -1,8 +1,9 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Job: CleanupTempFiles
  * Scheduled job to clean expired temp files
  */
@@ -50,14 +51,14 @@ class CleanupTempFiles implements ShouldQueue
                     $deletedCount++;
 
                 } catch (\Exception $e) {
-                    Log::warning("Failed to delete temp file {$file->file_path}: " . $e->getMessage());
+                    Log::warning("Failed to delete temp file {$file->file_path}: ".$e->getMessage());
                 }
             }
 
             Log::info("Temp file cleanup completed. Deleted: {$deletedCount} files");
 
         } catch (\Exception $e) {
-            Log::error("Temp file cleanup failed: " . $e->getMessage());
+            Log::error('Temp file cleanup failed: '.$e->getMessage());
             throw $e;
         }
     }

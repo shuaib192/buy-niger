@@ -1,16 +1,17 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Listener: ProcessRefundRequest
  */
 
 namespace App\Listeners;
 
 use App\Events\RefundRequested;
-use App\Jobs\SendPushNotification;
 use App\Jobs\ProcessAIAnalysis;
+use App\Jobs\SendPushNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 
@@ -31,7 +32,7 @@ class ProcessRefundRequest implements ShouldQueue
                 $admin->id,
                 'refund_request',
                 'New Refund Request',
-                "Refund request for order #{$order->order_number} - ₦" . number_format($event->amount, 2),
+                "Refund request for order #{$order->order_number} - ₦".number_format($event->amount, 2),
                 '/admin/disputes'
             );
         }

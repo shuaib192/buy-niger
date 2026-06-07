@@ -1,15 +1,15 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Listener: ProcessPayment
  */
 
 namespace App\Listeners;
 
 use App\Events\PaymentCompleted;
-use App\Jobs\SendEmailNotification;
 use App\Jobs\SendPushNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
@@ -44,8 +44,8 @@ class ProcessPayment implements ShouldQueue
             $order->user_id,
             'payment_success',
             'Payment Successful',
-            "Your payment of ₦" . number_format($event->amount, 2) . " for order #{$order->order_number} was successful.",
-            '/order/' . $order->id
+            'Your payment of ₦'.number_format($event->amount, 2)." for order #{$order->order_number} was successful.",
+            '/order/'.$order->id
         );
 
         // Calculate and record vendor commissions

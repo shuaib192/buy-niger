@@ -1,16 +1,17 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Controller: ShopController
  */
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Models\Category;
 use App\Models\ContactMessage;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class ShopController extends Controller
@@ -24,7 +25,7 @@ class ShopController extends Controller
 
         $cacheTime = 600; // 10 minutes
 
-        $data = \Illuminate\Support\Facades\Cache::remember('shop_home_data', $cacheTime, function() {
+        $data = \Illuminate\Support\Facades\Cache::remember('shop_home_data', $cacheTime, function () {
             $featuredCategories = Category::where('is_active', true)
                 ->where('is_featured', true)
                 ->take(6)
@@ -76,12 +77,12 @@ class ShopController extends Controller
         // Search (Name, Description, Vendor Name)
         if ($request->search) {
             $s = $request->search;
-            $query->where(function($q) use ($s) {
+            $query->where(function ($q) use ($s) {
                 $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('short_description', 'like', "%{$s}%")
-                  ->orWhereHas('vendor', function($vq) use ($s) {
-                      $vq->where('store_name', 'like', "%{$s}%");
-                  });
+                    ->orWhere('short_description', 'like', "%{$s}%")
+                    ->orWhereHas('vendor', function ($vq) use ($s) {
+                        $vq->where('store_name', 'like', "%{$s}%");
+                    });
             });
         }
 
@@ -155,7 +156,9 @@ class ShopController extends Controller
     public function suggestions(Request $request)
     {
         $s = $request->search;
-        if (strlen($s) < 2) return response()->json([]);
+        if (strlen($s) < 2) {
+            return response()->json([]);
+        }
 
         $products = \App\Models\Product::where('status', 'active')
             ->where('name', 'like', "%{$s}%")
@@ -169,7 +172,7 @@ class ShopController extends Controller
 
         return response()->json([
             'products' => $products,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -181,6 +184,7 @@ class ShopController extends Controller
         $vendorCount = \App\Models\Vendor::where('status', 'approved')->count();
         $productCount = \App\Models\Product::where('status', 'active')->count();
         $orderCount = \App\Models\Order::count();
+
         return view('shop.about', compact('vendorCount', 'productCount', 'orderCount'));
     }
 
@@ -202,20 +206,20 @@ class ShopController extends Controller
                 'required',
                 'string',
                 'max:100',
-                new \App\Rules\NoHtml(),
+                new \App\Rules\NoHtml,
             ],
             'email' => 'required|email|max:200',
             'subject' => [
                 'required',
                 'string',
                 'max:200',
-                new \App\Rules\NoHtml(),
+                new \App\Rules\NoHtml,
             ],
             'message' => [
                 'required',
                 'string',
                 'max:2000',
-                new \App\Rules\NoHtml(),
+                new \App\Rules\NoHtml,
             ],
         ]);
 
@@ -228,12 +232,12 @@ class ShopController extends Controller
                 "Name: {$request->name}\nEmail: {$request->email}\nSubject: {$request->subject}\n\nMessage:\n{$request->message}",
                 function ($mail) use ($request) {
                     $mail->to(config('mail.from.address'))
-                         ->subject('BuyNiger Contact: ' . $request->subject)
-                         ->replyTo($request->email, $request->name);
+                        ->subject('BuyNiger Contact: '.$request->subject)
+                        ->replyTo($request->email, $request->name);
                 }
             );
         } catch (\Exception $e) {
-            \Log::error('Contact form email failed: ' . $e->getMessage());
+            \Log::error('Contact form email failed: '.$e->getMessage());
         }
 
         return back()->with('success', 'Your message has been sent! We\'ll get back to you shortly.');
@@ -256,7 +260,7 @@ class ShopController extends Controller
                 ->with('items.product')
                 ->first();
 
-            if (!$order) {
+            if (! $order) {
                 return back()->with('error', 'Order not found. Please check your details and try again.');
             }
 
@@ -342,7 +346,7 @@ class ShopController extends Controller
         $count = 1;
         while (\App\Models\Vendor::where('store_slug', $slug)->exists()) {
             $count++;
-            $slug = $baseSlug . '-' . $count;
+            $slug = $baseSlug.'-'.$count;
         }
 
         // Upgrade user role to vendor
@@ -372,4 +376,3 @@ class ShopController extends Controller
             ->with('success', 'Your vendor application has been submitted! 🎉 Your store will be reviewed and approved within 2 business days.');
     }
 }
-

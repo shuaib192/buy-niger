@@ -1,26 +1,28 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Controller: PaymentController - Paystack Integration
  */
 
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\Vendor;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
     private $paystackSecretKey;
+
     private $paystackBaseUrl = 'https://api.paystack.co';
 
     public function __construct()
@@ -39,14 +41,14 @@ class PaymentController extends Controller
             ->where('payment_status', 'pending')
             ->firstOrFail();
 
-        $reference = 'BN_' . time() . '_' . $order->id;
+        $reference = 'BN_'.time().'_'.$order->id;
 
         // Store reference in order
         $order->update(['payment_reference' => $reference]);
 
         $data = [
             'email' => Auth::user()->email,
-            'amount' => (int)($order->total * 100), // Paystack uses kobo
+            'amount' => (int) ($order->total * 100), // Paystack uses kobo
             'reference' => $reference,
             'callback_url' => route('payment.callback'),
             'channels' => ['card', 'bank_transfer', 'ussd', 'bank'],
@@ -54,7 +56,7 @@ class PaymentController extends Controller
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
                 'customer_id' => Auth::id(),
-            ]
+            ],
         ];
 
         // Debug: Log the request
@@ -62,12 +64,12 @@ class PaymentController extends Controller
             'order' => $orderNumber,
             'amount' => $data['amount'],
             'email' => $data['email'],
-            'has_key' => !empty($this->paystackSecretKey),
+            'has_key' => ! empty($this->paystackSecretKey),
         ]);
 
         try {
             $response = Http::withoutVerifying()->withToken($this->paystackSecretKey)
-                ->post($this->paystackBaseUrl . '/transaction/initialize', $data);
+                ->post($this->paystackBaseUrl.'/transaction/initialize', $data);
 
             // Debug: Log the response
             Log::info('Paystack Init Response', [
@@ -83,10 +85,12 @@ class PaymentController extends Controller
             }
 
             $errorMsg = $response->json('message') ?? 'Unknown error';
-            return back()->with('error', 'Payment Error: ' . $errorMsg);
+
+            return back()->with('error', 'Payment Error: '.$errorMsg);
         } catch (\Exception $e) {
-            Log::error('Paystack init error: ' . $e->getMessage());
-            return back()->with('error', 'Payment service unavailable: ' . $e->getMessage());
+            Log::error('Paystack init error: '.$e->getMessage());
+
+            return back()->with('error', 'Payment service unavailable: '.$e->getMessage());
         }
     }
 
@@ -97,14 +101,14 @@ class PaymentController extends Controller
     {
         $reference = $request->query('reference');
 
-        if (!$reference) {
+        if (! $reference) {
             return redirect()->route('orders.index')->with('error', 'Invalid payment reference.');
         }
 
         // Verify transaction
         try {
             $response = Http::withoutVerifying()->withToken($this->paystackSecretKey)
-                ->get($this->paystackBaseUrl . '/transaction/verify/' . $reference);
+                ->get($this->paystackBaseUrl.'/transaction/verify/'.$reference);
 
             if ($response->successful() && $response->json('status')) {
                 $data = $response->json('data');
@@ -124,7 +128,8 @@ class PaymentController extends Controller
 
             return redirect()->route('orders.index')->with('error', 'Payment verification failed.');
         } catch (\Exception $e) {
-            Log::error('Paystack verify error: ' . $e->getMessage());
+            Log::error('Paystack verify error: '.$e->getMessage());
+
             return redirect()->route('orders.index')->with('error', 'Unable to verify payment.');
         }
     }
@@ -140,13 +145,14 @@ class PaymentController extends Controller
 
         if ($signature !== $calculatedSignature) {
             Log::warning('Paystack webhook: Invalid signature');
+
             return response()->json(['status' => 'invalid signature'], 400);
         }
 
         $payload = $request->all();
         $event = $payload['event'] ?? '';
 
-        Log::info('Paystack webhook received: ' . $event);
+        Log::info('Paystack webhook received: '.$event);
 
         if ($event === 'charge.success') {
             $data = $payload['data'] ?? [];
@@ -157,7 +163,7 @@ class PaymentController extends Controller
             if ($order && $order->payment_status === 'pending') {
                 $this->markOrderAsPaid($order);
 
-                Log::info('Order ' . $order->order_number . ' marked as paid via webhook');
+                Log::info('Order '.$order->order_number.' marked as paid via webhook');
             }
         }
 
@@ -183,7 +189,7 @@ class PaymentController extends Controller
                 // Update order items status and credit vendors
                 foreach ($lockedOrder->items as $item) {
                     $item->update(['status' => 'processing']);
-                    
+
                     // Credit vendor balance (minus commission)
                     $vendor = $item->vendor;
                     if ($vendor) {

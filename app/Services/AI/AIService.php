@@ -1,4 +1,5 @@
 <?php
+
 /**
  * BuyNiger AI - Simple Groq AI Service
  * Written by Shuaibu Abdulmumin
@@ -13,7 +14,9 @@ use Illuminate\Support\Facades\Log;
 class AIService
 {
     protected $apiKey;
+
     protected $model;
+
     protected $enabled = true;
 
     public function __construct()
@@ -32,6 +35,7 @@ class AIService
             if ($provider && isset($provider->credentials['api_key'])) {
                 $this->apiKey = $provider->credentials['api_key'];
                 $this->model = $provider->model ?? 'llama-3.3-70b-versatile';
+
                 return;
             }
 
@@ -39,19 +43,20 @@ class AIService
             if (env('GROQ_API_KEY')) {
                 $this->apiKey = env('GROQ_API_KEY');
                 $this->model = 'llama-3.3-70b-versatile';
+
                 return;
             }
 
             $this->enabled = false;
         } catch (\Exception $e) {
-            Log::error('AI Service init error: ' . $e->getMessage());
+            Log::error('AI Service init error: '.$e->getMessage());
             $this->enabled = false;
         }
     }
 
     public function isEnabled(): bool
     {
-        return $this->enabled && !empty($this->apiKey);
+        return $this->enabled && ! empty($this->apiKey);
     }
 
     /**
@@ -59,20 +64,20 @@ class AIService
      */
     public function generateText(string $prompt, string $module = '', string $action = '', array $options = []): string
     {
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             throw new \Exception('AI is not configured. Please add your Groq API key in settings.');
         }
 
         try {
             $response = Http::timeout(30)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Authorization' => 'Bearer '.$this->apiKey,
                     'Content-Type' => 'application/json',
                 ])
                 ->post('https://api.groq.com/openai/v1/chat/completions', [
                     'model' => $this->model,
                     'messages' => [
-                        ['role' => 'user', 'content' => $prompt]
+                        ['role' => 'user', 'content' => $prompt],
                     ],
                     'max_tokens' => $options['max_tokens'] ?? 500,
                     'temperature' => $options['temperature'] ?? 0.7,
@@ -80,18 +85,18 @@ class AIService
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return $data['choices'][0]['message']['content'] ?? 'No response generated.';
             }
 
             Log::error('Groq API Error', [
                 'status' => $response->status(),
-                'body' => $response->body()
+                'body' => $response->body(),
             ]);
 
-            throw new \Exception('AI request failed: ' . $response->status());
-
+            throw new \Exception('AI request failed: '.$response->status());
         } catch (\Exception $e) {
-            Log::error('AI generateText error: ' . $e->getMessage());
+            Log::error('AI generateText error: '.$e->getMessage());
             throw $e;
         }
     }
@@ -101,14 +106,14 @@ class AIService
      */
     public function chat(array $messages, array $options = []): string
     {
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             throw new \Exception('AI is not configured.');
         }
 
         try {
             $response = Http::timeout(30)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Authorization' => 'Bearer '.$this->apiKey,
                     'Content-Type' => 'application/json',
                 ])
                 ->post('https://api.groq.com/openai/v1/chat/completions', [
@@ -120,13 +125,13 @@ class AIService
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return $data['choices'][0]['message']['content'] ?? 'No response.';
             }
 
-            throw new \Exception('Chat failed: ' . $response->status());
-
+            throw new \Exception('Chat failed: '.$response->status());
         } catch (\Exception $e) {
-            Log::error('AI chat error: ' . $e->getMessage());
+            Log::error('AI chat error: '.$e->getMessage());
             throw $e;
         }
     }

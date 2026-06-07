@@ -14,6 +14,7 @@ class GenericEmail extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     public string $subjectLine;
+
     public string $body;
 
     /**

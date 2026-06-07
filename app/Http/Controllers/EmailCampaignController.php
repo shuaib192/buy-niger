@@ -14,6 +14,7 @@ class EmailCampaignController extends Controller
     public function index()
     {
         $campaigns = EmailCampaign::with('creator')->latest()->paginate(20);
+
         return view('superadmin.email.campaigns.index', compact('campaigns'));
     }
 
@@ -23,6 +24,7 @@ class EmailCampaignController extends Controller
     public function create()
     {
         $templates = EmailTemplate::where('is_active', true)->get();
+
         return view('superadmin.email.campaigns.create', compact('templates'));
     }
 
@@ -66,6 +68,7 @@ class EmailCampaignController extends Controller
     public function destroy(EmailCampaign $campaign)
     {
         $campaign->delete();
+
         return back()->with('success', 'Campaign deleted.');
     }
 }

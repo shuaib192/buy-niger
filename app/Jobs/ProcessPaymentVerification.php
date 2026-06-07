@@ -1,16 +1,17 @@
 <?php
+
 /**
  * BuyNiger AI - Multi-Vendor E-Commerce Platform
  * Written by Shuaibu Abdulmumin (08122598372, 07049906420)
- * 
+ *
  * Job: ProcessPaymentVerification
  * Handles payment verification in queue (async)
  */
 
 namespace App\Jobs;
 
-use App\Models\Order;
 use App\Events\PaymentCompleted;
+use App\Models\Order;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,6 +24,7 @@ class ProcessPaymentVerification implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $backoff = [30, 60, 120]; // Retry delays in seconds
 
     public function __construct(
@@ -38,10 +40,10 @@ class ProcessPaymentVerification implements ShouldQueue
         try {
             // Get the appropriate payment service based on method
             $paymentService = $this->getPaymentService();
-            
+
             // Verify the payment
             $result = $paymentService->verify($this->reference);
-            
+
             if ($result['success']) {
                 // Update order
                 $this->order->update([
@@ -64,11 +66,11 @@ class ProcessPaymentVerification implements ShouldQueue
                 $this->order->update([
                     'payment_status' => 'failed',
                 ]);
-                
-                Log::warning("Payment failed for order {$this->order->order_number}: " . ($result['message'] ?? 'Unknown error'));
+
+                Log::warning("Payment failed for order {$this->order->order_number}: ".($result['message'] ?? 'Unknown error'));
             }
         } catch (\Exception $e) {
-            Log::error("Payment verification error: " . $e->getMessage());
+            Log::error('Payment verification error: '.$e->getMessage());
             throw $e; // Re-throw to trigger retry
         }
     }
@@ -85,8 +87,8 @@ class ProcessPaymentVerification implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        Log::error("Payment verification job failed for order {$this->order->order_number}: " . $exception->getMessage());
-        
+        Log::error("Payment verification job failed for order {$this->order->order_number}: ".$exception->getMessage());
+
         // Update order status
         $this->order->update([
             'payment_status' => 'failed',
