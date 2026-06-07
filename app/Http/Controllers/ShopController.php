@@ -198,10 +198,25 @@ class ShopController extends Controller
     public function sendContact(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:100',
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+                new \App\Rules\NoHtml(),
+            ],
             'email' => 'required|email|max:200',
-            'subject' => 'required|string|max:200',
-            'message' => 'required|string|max:2000',
+            'subject' => [
+                'required',
+                'string',
+                'max:200',
+                new \App\Rules\NoHtml(),
+            ],
+            'message' => [
+                'required',
+                'string',
+                'max:2000',
+                new \App\Rules\NoHtml(),
+            ],
         ]);
 
         // Save to database
