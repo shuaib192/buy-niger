@@ -79,4 +79,4 @@ jobs:
         coverage: none
 
     - name: Run Dependency Audit
-      run: composer audit
+      run: composer audit --locked
