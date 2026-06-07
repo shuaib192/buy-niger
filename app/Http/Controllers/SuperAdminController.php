@@ -613,6 +613,26 @@ class SuperAdminController extends Controller
         return back()->with('success', "User has been {$action}.");
     }
 
+    /**
+     * Delete a user.
+     */
+    public function destroyUser(User $user)
+    {
+        // Prevent deleting Super Admins
+        if ($user->role_id === 1) {
+            return back()->with('error', 'Super Admin accounts cannot be deleted.');
+        }
+
+        // Check if deleting self
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
+
+        $user->delete();
+
+        return back()->with('success', 'User deleted successfully.');
+    }
+
     // ==================== PRODUCT MODERATION ====================
 
     /**
@@ -997,7 +1017,7 @@ class SuperAdminController extends Controller
                     'reference' => 'Payout #'.($payout->reference ?? 'N/A'),
                     'amount' => $payout->amount,
                     'status' => 'completed',
-                    'date' => $payout->processed_at,
+                    'date' => $payout->processed_at ?? $payout->created_at,
                     'user' => $payout->vendor ? $payout->vendor->store_name : 'Unknown Vendor',
                     'description' => 'Payout to vendor',
                     'related_model' => $payout,

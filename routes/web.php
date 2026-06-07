@@ -260,6 +260,7 @@ Route::middleware(['auth', 'role:2'])->prefix('admin')->name('admin.')->group(fu
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
     Route::get('/users/{user}', [SuperAdminController::class, 'userShow'])->name('users.show');
     Route::post('/users/{user}/ban', [SuperAdminController::class, 'toggleUserBan'])->name('users.ban');
+    Route::delete('/users/{user}', [SuperAdminController::class, 'destroyUser'])->name('users.destroy');
 
     // Orders
     Route::get('/orders', [SuperAdminController::class, 'orders'])->name('orders');
@@ -305,6 +306,7 @@ Route::middleware(['auth', 'role:1'])->prefix('superadmin')->name('superadmin.')
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users');
     Route::get('/users/{user}', [SuperAdminController::class, 'userShow'])->name('users.show');
     Route::post('/users/{user}/ban', [SuperAdminController::class, 'toggleUserBan'])->name('users.ban');
+    Route::delete('/users/{user}', [SuperAdminController::class, 'destroyUser'])->name('users.destroy');
 
     // Vendor Management
     Route::get('/vendors', [SuperAdminController::class, 'vendors'])->name('vendors');

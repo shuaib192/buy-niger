@@ -78,8 +78,15 @@
                                             @if($user->id !== auth()->id())
                                                 <form action="{{ route($prefix.'users.ban', $user) }}" method="POST">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-sm {{ $user->is_active ? 'btn-outline-danger' : 'btn-outline-success' }}" onclick="return confirm('Note: This action is immediate.')">
+                                                    <button type="submit" class="btn btn-sm {{ $user->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}" onclick="return confirm('Note: This action is immediate.')">
                                                         {{ $user->is_active ? 'Ban' : 'Activate' }}
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route($prefix.'users.destroy', $user) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this user completely? This action cannot be undone.')">
+                                                        <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
                                             @endif
