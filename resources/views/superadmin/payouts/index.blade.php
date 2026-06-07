@@ -1,8 +1,7 @@
 {{-- 
     BuyNiger AI - Multi-Vendor E-Commerce Platform
-    Written by Shuaibu Abdulmumin (08122598372, 07049906420)
-    
-    View: SuperAdmin Payout Management
+    Written by Shuaibu Abdulmumin
+    View: SuperAdmin Payout Management — Premium v2.0
 --}}
 @extends('layouts.app')
 
@@ -14,37 +13,44 @@
 @endsection
 
 @section('content')
-<div class="row mb-4">
+<div class="stats-grid mb-4">
     {{-- Summary Cards --}}
-    <div class="col-md-3 mb-3">
-        <div class="dashboard-card text-center" style="border-left: 4px solid #f59e0b;">
-            <div class="card-body py-3">
-                <div class="text-muted small mb-1"><i class="fas fa-clock me-1"></i> Pending</div>
-                <div class="fw-bold fs-4 text-warning">{{ $payouts->where('status', 'pending')->count() }}</div>
+    <div class="stat-card orange">
+        <div class="stat-card-inner">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-info">
+                <h3>{{ $payouts->where('status', 'pending')->count() }}</h3>
+                <p>Pending Requests</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3 mb-3">
-        <div class="dashboard-card text-center" style="border-left: 4px solid #6366f1;">
-            <div class="card-body py-3">
-                <div class="text-muted small mb-1"><i class="fas fa-spinner me-1"></i> Processing</div>
-                <div class="fw-bold fs-4" style="color:#6366f1;">{{ $payouts->where('status', 'processing')->count() }}</div>
+    
+    <div class="stat-card blue">
+        <div class="stat-card-inner">
+            <div class="stat-icon"><i class="fas fa-spinner fa-spin"></i></div>
+            <div class="stat-info">
+                <h3>{{ $payouts->where('status', 'processing')->count() }}</h3>
+                <p>Processing</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3 mb-3">
-        <div class="dashboard-card text-center" style="border-left: 4px solid #10b981;">
-            <div class="card-body py-3">
-                <div class="text-muted small mb-1"><i class="fas fa-check-circle me-1"></i> Completed</div>
-                <div class="fw-bold fs-4 text-success">{{ $payouts->where('status', 'completed')->count() }}</div>
+
+    <div class="stat-card green">
+        <div class="stat-card-inner">
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-info">
+                <h3>{{ $payouts->where('status', 'completed')->count() }}</h3>
+                <p>Completed Payouts</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3 mb-3">
-        <div class="dashboard-card text-center" style="border-left: 4px solid #ef4444;">
-            <div class="card-body py-3">
-                <div class="text-muted small mb-1"><i class="fas fa-times-circle me-1"></i> Failed</div>
-                <div class="fw-bold fs-4 text-danger">{{ $payouts->where('status', 'failed')->count() }}</div>
+
+    <div class="stat-card rose">
+        <div class="stat-card-inner">
+            <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+            <div class="stat-info">
+                <h3>{{ $payouts->where('status', 'failed')->count() }}</h3>
+                <p>Failed / Rejected</p>
             </div>
         </div>
     </div>
@@ -52,36 +58,36 @@
 
 {{-- Filter Bar --}}
 <div class="dashboard-card mb-4">
-    <div class="card-body d-flex align-items-center gap-3 flex-wrap">
-        <span class="fw-semibold me-2"><i class="fas fa-filter me-1"></i> Filter:</span>
-        <a href="{{ route('superadmin.payouts') }}" class="btn btn-sm {{ !request('status') ? 'btn-primary' : 'btn-outline-secondary' }}">All</a>
-        <a href="{{ route('superadmin.payouts', ['status' => 'pending']) }}" class="btn btn-sm {{ request('status') === 'pending' ? 'btn-warning' : 'btn-outline-secondary' }}">Pending</a>
-        <a href="{{ route('superadmin.payouts', ['status' => 'processing']) }}" class="btn btn-sm {{ request('status') === 'processing' ? 'btn-info' : 'btn-outline-secondary' }}">Processing</a>
-        <a href="{{ route('superadmin.payouts', ['status' => 'completed']) }}" class="btn btn-sm {{ request('status') === 'completed' ? 'btn-success' : 'btn-outline-secondary' }}">Completed</a>
-        <a href="{{ route('superadmin.payouts', ['status' => 'failed']) }}" class="btn btn-sm {{ request('status') === 'failed' ? 'btn-danger' : 'btn-outline-secondary' }}">Failed</a>
+    <div class="dashboard-card-body d-flex align-items-center gap-2 flex-wrap">
+        <span class="fw-semibold me-2 text-dark"><i class="fas fa-filter me-1"></i> Filter:</span>
+        <a href="{{ route('superadmin.payouts') }}" class="btn btn-sm {{ !request('status') ? 'btn-primary' : 'btn-outline-secondary' }} px-3 rounded-pill">All</a>
+        <a href="{{ route('superadmin.payouts', ['status' => 'pending']) }}" class="btn btn-sm {{ request('status') === 'pending' ? 'btn-warning' : 'btn-outline-secondary' }} px-3 rounded-pill">Pending</a>
+        <a href="{{ route('superadmin.payouts', ['status' => 'processing']) }}" class="btn btn-sm {{ request('status') === 'processing' ? 'btn-info' : 'btn-outline-secondary' }} px-3 rounded-pill">Processing</a>
+        <a href="{{ route('superadmin.payouts', ['status' => 'completed']) }}" class="btn btn-sm {{ request('status') === 'completed' ? 'btn-success' : 'btn-outline-secondary' }} px-3 rounded-pill">Completed</a>
+        <a href="{{ route('superadmin.payouts', ['status' => 'failed']) }}" class="btn btn-sm {{ request('status') === 'failed' ? 'btn-danger' : 'btn-outline-secondary' }} px-3 rounded-pill">Failed</a>
     </div>
 </div>
 
 {{-- Payout Table --}}
 <div class="dashboard-card">
-    <div class="card-body p-0">
+    <div class="dashboard-card-body p-0">
         @if($payouts->isEmpty())
-            <div class="text-center py-5">
-                <i class="fas fa-money-bill-wave fa-3x text-muted mb-3"></i>
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-money-bill-wave fa-3x mb-3 text-muted"></i>
                 <h5 class="text-muted">No Payout Requests Found</h5>
                 <p class="text-muted small">When vendors request payouts, they will appear here.</p>
             </div>
         @else
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="data-table">
+                <thead>
                     <tr>
                         <th class="ps-4">Reference</th>
                         <th>Vendor</th>
                         <th>Amount</th>
                         <th>Method</th>
                         <th>Status</th>
-                        <th>Requested</th>
+                        <th>Requested Date</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
@@ -93,69 +99,69 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <img src="{{ $payout->vendor->user->avatar_url ?? '/images/default-avatar.png' }}" 
-                                     class="rounded-circle" width="32" height="32" 
-                                     style="object-fit:cover;">
+                                <div class="topbar-user-avatar" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                    {{ strtoupper(substr($payout->vendor->business_name ?? $payout->vendor->user->name ?? 'V', 0, 1)) }}
+                                </div>
                                 <div>
-                                    <div class="fw-semibold small">{{ $payout->vendor->business_name ?? $payout->vendor->user->name ?? 'N/A' }}</div>
-                                    <div class="text-muted" style="font-size:11px;">{{ $payout->vendor->user->email ?? '' }}</div>
+                                    <div class="fw-semibold text-dark">{{ $payout->vendor->business_name ?? $payout->vendor->user->name ?? 'N/A' }}</div>
+                                    <div class="text-muted small" style="font-size:11px;">{{ $payout->vendor->user->email ?? '' }}</div>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <span class="fw-bold" style="color:#10b981;">₦{{ number_format($payout->amount, 2) }}</span>
+                            <span class="fw-bold text-success" style="font-size: 1rem;">₦{{ number_format($payout->amount, 2) }}</span>
                         </td>
                         <td>
-                            <span class="text-muted small text-capitalize">{{ str_replace('_', ' ', $payout->payment_method ?? 'bank transfer') }}</span>
+                            <span class="badge badge-secondary text-capitalize">{{ str_replace('_', ' ', $payout->payment_method ?? 'bank transfer') }}</span>
                         </td>
                         <td>
-                            @php
-                                $statusMap = [
-                                    'pending' => ['bg' => '#fef3c7', 'text' => '#92400e', 'icon' => 'fa-clock'],
-                                    'processing' => ['bg' => '#e0e7ff', 'text' => '#3730a3', 'icon' => 'fa-spinner fa-spin'],
-                                    'completed' => ['bg' => '#d1fae5', 'text' => '#065f46', 'icon' => 'fa-check-circle'],
-                                    'failed' => ['bg' => '#fee2e2', 'text' => '#991b1b', 'icon' => 'fa-times-circle'],
-                                ];
-                                $s = $statusMap[$payout->status] ?? $statusMap['pending'];
-                            @endphp
-                            <span class="badge rounded-pill px-3 py-2" style="background:{{ $s['bg'] }};color:{{ $s['text'] }};font-weight:600;">
-                                <i class="fas {{ $s['icon'] }} me-1"></i> {{ ucfirst($payout->status) }}
-                            </span>
+                            @if($payout->status === 'pending')
+                                <span class="badge badge-warning"><i class="fas fa-clock me-1"></i> Pending</span>
+                            @elseif($payout->status === 'processing')
+                                <span class="badge badge-info"><i class="fas fa-spinner fa-spin me-1"></i> Processing</span>
+                            @elseif($payout->status === 'completed')
+                                <span class="badge badge-success"><i class="fas fa-check-circle me-1"></i> Completed</span>
+                            @else
+                                <span class="badge badge-danger"><i class="fas fa-times-circle me-1"></i> Failed</span>
+                            @endif
                         </td>
                         <td>
-                            <span class="text-muted small">{{ $payout->created_at->format('M d, Y') }}</span>
+                            <div class="text-dark small">{{ $payout->created_at->format('M d, Y') }}</div>
                             <div class="text-muted" style="font-size:11px;">{{ $payout->created_at->diffForHumans() }}</div>
                         </td>
                         <td class="text-end pe-4">
                             @if($payout->status === 'pending' || $payout->status === 'processing')
-                            <div class="d-flex justify-content-end gap-2 flex-wrap">
+                            <div class="d-flex justify-content-end gap-2 align-items-center">
                                 <form method="POST" action="{{ route('superadmin.payouts.status', $payout->id) }}">
                                     @csrf
                                     <input type="hidden" name="status" value="approved">
-                                    <button type="submit" class="btn btn-sm btn-success">
+                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
                                         <i class="fas fa-check-circle me-1"></i> Approve
                                     </button>
                                 </form>
 
-                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3"
                                         onclick="document.getElementById('failForm{{ $payout->id }}').classList.toggle('d-none')">
                                     <i class="fas fa-times-circle me-1"></i> Reject
                                 </button>
                             </div>
 
                             {{-- Hidden Reject Form with Notes --}}
-                            <form id="failForm{{ $payout->id }}" method="POST" action="{{ route('superadmin.payouts.status', $payout->id) }}" class="d-none mt-2 text-start">
+                            <form id="failForm{{ $payout->id }}" method="POST" action="{{ route('superadmin.payouts.status', $payout->id) }}" class="d-none mt-2 text-start p-3 border rounded-3 bg-light" style="max-width: 250px; margin-left: auto;">
                                 @csrf
                                 <input type="hidden" name="status" value="rejected">
-                                <textarea name="notes" class="form-control form-control-sm mb-2" placeholder="Reason for rejection..." rows="2" required></textarea>
-                                <button type="submit" class="btn btn-sm btn-danger w-100">
-                                    <i class="fas fa-times me-1"></i> Confirm Reject
+                                <div class="mb-2">
+                                    <label class="form-label text-muted small fw-bold" style="font-size:10px;">REJECTION REASON</label>
+                                    <textarea name="notes" class="form-control form-control-sm" placeholder="Explain why..." rows="2" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-danger w-100 rounded-pill">
+                                    Confirm Rejection
                                 </button>
                             </form>
                             @elseif($payout->status === 'completed')
-                                <span class="badge bg-success-subtle text-success"><i class="fas fa-check me-1"></i> Done</span>
+                                <span class="badge badge-success"><i class="fas fa-check me-1"></i> Disbursed</span>
                             @else
-                                <span class="badge bg-danger-subtle text-danger"><i class="fas fa-ban me-1"></i> {{ $payout->notes ?? 'Failed' }}</span>
+                                <span class="badge badge-secondary" title="{{ $payout->notes }}"><i class="fas fa-ban me-1"></i> {{ Str::limit($payout->notes ?? 'Rejected', 12) }}</span>
                             @endif
                         </td>
                     </tr>
@@ -164,10 +170,12 @@
             </table>
         </div>
 
-        <div class="d-flex justify-content-center py-3">
+        @if($payouts->hasPages())
+        <div class="d-flex justify-content-center py-3 border-top">
             {{ $payouts->appends(request()->query())->links() }}
         </div>
         @endif
+    @endif
     </div>
 </div>
 @endsection
