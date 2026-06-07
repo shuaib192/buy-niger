@@ -21,7 +21,7 @@
         <div class="fin-hero-left">
             <div class="fin-hero-label">Available Balance</div>
             <div class="fin-hero-amount">₦{{ number_format($stats['available_balance'], 2) }}</div>
-            <div class="fin-hero-hint">Ready for instant withdrawal to your bank</div>
+            <div class="fin-hero-hint">Ready for withdrawal to your bank</div>
         </div>
         <div class="fin-hero-right">
             <button class="fin-withdraw-btn" data-bs-toggle="modal" data-bs-target="#payoutModal" {{ $stats['available_balance'] < 500 ? 'disabled' : '' }}>
@@ -182,7 +182,7 @@
                         </div>
                         <div class="fin-step">
                             <div class="fin-step-dot">4</div>
-                            <div class="fin-step-text">Tap <strong>Withdraw</strong> → money sent to bank</div>
+                            <div class="fin-step-text">Tap <strong>Withdraw</strong> → processed within 2 working days</div>
                         </div>
                     </div>
                 </div>
@@ -200,7 +200,7 @@
                 <div class="fin-modal-head">
                     <div>
                         <h5>Withdraw Funds</h5>
-                        <p>Send money to your bank account</p>
+                        <p>Processed within 2 working days</p>
                     </div>
                     <button type="button" class="fin-modal-close" data-bs-dismiss="modal">&times;</button>
                 </div>
@@ -216,7 +216,10 @@
                             <span class="fin-input-prefix">₦</span>
                             <input type="number" name="amount" min="200" max="{{ $stats['available_balance'] }}" required placeholder="Enter amount">
                         </div>
-                        <small>Minimum: ₦200</small>
+                        <div style="display:flex; justify-content:space-between; margin-top:4px;">
+                            <small style="color:#94a3b8; margin:0;">Minimum: ₦200</small>
+                            <small style="color:#f59e0b; margin:0; font-weight:700;"><i class="fas fa-clock"></i> Takes 2 working days</small>
+                        </div>
                     </div>
 
                     <div class="fin-field">
