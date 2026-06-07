@@ -13,11 +13,11 @@
 @endphp
 <div class="container-fluid">
     <div class="row mb-4 g-4">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <h1 class="h3 mb-0 text-gray-800">Order Management</h1>
         </div>
-        <div class="col-md-6 text-right">
-            <div class="btn-group">
+        <div class="col-md-8">
+            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
                 <a href="{{ route($prefix.'orders') }}" class="btn btn-sm btn-outline-secondary">All</a>
                 <a href="{{ route($prefix.'orders', ['status' => 'pending']) }}" class="btn btn-sm btn-outline-warning">Pending</a>
                 <a href="{{ route($prefix.'orders', ['status' => 'paid']) }}" class="btn btn-sm btn-outline-success">Paid</a>
@@ -30,10 +30,10 @@
     </div>
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <div class="card-header py-3 d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center gap-3">
             <h6 class="m-0 font-weight-bold text-primary">All Orders</h6>
-            <form action="{{ route($prefix.'orders') }}" method="GET" class="form-inline">
-                <div class="input-group input-group-sm">
+            <form action="{{ route($prefix.'orders') }}" method="GET" class="d-flex flex-wrap gap-2 w-100 w-md-auto">
+                <div class="input-group input-group-sm flex-grow-1 flex-md-grow-0" style="min-width: 200px;">
                     <input type="text" name="search" class="form-control" placeholder="Order ID..." value="{{ request('search') }}">
                     <div class="input-group-append">
                         <button class="btn btn-primary" type="submit">

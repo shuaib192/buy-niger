@@ -11,7 +11,7 @@
 <div class="row">
     <div class="col-12">
         <div class="dashboard-card">
-            <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+            <div class="dashboard-card-header d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center gap-3">
                 <h3>All Campaigns</h3>
                 <a href="{{ route('superadmin.email.campaigns.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> New Campaign

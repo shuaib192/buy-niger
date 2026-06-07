@@ -11,7 +11,7 @@
 <div class="row g-4">
     <div class="col-12">
         <div class="dashboard-card">
-            <div class="dashboard-card-header">
+            <div class="dashboard-card-header d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center gap-3">
                 <h3>User Roles</h3>
                 <button class="btn btn-primary btn-sm">
                     <i class="fas fa-plus"></i> Add New Role

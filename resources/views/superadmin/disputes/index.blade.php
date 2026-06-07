@@ -15,10 +15,10 @@
     <div class="col-12">
         <div class="dashboard-card">
             <div class="dashboard-card-header">
-                <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center gap-3 w-100">
                     <h3>Disputes & Complaints</h3>
-                    <form action="{{ route($prefix.'disputes') }}" method="GET" class="d-flex gap-2">
-                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <form action="{{ route($prefix.'disputes') }}" method="GET" class="d-flex flex-wrap gap-2 w-100 w-md-auto">
+                        <select name="status" class="form-select form-select-sm flex-grow-1 flex-md-grow-0" onchange="this.form.submit()" style="min-width: 120px;">
                             <option value="">All Statuses</option>
                             <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Open</option>
                             <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
