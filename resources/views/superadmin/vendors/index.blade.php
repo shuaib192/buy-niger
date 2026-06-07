@@ -45,14 +45,14 @@
                             <tr>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: var(--spacing-md);">
-                                        <img src="{{ $vendor->user->avatar_url }}" style="width: 32px; height: 32px; border-radius: var(--radius-md);">
+                                        <img src="{{ optional($vendor->user)->avatar_url ?? '/images/default-avatar.png' }}" style="width: 32px; height: 32px; border-radius: var(--radius-md);">
                                         <strong>{{ $vendor->store_name }}</strong>
                                     </div>
                                 </td>
-                                <td>{{ $vendor->user->name }}</td>
+                                <td>{{ optional($vendor->user)->name ?? 'Unknown User' }}</td>
                                 <td>
-                                    <div style="font-size: 0.75rem;">{{ $vendor->user->email }}</div>
-                                    <div style="font-size: 0.75rem; color: var(--secondary-500);">{{ $vendor->user->phone }}</div>
+                                    <div style="font-size: 0.75rem;">{{ optional($vendor->user)->email ?? 'N/A' }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--secondary-500);">{{ optional($vendor->user)->phone ?? 'N/A' }}</div>
                                 </td>
                                 <td>
                                     @if($vendor->status == 'approved')

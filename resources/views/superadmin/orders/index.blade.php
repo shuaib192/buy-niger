@@ -60,7 +60,7 @@
                         @foreach($orders as $order)
                         <tr>
                             <td><strong>{{ $order->order_number }}</strong></td>
-                            <td>{{ $order->user->name }}</td>
+                            <td>{{ $order->user->name ?? 'Unknown User' }}</td>
                             <td>₦{{ number_format($order->total, 2) }}</td>
                             <td>
                                 <span class="badge badge-{{ $order->status_badge }}">

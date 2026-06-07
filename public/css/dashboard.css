@@ -173,9 +173,8 @@
     flex-direction: column;
     min-height: 100vh;
     min-width: 0;
-    max-width: 100%;
-    overflow-x: hidden;
-    transition: margin-left var(--transition-normal);
+    width: 100%;
+    transition: margin-left var(--transition-normal), width var(--transition-normal);
 }
 
 /* =====================================================
@@ -1374,13 +1373,13 @@ input[type="number"].form-control::-webkit-inner-spin-button {
     /* Push main content over */
     .main-content {
         margin-left: 280px;
-        max-width: calc(100% - 280px);
-        overflow-x: hidden;
+        width: calc(100% - 280px);
+        flex: none;
     }
 
     .sidebar.collapsed~.main-content {
         margin-left: 80px;
-        max-width: calc(100% - 80px);
+        width: calc(100% - 80px);
     }
 
     /* Hide mobile menu button, show sidebar toggle */
