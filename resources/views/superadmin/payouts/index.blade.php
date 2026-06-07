@@ -93,12 +93,12 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <img src="{{ $payout->vendor->user->avatar_url ?? '/images/default-avatar.png' }}" 
+                                <img src="{{ optional(optional($payout->vendor)->user)->avatar_url ?? '/images/default-avatar.png' }}" 
                                      class="rounded-circle" width="32" height="32" 
                                      style="object-fit:cover;">
                                 <div>
-                                    <div class="fw-semibold small">{{ $payout->vendor->business_name ?? $payout->vendor->user->name ?? 'N/A' }}</div>
-                                    <div class="text-muted" style="font-size:11px;">{{ $payout->vendor->user->email ?? '' }}</div>
+                                    <div class="fw-semibold small">{{ optional($payout->vendor)->business_name ?? optional(optional($payout->vendor)->user)->name ?? 'N/A' }}</div>
+                                    <div class="text-muted" style="font-size:11px;">{{ optional(optional($payout->vendor)->user)->email ?? '' }}</div>
                                 </div>
                             </div>
                         </td>

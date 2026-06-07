@@ -102,7 +102,7 @@
                             @forelse($recentOrders as $order)
                                 <tr>
                                     <td><strong>#{{ $order->order_number }}</strong></td>
-                                    <td>{{ $order->user->name }}</td>
+                                    <td>{{ optional($order->user)->name ?? 'Unknown User' }}</td>
                                     <td>₦{{ number_format($order->total) }}</td>
                                     <td><span class="badge badge-{{ $order->status_badge }}">{{ ucfirst($order->status) }}</span></td>
                                     <td>{{ $order->created_at->format('M d, Y') }}</td>
@@ -154,7 +154,7 @@
                 <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
                     @forelse($pendingVendors as $vendor)
                         <div style="display: flex; align-items: center; gap: var(--spacing-md);">
-                            <img src="{{ $vendor->user->avatar_url }}" style="width: 40px; height: 40px; border-radius: 50%;">
+                            <img src="{{ optional($vendor->user)->avatar_url ?? '/images/default-avatar.png' }}" style="width: 40px; height: 40px; border-radius: 50%;">
                             <div style="flex: 1;">
                                 <strong style="font-size: 0.875rem;">{{ $vendor->store_name }}</strong>
                                 <div style="font-size: 0.75rem; color: var(--secondary-500);">Applied {{ $vendor->created_at->diffForHumans() }}</div>

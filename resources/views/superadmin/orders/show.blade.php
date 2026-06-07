@@ -119,9 +119,9 @@
                 </div>
                 <div class="card-body">
                     <div class="text-center mb-3">
-                        <img class="img-profile rounded-circle" src="https://ui-avatars.com/api/?name={{ urlencode($order->user->name) }}&background=random" style="width: 60px;">
-                        <h5 class="mt-2">{{ $order->user->name }}</h5>
-                        <p class="text-muted">{{ $order->user->email }}</p>
+                        <img class="img-profile rounded-circle" src="https://ui-avatars.com/api/?name={{ urlencode(optional($order->user)->name ?? 'U') }}&background=random" style="width: 60px;">
+                        <h5 class="mt-2">{{ optional($order->user)->name ?? 'Unknown User' }}</h5>
+                        <p class="text-muted">{{ optional($order->user)->email ?? 'No Email' }}</p>
                     </div>
                     <hr>
                     <h6>Shipping Address</h6>
