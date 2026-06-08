@@ -270,6 +270,11 @@
 .page-content {
     flex: 1;
     padding: 12px;
+    /* Critical: prevent content from leaking past the sidebar boundary */
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 /* =====================================================
