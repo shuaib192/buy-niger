@@ -2111,8 +2111,15 @@ input[type="number"].form-control::-webkit-inner-spin-button {
 }
 .action-group {
     display: flex;
-    gap: 6px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
     flex-wrap: nowrap;
+}
+.action-group form {
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
 }
 .btn-xs {
     display: inline-flex; align-items: center; gap: 4px;
@@ -2245,12 +2252,19 @@ input[type="number"].form-control::-webkit-inner-spin-button {
     border-radius: 8px; object-fit: cover; flex-shrink: 0;
     border: 1px solid #e2e8f0;
 }
-.store-name { font-weight: 600; color: #0f172a; }
+.store-name {
+    font-weight: 600; color: #0f172a;
+    max-width: 180px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+}
 .contact-cell small { color: #94a3b8; display: block; font-size: 0.6875rem; }
 
 .sender-name { font-weight: 600; color: #0f172a; }
 .sender-email { color: #94a3b8; font-size: 0.6875rem; display: block; }
-.msg-subject { font-weight: 600; color: #1e293b; }
+.msg-subject {
+    font-weight: 600; color: #1e293b;
+    word-break: break-all; overflow-wrap: anywhere;
+}
 .msg-preview {
     font-size: 0.75rem;
     color: #94a3b8;
@@ -2972,6 +2986,26 @@ input[type="number"].form-control::-webkit-inner-spin-button {
     font-size: 11px;
     color: #94a3b8;
     font-weight: 500;
+}
+/* ── Chart wrappers (analytics page) ── */
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    max-height: 350px;
+    display: flex;
+    justify-content: center;
+}
+.chart-wrapper-sm {
+    position: relative;
+    width: 100%;
+    max-height: 250px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+}
+.chart-wrapper-sm canvas,
+.chart-wrapper canvas {
+    max-width: 100%;
+    max-height: 100%;
 }
 .card-customer {
     display: flex;

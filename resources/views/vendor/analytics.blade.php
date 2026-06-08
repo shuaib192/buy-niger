@@ -130,7 +130,9 @@
                 </div>
                 <div class="an-chart-body">
                     @if(count($chartLabels) > 0)
-                    <canvas id="revenueChart" height="110"></canvas>
+                    <div class="chart-wrapper">
+                        <canvas id="revenueChart" height="110"></canvas>
+                    </div>
                     @else
                     <div class="an-empty">
                         <i class="fas fa-chart-bar fa-2x mb-2 text-muted"></i>
@@ -151,7 +153,9 @@
                         $total = array_sum($ordersByStatus);
                     @endphp
                     @if($total > 0)
-                        <canvas id="statusChart" height="180"></canvas>
+                        <div class="chart-wrapper-sm">
+                            <canvas id="statusChart" height="180"></canvas>
+                        </div>
                         <div class="mt-3">
                         @foreach($ordersByStatus as $st => $cnt)
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -275,7 +279,9 @@
                         $catTotal = $revenueByCategory->sum('revenue') ?: 1;
                         $catColors = ['#6366f1','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
                     @endphp
-                    <canvas id="categoryChart" height="200"></canvas>
+                    <div class="chart-wrapper-sm">
+                        <canvas id="categoryChart" height="200"></canvas>
+                    </div>
                     <div class="mt-3">
                     @foreach($revenueByCategory as $i => $cat)
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -524,6 +530,7 @@ new Chart(rCtx, {
     },
     options: {
         responsive: true,
+        maintainAspectRatio: true,
         interaction: { mode: 'index', intersect: false },
         plugins: {
             legend: { display: false },
@@ -567,6 +574,8 @@ new Chart(sCtx, {
         }]
     },
     options: {
+        responsive: true,
+        maintainAspectRatio: true,
         cutout: '70%',
         plugins: { legend: { display: false } }
     }
@@ -590,6 +599,8 @@ new Chart(cCtx, {
         }]
     },
     options: {
+        responsive: true,
+        maintainAspectRatio: true,
         cutout: '68%',
         plugins: {
             legend: { display: false },
