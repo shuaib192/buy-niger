@@ -16,7 +16,7 @@ class UserVendorDeletionTest extends TestCase
     {
         // Create user
         $user = User::factory()->create([
-            'role_id' => 3 // Vendor role
+            'role_id' => 3, // Vendor role
         ]);
 
         // Create vendor linked to user
@@ -45,7 +45,7 @@ class UserVendorDeletionTest extends TestCase
     {
         // Create user
         $user = User::factory()->create([
-            'role_id' => 3 // Vendor role
+            'role_id' => 3, // Vendor role
         ]);
 
         // Create vendor linked to user
