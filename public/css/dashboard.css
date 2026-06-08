@@ -1143,8 +1143,8 @@ input[type="number"].form-control::-webkit-inner-spin-button {
 }
 
 /* Ensure columns and rows don't overflow when holding wide tables */
-.row > [class*="col-"],
-.page-content .row > [class*="col-"] {
+.row>[class*="col-"],
+.page-content .row>[class*="col-"] {
     min-width: 0;
 }
 
