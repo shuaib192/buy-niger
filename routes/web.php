@@ -372,6 +372,7 @@ Route::middleware(['auth', 'role:1'])->prefix('superadmin')->name('superadmin.')
 // ── Cache clear helper (no SSH needed) ──
 // Usage: https://yoursite.com/cc/YOUR_SECRET
 // Set CACHE_SECRET in .env to your chosen secret word
+
 Route::get('/cc/{token}', function ($token) {
     $secret = env('CACHE_SECRET', 'changethis');
     if ($token !== $secret) {
@@ -380,5 +381,6 @@ Route::get('/cc/{token}', function ($token) {
     \Illuminate\Support\Facades\Artisan::call('view:clear');
     \Illuminate\Support\Facades\Artisan::call('cache:clear');
     \Illuminate\Support\Facades\Artisan::call('config:clear');
+
     return '<h3>✅ Caches cleared</h3><p>View, config & app cache cleared. <a href="/">Go home</a></p>';
 })->name('cache.clear');
