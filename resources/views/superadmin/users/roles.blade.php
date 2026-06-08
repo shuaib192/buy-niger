@@ -95,6 +95,22 @@
     .btn-xs-primary:hover { background: #2563eb; }
     .btn-xs-sec   { border-color: #e2e8f0; color: #475569; background: #f8fafc; }
     .btn-xs-sec:hover   { background: #e2e8f0; }
+
+    @media (max-width: 640px) {
+        .admin-page-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 12px 14px;
+        }
+        .admin-page-header-left {
+            width: 100%;
+        }
+        .admin-page-header button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 
 <div class="admin-page-card">

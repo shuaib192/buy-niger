@@ -146,9 +146,39 @@
     .btn-xs-sec   { border-color: #e2e8f0; color: #475569; background: #f8fafc; }
     .btn-xs-sec:hover   { background: #e2e8f0; }
 
-    .pager-wrap { padding: 14px 20px; border-top: 1px solid #f1f5f9; }
+    .pager-wrap {
+        padding: 14px 20px;
+        border-top: 1px solid #f1f5f9;
+        overflow-x: auto;
+        width: 100%;
+    }
     .empty-state { padding: 48px 20px; text-align: center; color: #94a3b8; }
     .empty-state i { font-size: 2rem; margin-bottom: 10px; display: block; }
+
+    @media (max-width: 640px) {
+        .admin-page-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 12px 14px;
+        }
+        .admin-page-header-left {
+            justify-content: space-between;
+            width: 100%;
+        }
+        .admin-filter-form {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+        .admin-filter-form select,
+        .admin-filter-form input[type="text"],
+        .admin-filter-form button {
+            width: 100%;
+            margin: 0;
+        }
+    }
 </style>
 
 <div class="admin-page-card">

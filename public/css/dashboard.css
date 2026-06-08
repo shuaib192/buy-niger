@@ -12,6 +12,7 @@
 .dashboard-body {
     background: var(--secondary-100);
     min-height: 100vh;
+    overflow-x: hidden; /* Lock viewport horizontally */
 }
 
 .dashboard-wrapper {
@@ -174,6 +175,7 @@
     min-height: 100vh;
     min-width: 0;
     width: 100%;
+    overflow-x: hidden; /* Prevent horizontal overflow shaking */
     transition: margin-left var(--transition-normal), width var(--transition-normal);
 }
 
