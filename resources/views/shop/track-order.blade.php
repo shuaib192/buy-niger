@@ -152,8 +152,7 @@
 </div>
 
 <style>
-/* ── Page ── */
-.track-page { background: #f8fafc; min-height: 70vh; }
+/* Page-specific: Track order hero, timeline, search */
 
 /* ── Hero ── */
 .track-hero {

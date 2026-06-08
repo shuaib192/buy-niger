@@ -9,7 +9,7 @@
 @section('title', $product->name)
 
 @section('content')
-    <div class="container" style="padding-top:0;padding-bottom:40px;">
+    <div class="container pb-5" style="padding-top:0;">
         <div class="product-detail-grid">
             <!-- Product Images -->
             <div class="product-gallery">
@@ -47,22 +47,22 @@
                     <div class="p-sku">SKU: {{ $product->sku }}</div>
                 </div>
 
-                <div class="p-price-block" style="flex-direction:column; align-items:flex-start; gap:8px;">
+                <div class="p-price-block d-flex flex-column align-items-start gap-2">
                     @if($product->sale_price && $product->sale_price < $product->price)
-                        <div style="display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap;">
+                        <div class="d-flex align-items-end gap-4 flex-wrap">
                             <div>
-                                <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; font-weight:800; color:#dc2626;">🔥 Sale — You Pay</div>
+                                <div class="price-label sale">🔥 Sale — You Pay</div>
                                 <span class="curr-price">₦{{ number_format($product->sale_price) }}</span>
                             </div>
                             <div>
-                                <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; font-weight:700; color:var(--secondary-400);">Original Price</div>
-                                <span class="old-price" style="text-decoration:line-through; font-size:1.2rem;">₦{{ number_format($product->price) }}</span>
+                                <div class="price-label">Original Price</div>
+                                <span class="old-price">₦{{ number_format($product->price) }}</span>
                             </div>
                         </div>
                         <span class="save-badge">You save ₦{{ number_format($product->price - $product->sale_price) }} &mdash; {{ round((($product->price - $product->sale_price) / $product->price) * 100) }}% off</span>
                     @else
                         <div>
-                            <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; font-weight:700; color:var(--secondary-400);">Price</div>
+                            <div class="price-label">Price</div>
                             <span class="curr-price">₦{{ number_format($product->price) }}</span>
                         </div>
                     @endif
@@ -74,8 +74,8 @@
 
                 @if($product->variants->count() > 0)
                 <div class="p-variants mb-4">
-                    <label class="d-block mb-2 font-weight-bold" style="font-size: 0.875rem; color: var(--secondary-700);">Select Option</label>
-                    <div class="variant-grid" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <label class="d-block mb-2 font-weight-600" style="font-size:0.875rem;color:var(--secondary-700);">Select Option</label>
+                    <div class="variant-grid d-flex flex-wrap gap-2">
                         @foreach($product->variants as $variant)
                             <div class="variant-item">
                                 <input type="radio" name="product_variant_id" id="v-{{ $variant->id }}" value="{{ $variant->id }}" class="variant-input" onchange="updateVariantPrice({{ $variant->price }}, '{{ $variant->name }}')" {{ $loop->first ? 'checked' : '' }}>
@@ -104,8 +104,8 @@
                         @if($product->vendor->logo)
                             <img src="{{ Storage::url($product->vendor->logo) }}" alt="{{ $product->vendor->store_name }}">
                         @else
-                            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary-100); display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-store" style="color: var(--primary-600);"></i>
+                            <div class="vendor-placeholder">
+                                <i class="fas fa-store"></i>
                             </div>
                         @endif
                         <div class="vendor-info">
@@ -114,7 +114,7 @@
                         </div>
                         <a href="{{ route('store.show', $product->vendor->store_slug) }}" class="btn btn-secondary btn-sm">Visit Store</a>
                         @if($product->vendor->business_phone)
-                        <a href="https://wa.me/{{ $product->vendor->whatsapp_number }}?text={{ urlencode('Hi! I\'m interested in "' . $product->name . '" listed on BuyNiger. Is it still available?') }}" target="_blank" class="btn btn-sm" style="background:#25d366;color:white;border:none;display:inline-flex;align-items:center;gap:4px;font-weight:600;">
+                        <a href="https://wa.me/{{ $product->vendor->whatsapp_number }}?text={{ urlencode('Hi! I\'m interested in "' . $product->name . '" listed on BuyNiger. Is it still available?') }}" target="_blank" class="btn btn-sm btn-whatsapp">
                             <i class="fab fa-whatsapp"></i> WhatsApp
                         </a>
                         @endif
@@ -268,7 +268,7 @@
     </script>
 
     <style>
-        /* =========== PRODUCT DETAIL - MOBILE FIRST =========== */
+        /* Page-specific: Product detail gallery, tabs, reviews */
         .product-detail-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -355,9 +355,6 @@
         .p-rating .fas { font-size: 0.75rem; }
         .p-rating span { color: var(--secondary-500); font-size: 0.75rem; }
         .p-sku { color: var(--secondary-400); font-size: 0.75rem; }
-
-        .text-warning { color: #fbbf24; }
-        .text-gray { color: #d1d5db; }
 
         /* -- Price -- */
         .p-price-block {

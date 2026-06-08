@@ -236,7 +236,7 @@
 </div>
 
 <style>
-    .checkout-layout {
+    /* Page-specific: Checkout layout, address cards, shipping, coupon */
         display: grid;
         grid-template-columns: 1fr 400px;
         gap: 32px;
@@ -317,12 +317,6 @@
 
     .address-card:has(input:checked) .address-check {
         display: flex;
-    }
-
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
     }
 
     .form-group {
@@ -445,57 +439,6 @@
         padding-top: 16px;
     }
 
-    .summary-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        font-size: 14px;
-        color: var(--secondary-600);
-    }
-
-    .summary-row.total {
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--secondary-900);
-        border-top: 1px solid var(--secondary-100);
-        padding-top: 16px;
-        margin-top: 8px;
-    }
-
-    .btn-full {
-        width: 100%;
-    }
-
-    .btn-outline {
-        border: 2px solid var(--secondary-200);
-        color: var(--secondary-700);
-        background: transparent;
-    }
-
-    .secure-text {
-        text-align: center;
-        font-size: 13px;
-        color: var(--secondary-400);
-        margin-top: 16px;
-    }
-
-    .secure-text i {
-        color: var(--success);
-        margin-right: 6px;
-    }
-
-    .alert {
-        padding: 16px 20px;
-        border-radius: 12px;
-        font-size: 14px;
-    }
-
-    .alert-danger {
-        background: #fef2f2;
-        color: #dc2626;
-        border: 1px solid #fecaca;
-    }
-
     .section-hint { font-size: 13px; color: var(--secondary-500); margin-bottom: 16px; }
 
     /* Shipping Methods */
@@ -569,11 +512,6 @@
         }
     }
 
-    @media (max-width: 768px) {
-        .form-row {
-            grid-template-columns: 1fr;
-        }
-    }
 </style>
 
 <script>

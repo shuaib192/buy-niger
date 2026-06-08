@@ -33,13 +33,13 @@
                             @foreach($reviews as $review)
                                 <tr>
                                     <td>
-                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div class="d-flex align-items-center gap-sm">
                                             @if($review->product->primary_image_url)
-                                                <img src="{{ $review->product->primary_image_url }}" alt="" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;">
+                                                <img src="{{ $review->product->primary_image_url }}" alt="" class="review-product-img">
                                             @else
-                                                <div style="width: 40px; height: 40px; background: #eee; border-radius: 6px;"></div>
+                                                <div class="review-product-placeholder"></div>
                                             @endif
-                                            <a href="{{ route('product.detail', $review->product->slug ?? '#') }}" style="font-weight: 500; color: var(--secondary-900);">
+                                            <a href="{{ route('product.detail', $review->product->slug ?? '#') }}" class="font-medium text-secondary-900">
                                                 {{ Str::limit($review->product->name, 30) }}
                                             </a>
                                         </div>
@@ -86,9 +86,9 @@
     </div>
 
     <!-- Edit Review Modal -->
-    <div id="editReviewModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+    <div id="editReviewModal" class="review-modal">
+        <div class="review-modal-content">
+            <span class="review-modal-close" onclick="closeEditModal()">&times;</span>
             <h2 class="mb-4">Edit Review</h2>
             <form id="editReviewForm" method="POST">
                 @csrf
@@ -117,87 +117,27 @@
         </div>
     </div>
 
-    <style>
-        .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 1000; 
-            left: 0; 
-            top: 0; 
-            width: 100%; 
-            height: 100%; 
-            background-color: rgba(0,0,0,0.5);
-        }
-        .modal-content {
-            background-color: white;
-            margin: 10% auto; 
-            padding: 30px; 
-            border-radius: 12px;
-            width: 90%; 
-            max-width: 500px;
-            position: relative;
-        }
-        .close-modal {
-            position: absolute;
-            right: 20px;
-            top: 15px;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #aaa;
-        }
-        .close-modal:hover { color: black; }
-
-        /* Star Rating in Modal */
-        .rating-select {
-            display: flex;
-            flex-direction: row-reverse;
-            justify-content: flex-end;
-            gap: 5px;
-        }
-        .rating-select input { display: none; }
-        .rating-select label {
-            cursor: pointer;
-            font-size: 24px;
-            color: #ddd;
-            transition: color 0.2s;
-        }
-        .rating-select input:checked ~ label,
-        .rating-select label:hover,
-        .rating-select label:hover ~ label {
-            color: #fbbf24;
-        }
-    </style>
+    {{-- CSS classes in dashboard.css (review-modal, review-modal-content, review-modal-close, rating-select) --}}
 
     <script>
         function openEditModal(review) {
             const modal = document.getElementById('editReviewModal');
             const form = document.getElementById('editReviewForm');
             const comment = document.getElementById('editComment');
-            
-            // Set action URL
             form.action = '{{ route("customer.reviews.update", "") }}/' + review.id;
-            
-            // Set value
             comment.value = review.comment;
-            
-            // Set rating
             const ratingRadio = document.getElementById('star' + review.rating);
             if (ratingRadio) ratingRadio.checked = true;
-
-            modal.style.display = 'block';
+            modal.classList.add('open');
         }
 
         function closeEditModal() {
-            document.getElementById('editReviewModal').style.display = 'none';
+            document.getElementById('editReviewModal').classList.remove('open');
         }
 
-        // Close when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('editReviewModal');
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
+            if (event.target == modal) modal.classList.remove('open');
         }
     </script>
 @endsection

@@ -72,7 +72,7 @@
 </div>
 
 <style>
-    .payment-wrapper {
+    /* Page-specific: Payment page */
         max-width: 500px;
         margin: 0 auto;
     }
@@ -211,17 +211,5 @@
         color: var(--success);
     }
 
-    .back-link {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        color: var(--secondary-500);
-        font-size: 14px;
-    }
-
-    .back-link:hover {
-        color: var(--primary-600);
-    }
 </style>
 @endsection

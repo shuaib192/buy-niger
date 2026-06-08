@@ -18,7 +18,7 @@
                 <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center gap-3 w-100">
                     <h3>Disputes & Complaints</h3>
                     <form action="{{ route($prefix.'disputes') }}" method="GET" class="d-flex flex-wrap gap-2 w-100 w-md-auto">
-                        <select name="status" class="form-select form-select-sm flex-grow-1 flex-md-grow-0" onchange="this.form.submit()" style="min-width: 120px;">
+                        <select name="status" class="form-select form-select-sm flex-grow-1 flex-md-grow-0 min-w-120" onchange="this.form.submit()">
                             <option value="">All Statuses</option>
                             <option value="open" {{ request('status') == 'open' ? 'selected' : '' }}>Open</option>
                             <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>

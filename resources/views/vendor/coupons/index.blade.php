@@ -158,6 +158,7 @@
     @endif
 </div>
 
+{{-- Coupon CSS is page-specific (coupon-card, coupon-left, coupon-right, toggle-btn) --}}
 <style>
     .coupons-page { animation: fadeInUp 0.4s ease; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }

@@ -88,7 +88,7 @@
 </div>
 
 <style>
-    .confirmation-wrapper {
+    /* Page-specific: Order confirmation */
         max-width: 700px;
         margin: 0 auto;
     }
@@ -96,20 +96,6 @@
     .confirmation-header {
         text-align: center;
         margin-bottom: 32px;
-    }
-
-    .success-icon {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 24px;
-        color: white;
-        font-size: 2rem;
-        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
     }
 
     .confirmation-header h1 {
@@ -168,19 +154,6 @@
 
     .meta-item strong {
         font-size: 15px;
-    }
-
-    .status-badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .status-badge.pending {
-        background: #fef3c7;
-        color: #d97706;
     }
 
     .confirmation-sections {
@@ -245,12 +218,6 @@
         display: flex;
         gap: 16px;
         justify-content: center;
-    }
-
-    .btn-outline {
-        border: 2px solid var(--secondary-200);
-        color: var(--secondary-700);
-        background: transparent;
     }
 
     @media (max-width: 600px) {

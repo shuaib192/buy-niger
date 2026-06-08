@@ -50,7 +50,7 @@
                             @elseif($dispute->priority == 'high')
                                 <span class="badge badge-warning ml-2">HIGH</span>
                             @endif
-                            <p class="mt-2 mb-0" style="line-height: 1.7; white-space: pre-wrap;">{{ $dispute->description }}</p>
+                            <p class="mt-2 mb-0 pre-reset">{{ $dispute->description }}</p>
                         </div>
                     </div>
                 </div>
@@ -65,17 +65,17 @@
                     @forelse($dispute->messages as $msg)
                         <div class="d-flex mb-4 {{ $msg->is_admin ? 'flex-row-reverse' : '' }}">
                             <img src="https://ui-avatars.com/api/?name={{ urlencode($msg->user->name ?? 'U') }}&background={{ $msg->is_admin ? '3b82f6' : 'ef4444' }}&color=fff" class="rounded-circle mx-2" width="36" height="36">
-                            <div style="max-width:75%; background:{{ $msg->is_admin ? '#eff6ff' : '#fef2f2' }}; border-radius:12px; padding:12px 16px;">
+                            <div class="msg-bubble-{{ $msg->is_admin ? 'admin' : 'customer' }}">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <strong class="small">{{ $msg->user->name ?? 'Unknown' }}</strong>
-                                    <span class="text-muted" style="font-size:11px;">{{ $msg->created_at->format('M d, h:i A') }}</span>
+                                    <span class="text-muted text-xs">{{ $msg->created_at->format('M d, h:i A') }}</span>
                                 </div>
                                 @if($msg->is_admin)
                                     <span class="badge badge-primary" style="font-size:9px;">ADMIN</span>
                                 @else
                                     <span class="badge badge-danger" style="font-size:9px;">CUSTOMER</span>
                                 @endif
-                                <p class="mb-0 mt-1" style="white-space: pre-wrap;">{{ $msg->message }}</p>
+                                <p class="mb-0 mt-1 pre-reset">{{ $msg->message }}</p>
                             </div>
                         </div>
                     @empty
@@ -144,15 +144,15 @@
 
                     <h6 class="small font-weight-bold text-muted mt-3 mb-2">ITEMS IN ORDER</h6>
                     @foreach($dispute->order->items as $item)
-                    <div class="d-flex align-items-center gap-2 mb-2 p-2" style="background:#f8fafc;border-radius:8px;">
+                    <div class="d-flex align-items-center gap-2 mb-2 p-2 order-item-card">
                         @if($item->product && $item->product->primary_image_url)
-                            <img src="{{ $item->product->primary_image_url }}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;">
+                            <img src="{{ $item->product->primary_image_url }}" class="order-item-img">
                         @else
-                            <div style="width:36px;height:36px;background:#e2e8f0;border-radius:6px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-box text-muted"></i></div>
+                            <div class="order-item-img-placeholder"><i class="fas fa-box text-muted"></i></div>
                         @endif
-                        <div style="flex:1;min-width:0;">
+                        <div class="order-item-detail">
                             <div class="small font-weight-bold text-truncate">{{ $item->product_name }}</div>
-                            <div style="font-size:11px;color:#64748b;">{{ $item->quantity }}x ₦{{ number_format($item->price) }}</div>
+                            <div class="order-item-meta">{{ $item->quantity }}x ₦{{ number_format($item->price) }}</div>
                         </div>
                     </div>
                     @endforeach
@@ -184,7 +184,7 @@
                         <img src="https://ui-avatars.com/api/?name={{ urlencode($vendor->store_name) }}&background=random" class="rounded-circle" width="32" height="32">
                         <div>
                             <strong class="small">{{ $vendor->store_name }}</strong>
-                            <div style="font-size:11px;color:#64748b;">{{ $vendor->user->email ?? '' }}</div>
+                            <div class="order-item-meta">{{ $vendor->user->email ?? '' }}</div>
                         </div>
                     </div>
                     @endforeach
@@ -226,7 +226,7 @@
                     <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-history mr-1"></i> Resolution Log</h6>
                 </div>
                 <div class="card-body">
-                    <pre class="small mb-0" style="white-space:pre-wrap;font-family:inherit;background:#f8fafc;padding:12px;border-radius:8px;">{{ $dispute->resolution_notes }}</pre>
+                    <pre class="small pre-reset">{{ $dispute->resolution_notes }}</pre>
                 </div>
             </div>
             @endif

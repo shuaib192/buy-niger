@@ -18,14 +18,14 @@
                 <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-start align-items-md-center gap-3 w-100">
                     <h3>Products</h3>
                     <form action="{{ route($prefix.'products') }}" method="GET" class="d-flex flex-wrap gap-2 w-100 w-md-auto">
-                        <select name="status" class="form-select form-select-sm flex-grow-1 flex-md-grow-0" onchange="this.form.submit()" style="min-width: 120px;">
+                        <select name="status" class="form-select form-select-sm flex-grow-1 flex-md-grow-0 min-w-120" onchange="this.form.submit()">
                             <option value="">All Statuses</option>
                             <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
                             <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
                             <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
                             <option value="archived" {{ request('status') == 'archived' ? 'selected' : '' }}>Archived</option>
                         </select>
-                        <input type="text" name="search" class="form-control form-control-sm flex-grow-1 flex-md-grow-0" placeholder="Search products..." value="{{ request('search') }}" style="min-width: 150px;">
+                        <input type="text" name="search" class="form-control form-control-sm flex-grow-1 flex-md-grow-0 min-w-150" placeholder="Search products..." value="{{ request('search') }}">
                         <button type="submit" class="btn btn-primary btn-sm w-100 w-md-auto">Search</button>
                     </form>
                 </div>
@@ -49,8 +49,8 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div style="width: 40px; height: 40px; background: #eee; border-radius: 4px; overflow: hidden;">
-                                                <img src="{{ $product->primary_image_url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <div class="rounded" style="width:40px;height:40px;background:#eee;overflow:hidden;">
+                                                <img src="{{ $product->primary_image_url }}" style="width:100%;height:100%;object-fit:cover;">
                                             </div>
                                             <div>
                                                 <div class="fw-bold">{{ Str::limit($product->name, 30) }}</div>

@@ -17,7 +17,7 @@
 <div class="row mb-4">
     {{-- Summary Cards --}}
     <div class="col-md-3 mb-3">
-        <div class="dashboard-card text-center" style="border-left: 4px solid #f59e0b;">
+        <div class="dashboard-card text-center border-left-warning">
             <div class="card-body py-3">
                 <div class="text-muted small mb-1"><i class="fas fa-clock me-1"></i> Pending</div>
                 <div class="fw-bold fs-4 text-warning">{{ $payouts->where('status', 'pending')->count() }}</div>
@@ -25,15 +25,15 @@
         </div>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="dashboard-card text-center" style="border-left: 4px solid #6366f1;">
+        <div class="dashboard-card text-center border-left-indigo">
             <div class="card-body py-3">
                 <div class="text-muted small mb-1"><i class="fas fa-spinner me-1"></i> Processing</div>
-                <div class="fw-bold fs-4" style="color:#6366f1;">{{ $payouts->where('status', 'processing')->count() }}</div>
+                <div class="fw-bold fs-4 text-indigo">{{ $payouts->where('status', 'processing')->count() }}</div>
             </div>
         </div>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="dashboard-card text-center" style="border-left: 4px solid #10b981;">
+        <div class="dashboard-card text-center border-left-success">
             <div class="card-body py-3">
                 <div class="text-muted small mb-1"><i class="fas fa-check-circle me-1"></i> Completed</div>
                 <div class="fw-bold fs-4 text-success">{{ $payouts->where('status', 'completed')->count() }}</div>
@@ -41,7 +41,7 @@
         </div>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="dashboard-card text-center" style="border-left: 4px solid #ef4444;">
+        <div class="dashboard-card text-center border-left-danger">
             <div class="card-body py-3">
                 <div class="text-muted small mb-1"><i class="fas fa-times-circle me-1"></i> Failed</div>
                 <div class="fw-bold fs-4 text-danger">{{ $payouts->where('status', 'failed')->count() }}</div>
@@ -95,15 +95,15 @@
                             <div class="d-flex align-items-center gap-2">
                                 <img src="{{ optional(optional($payout->vendor)->user)->avatar_url ?? '/images/default-avatar.png' }}" 
                                      class="rounded-circle" width="32" height="32" 
-                                     style="object-fit:cover;">
+                                     class="rounded-circle" style="object-fit:cover;width:32px;height:32px;">
                                 <div>
                                     <div class="fw-semibold small">{{ optional($payout->vendor)->business_name ?? optional(optional($payout->vendor)->user)->name ?? 'N/A' }}</div>
-                                    <div class="text-muted" style="font-size:11px;">{{ optional(optional($payout->vendor)->user)->email ?? '' }}</div>
+                                    <div class="order-item-meta">{{ optional(optional($payout->vendor)->user)->email ?? '' }}</div>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <span class="fw-bold" style="color:#10b981;">₦{{ number_format($payout->amount, 2) }}</span>
+                            <span class="fw-bold text-emerald">₦{{ number_format($payout->amount, 2) }}</span>
                         </td>
                         <td>
                             <span class="text-muted small text-capitalize">{{ str_replace('_', ' ', $payout->payment_method ?? 'bank transfer') }}</span>
@@ -124,7 +124,7 @@
                         </td>
                         <td>
                             <span class="text-muted small">{{ $payout->created_at->format('M d, Y') }}</span>
-                            <div class="text-muted" style="font-size:11px;">{{ $payout->created_at->diffForHumans() }}</div>
+                            <div class="order-item-meta">{{ $payout->created_at->diffForHumans() }}</div>
                         </td>
                         <td class="text-end pe-4">
                             @if($payout->status === 'pending' || $payout->status === 'processing')

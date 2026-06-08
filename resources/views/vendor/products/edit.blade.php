@@ -230,65 +230,16 @@
     </div>
 </form>
 
+{{-- Image upload CSS — keep page-specific (image-upload-area, preview-item) --}}
 <style>
-    .image-upload-area {
-        border: 2px dashed #e2e8f0;
-        border-radius: 12px;
-        padding: 40px;
-        text-align: center;
-        background: #f8fafc;
-        transition: all 0.2s;
-    }
-    .image-upload-area:hover {
-        border-color: #3b82f6;
-        background: #eff6ff;
-    }
-    .upload-label {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        cursor: pointer;
-    }
-    .image-preview-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 12px;
-    }
-    .preview-item {
-        position: relative;
-        aspect-ratio: 1;
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1px solid #e2e8f0;
-        cursor: grab;
-    }
-    .preview-item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .preview-item.to-delete {
-        opacity: 0.3;
-        filter: grayscale(1);
-    }
-    .preview-item .remove-btn {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        width: 20px;
-        height: 20px;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #ef4444;
-        font-size: 10px;
-        cursor: pointer;
-        border: none;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        z-index: 10;
-    }
+    .image-upload-area { border: 2px dashed #e2e8f0; border-radius: 12px; padding: 40px; text-align: center; background: #f8fafc; transition: all 0.2s; }
+    .image-upload-area:hover { border-color: #3b82f6; background: #eff6ff; }
+    .upload-label { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    .image-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
+    .preview-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; cursor: grab; }
+    .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-item.to-delete { opacity: 0.3; filter: grayscale(1); }
+    .preview-item .remove-btn { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 10px; cursor: pointer; border: none; box-shadow: 0 1px 2px rgba(0,0,0,0.1); z-index: 10; }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>

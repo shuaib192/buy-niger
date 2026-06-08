@@ -20,9 +20,9 @@
 
     <!-- Success Message -->
     @if(session('success'))
-    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px; padding:16px 24px; margin-bottom:32px; display:flex; align-items:center; gap:12px;">
-        <i class="fas fa-check-circle" style="color:#10b981; font-size:20px;"></i>
-        <span style="color:#166534; font-weight:600;">{{ session('success') }}</span>
+    <div class="d-flex align-items-center gap-3" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:16px 24px;margin-bottom:32px;">
+        <i class="fas fa-check-circle" style="color:#10b981;font-size:20px;"></i>
+        <span style="color:#166534;font-weight:600;">{{ session('success') }}</span>
     </div>
     @endif
 
@@ -34,27 +34,27 @@
                 @csrf
                 <div class="contact-form-row">
                     <div class="form-group">
-                        <label>Your Name <span style="color:#ef4444;">*</span></label>
+                        <label>Your Name <span class="text-danger">*</span></label>
                         <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" placeholder="John Doe" required>
                         @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                     <div class="form-group">
-                        <label>Email Address <span style="color:#ef4444;">*</span></label>
+                        <label>Email Address <span class="text-danger">*</span></label>
                         <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" placeholder="you@example.com" required>
                         @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Subject <span style="color:#ef4444;">*</span></label>
+                    <label>Subject <span class="text-danger">*</span></label>
                     <input type="text" name="subject" class="form-control @error('subject') is-invalid @enderror" value="{{ old('subject') }}" placeholder="How can we help?" required>
                     @error('subject') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 <div class="form-group">
-                    <label>Message <span style="color:#ef4444;">*</span></label>
+                    <label>Message <span class="text-danger">*</span></label>
                     <textarea name="message" class="form-control @error('message') is-invalid @enderror" rows="5" placeholder="Write your message here..." required>{{ old('message') }}</textarea>
                     @error('message') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">
+                <button type="submit" class="btn btn-primary btn-lg btn-full">
                     <i class="fas fa-paper-plane"></i> Send Message
                 </button>
             </form>
@@ -95,7 +95,7 @@
     </div>
     
     <!-- Map Section -->
-    <div style="margin-top:56px; border-radius:24px; overflow:hidden; border:1px solid #e2e8f0; height:450px; background:#f8fafc;">
+    <div class="map-container">
         <iframe 
             width="100%" 
             height="100%" 
@@ -110,7 +110,7 @@
 </div>
 
 <style>
-    .contact-hero {
+    /* Page-specific: Contact page form, info cards */
         text-align: center;
         padding: 56px 20px;
         background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%);

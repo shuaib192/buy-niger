@@ -53,6 +53,7 @@
     </div>
 </div>
 
+{{-- Chat CSS is page-specific (chat-wrapper, msg-bubble, chat-input-bar) --}}
 <style>
     .chat-page { animation: fadeInUp 0.3s ease; max-width: 800px; margin: 0 auto; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }

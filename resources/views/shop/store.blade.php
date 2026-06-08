@@ -124,7 +124,7 @@
     </div>
 
     <style>
-        .store-header {
+        /* Page-specific: Single store page banner, sidebar, search */
             position: relative;
             margin-bottom: 0;
         }

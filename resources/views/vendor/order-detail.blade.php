@@ -210,6 +210,7 @@
     </div>
 </div>
 
+{{-- Order detail CSS is page-specific (stepper, order-header-card, order-item-row) --}}
 <style>
     .order-detail-page { animation: fadeInUp 0.4s ease; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }

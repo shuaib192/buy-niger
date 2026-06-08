@@ -14,12 +14,12 @@
         <div class="dashboard-card h-100">
             <div class="dashboard-card-header">
                 <h3>Revenue Overview</h3>
-                <select class="form-select form-select-sm" style="width: auto;">
+                <select class="form-select form-select-sm w-auto">
                     <option>This Year</option>
                     <option>Last Year</option>
                 </select>
             </div>
-            <div class="dashboard-card-body d-flex align-items-center justify-content-center" style="min-height: 300px; background: var(--bg-surface);">
+            <div class="dashboard-card-body d-flex align-items-center justify-content-center min-h-300">
                 <div class="text-center text-muted">
                     <i class="fas fa-chart-area fa-3x mb-3"></i>
                     <p>Revenue Chart Visualization</p>
@@ -40,7 +40,7 @@
                     <span>Direct</span>
                     <span class="fw-bold">45%</span>
                 </div>
-                <div class="progress mb-4" style="height: 6px;">
+                <div class="progress mb-4 progress-thin">
                     <div class="progress-bar bg-primary" style="width: 45%"></div>
                 </div>
 
@@ -48,7 +48,7 @@
                     <span>Social Media</span>
                     <span class="fw-bold">30%</span>
                 </div>
-                <div class="progress mb-4" style="height: 6px;">
+                <div class="progress mb-4 progress-thin">
                     <div class="progress-bar bg-info" style="width: 30%"></div>
                 </div>
 
@@ -56,7 +56,7 @@
                     <span>Organic Search</span>
                     <span class="fw-bold">25%</span>
                 </div>
-                <div class="progress" style="height: 6px;">
+                <div class="progress progress-thin">
                     <div class="progress-bar bg-success" style="width: 25%"></div>
                 </div>
             </div>

@@ -193,6 +193,7 @@
 {{-- Toast Notification --}}
 <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
 
+{{-- Inventory CSS is page-specific (inventory-table, variant-row, adjust-group, history-item) --}}
 <style>
     .inventory-page { animation: fadeInUp 0.4s ease; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }

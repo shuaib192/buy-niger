@@ -1,9 +1,3 @@
-{{-- 
-    BuyNiger AI - Multi-Vendor E-Commerce Platform
-    Written by Shuaibu Abdulmumin (08122598372, 07049906420)
-    
-    View: Super Admin Dashboard (Dynamic)
---}}
 @extends('layouts.app')
 
 @section('title', 'Super Admin Dashboard')
@@ -14,7 +8,6 @@
 @endsection
 
 @section('content')
-    <!-- Stats Grid -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon blue">
@@ -61,33 +54,33 @@
 @php
     $prefix = request()->is('admin*') ? 'admin.' : 'superadmin.';
 @endphp
-    <!-- Dashboard Grid -->
+
     <div class="row g-4">
-        <!-- Track Order Card -->
+        <!-- Track Order -->
         <div class="col-12">
-            <div class="dashboard-card bg-primary-50 border-primary-100">
+            <div class="dashboard-card bg-primary-soft">
                 <div class="dashboard-card-body d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 p-4">
                     <div>
                         <h3 class="h5 font-bold text-primary-900 mb-1">Track Order</h3>
-                        <p class="text-primary-700 mb-0 text-sm">Enter an Order Number (e.g., BN-...) or Tracking ID to view details.</p>
+                        <p class="text-secondary-600 text-sm mb-0">Enter an Order Number or Tracking ID</p>
                     </div>
-                    <form action="{{ route($prefix.'track') }}" method="POST" class="d-flex flex-column flex-sm-row gap-2 w-100 w-lg-auto" style="max-width: 500px;">
+                    <form action="{{ route($prefix.'track') }}" method="POST" class="d-flex flex-column flex-sm-row gap-2" style="max-width: 500px;">
                         @csrf
                         <input type="text" name="order_number" class="form-control" placeholder="Enter Order # or Tracking ID" required>
-                        <button type="submit" class="btn btn-primary white-space-nowrap">Track</button>
+                        <button type="submit" class="btn btn-premium">Track</button>
                     </form>
                 </div>
             </div>
         </div>
 
         <!-- Recent Orders -->
-        <div class="col-8">
+        <div class="col-lg-8">
             <div class="dashboard-card">
                 <div class="dashboard-card-header">
                     <h3>Recent Orders</h3>
-                    <a href="{{ route($prefix.'orders') }}" class="btn btn-sm btn-secondary">View All</a>
+                    <a href="{{ route($prefix.'orders') }}" class="btn btn-sm btn-soft">View All</a>
                 </div>
-                <div class="dashboard-card-body">
+                <div class="dashboard-card-body p-0">
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
@@ -102,15 +95,15 @@
                             <tbody>
                                 @forelse($recentOrders as $order)
                                     <tr>
-                                        <td><strong>#{{ $order->order_number }}</strong></td>
+                                        <td class="font-semibold">#{{ $order->order_number }}</td>
                                         <td>{{ optional($order->user)->name ?? 'Unknown User' }}</td>
-                                        <td>₦{{ number_format($order->total) }}</td>
+                                        <td class="font-semibold">₦{{ number_format($order->total) }}</td>
                                         <td><span class="badge badge-{{ $order->status_badge }}">{{ ucfirst($order->status) }}</span></td>
                                         <td>{{ $order->created_at->format('M d, Y') }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" style="text-align: center; color: var(--secondary-500); padding: var(--spacing-md);">No orders found</td>
+                                        <td colspan="5" class="text-center py-4 text-secondary-500">No orders found</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -120,34 +113,29 @@
             </div>
         </div>
 
-        <!-- AI Status -->
-        @if($prefix === 'superadmin.')
-        <div class="col-4">
+        <!-- AI Status + Pending Vendors -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            @if($prefix === 'superadmin.')
             <div class="dashboard-card">
                 <div class="dashboard-card-header">
                     <h3>AI System Status</h3>
                 </div>
                 <div class="dashboard-card-body">
-                    <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-                        <div style="width: 12px; height: 12px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite;"></div>
-                        <span style="font-weight: 600; color: var(--success);">Shadow Mode Active</span>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="d-inline-block" style="width:12px;height:12px;background:var(--success);border-radius:50%;box-shadow:0 0 6px rgba(16,185,129,0.6);"></span>
+                        <span class="font-semibold text-success">Shadow Mode Active</span>
                     </div>
-                    <div style="margin-bottom: var(--spacing-lg);">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span style="font-size: 0.875rem; color: var(--secondary-600);">Pending Proposals</span>
-                            <strong>3</strong>
-                        </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-sm text-secondary-600">Pending Proposals</span>
+                        <strong>3</strong>
                     </div>
-                    <a href="{{ route($prefix.'ai') }}" class="btn btn-primary btn-full btn-sm">
+                    <a href="{{ route($prefix.'ai') }}" class="btn btn-premium btn-sm btn-full">
                         <i class="fas fa-robot"></i> Manage AI
                     </a>
                 </div>
             </div>
-        </div>
-        @endif
+            @endif
 
-        <!-- Pending Vendors -->
-        <div class="col-4">
             <div class="dashboard-card">
                 <div class="dashboard-card-header">
                     <h3>Pending Vendors</h3>
@@ -156,31 +144,29 @@
                     @endif
                 </div>
                 <div class="dashboard-card-body">
-                    <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
-                        @forelse($pendingVendors as $vendor)
-                            <div style="display: flex; align-items: center; gap: var(--spacing-md);">
-                                <img src="{{ optional($vendor->user)->avatar_url ?? '/images/default-avatar.png' }}" style="width: 40px; height: 40px; border-radius: 50%;">
-                                <div style="flex: 1;">
-                                    <strong style="font-size: 0.875rem;">{{ $vendor->store_name }}</strong>
-                                    <div style="font-size: 0.75rem; color: var(--secondary-500);">Applied {{ $vendor->created_at->diffForHumans() }}</div>
-                                </div>
-                                <form action="{{ route($prefix.'vendors.status', $vendor) }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="status" value="approved">
-                                    <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-check"></i></button>
-                                </form>
+                    @forelse($pendingVendors as $vendor)
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <img src="{{ optional($vendor->user)->avatar_url ?? asset('images/default-avatar.png') }}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">
+                            <div class="flex-fill">
+                                <div class="font-semibold text-sm">{{ $vendor->store_name }}</div>
+                                <div class="text-xs text-secondary-500">Applied {{ $vendor->created_at->diffForHumans() }}</div>
                             </div>
-                        @empty
-                            <p style="text-align: center; color: var(--secondary-500); padding: var(--spacing-md);">No pending vendors</p>
-                        @endforelse
-                    </div>
-                    <a href="{{ route($prefix.'vendors') }}" class="btn btn-secondary btn-full btn-sm mt-3">View All Vendors</a>
+                            <form action="{{ route($prefix.'vendors.status', $vendor) }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="status" value="approved">
+                                <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-check"></i></button>
+                            </form>
+                        </div>
+                    @empty
+                        <p class="text-center text-secondary-500 py-3 mb-0">No pending vendors</p>
+                    @endforelse
+                    <a href="{{ route($prefix.'vendors') }}" class="btn btn-soft btn-sm btn-full mt-2">View All Vendors</a>
                 </div>
             </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="col-8">
+        <div class="col-12">
             <div class="dashboard-card">
                 <div class="dashboard-card-header">
                     <h3>Quick Actions</h3>
@@ -214,11 +200,4 @@
             </div>
         </div>
     </div>
-
-    <style>
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-    </style>
 @endsection

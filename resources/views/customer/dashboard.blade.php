@@ -43,7 +43,7 @@
             </div>
         </div>
         <div class="stat-card">
-            <a href="{{ route('customer.reviews.index') }}" style="display: flex; gap: 16px; align-items: center; width: 100%; text-decoration: none; color: inherit;">
+            <a href="{{ route('customer.reviews.index') }}" class="stat-card-link">
                 <div class="stat-icon purple">
                     <i class="fas fa-star"></i>
                 </div>
@@ -95,8 +95,8 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" style="text-align: center; padding: var(--spacing-xl); color: var(--secondary-500);">
-                                            <i class="fas fa-shopping-bag" style="font-size: 2rem; margin-bottom: var(--spacing-md); display: block;"></i>
+                                        <td colspan="5" class="text-center py-4 text-secondary-500">
+                                            <i class="fas fa-shopping-bag empty-state-icon"></i>
                                             No orders yet. <a href="{{ route('catalog') }}">Start shopping!</a>
                                         </td>
                                     </tr>
@@ -114,7 +114,7 @@
                     <h3>Quick Links</h3>
                 </div>
                 <div class="dashboard-card-body">
-                    <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                    <div class="d-flex flex-column gap-md">
                         <a href="{{ route('catalog') }}" class="btn btn-primary btn-full">
                             <i class="fas fa-shopping-cart"></i> Continue Shopping
                         </a>

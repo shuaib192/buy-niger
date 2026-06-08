@@ -47,47 +47,5 @@
     </div>
 </div>
 
-<style>
-    .policy-container {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 60px 20px;
-    }
-    .policy-header {
-        text-align: center;
-        margin-bottom: 50px;
-    }
-    .policy-header h1 {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: #1e293b;
-        margin-bottom: 10px;
-    }
-    .policy-header p {
-        color: #64748b;
-        font-size: 1rem;
-    }
-    .policy-content {
-        background: white;
-        padding: 40px;
-        border-radius: 24px;
-        border: 1px solid #e2e8f0;
-        line-height: 1.8;
-        color: #334155;
-    }
-    .policy-content section {
-        margin-bottom: 40px;
-    }
-    .policy-content h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #0f172a;
-        margin-bottom: 20px;
-        border-bottom: 2px solid #f1f5f9;
-        padding-bottom: 10px;
-    }
-    .policy-content p {
-        margin-bottom: 15px;
-    }
-</style>
+{{-- Policy CSS in shop.css --}}
 @endsection

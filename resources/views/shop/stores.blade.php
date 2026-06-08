@@ -83,7 +83,7 @@
 </div>
 
 <style>
-    .stores-hero {
+    /* Page-specific: Stores listing hero + search */
         text-align:center; padding:48px 24px; margin-bottom:36px;
         background:linear-gradient(135deg,#0f172a,#1e40af); border-radius:24px; color:white;
     }
@@ -103,41 +103,6 @@
         padding:14px 24px; background:#3b82f6; color:white; border:none;
         font-weight:700; font-size:14px; cursor:pointer;
     }
-
-    .stores-grid {
-        display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
-        gap:24px;
-    }
-    .store-card {
-        background:white; border-radius:20px; overflow:hidden; text-decoration:none; color:#1e293b;
-        border:1px solid #e2e8f0; transition:all 0.3s; display:block;
-    }
-    .store-card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,0,0,0.1); }
-
-    .store-card-banner {
-        height:100px; position:relative; display:flex; align-items:flex-end; justify-content:center;
-    }
-    .store-avatar {
-        width:60px; height:60px; border-radius:16px; background:white; border:3px solid white;
-        display:flex; align-items:center; justify-content:center; position:absolute; bottom:-28px;
-        box-shadow:0 4px 12px rgba(0,0,0,0.1); overflow:hidden;
-    }
-    .store-avatar img { width:100%; height:100%; object-fit:cover; }
-    .store-avatar span { font-size:18px; font-weight:800; color:#3b82f6; }
-
-    .store-card-body { padding:38px 20px 20px; }
-    .store-card-body h3 { font-size:16px; font-weight:700; margin-bottom:4px; }
-    .store-location { color:#64748b; font-size:12px; margin-bottom:8px; }
-    .store-location i { color:#3b82f6; margin-right:4px; }
-    .store-desc { color:#94a3b8; font-size:13px; line-height:1.5; margin-bottom:16px; }
-
-    .store-meta {
-        display:flex; justify-content:space-between; align-items:center;
-        border-top:1px solid #f1f5f9; padding-top:12px; font-size:12px;
-    }
-    .store-meta span { color:#64748b; }
-    .store-meta i { margin-right:4px; }
-    .store-visit { color:#3b82f6; font-weight:700; }
 
     @media(max-width:640px) {
         .stores-grid { grid-template-columns:1fr; }

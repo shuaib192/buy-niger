@@ -24,8 +24,8 @@
                 @csrf
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
-                        <div class="search-input-group">
-                            <i class="fas fa-search"></i>
+                        <div class="search-wrapper">
+                            <i class="fas fa-search search-icon"></i>
                             <input type="text" name="search" class="form-control" placeholder="Search products..." value="{{ request('search') }}">
                         </div>
                     </div>
@@ -147,22 +147,6 @@
                     @csrf @method('DELETE')
                 </form>
             @endforeach
-
-            <style>
-                .search-input-group {
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                }
-                .search-input-group i {
-                    position: absolute;
-                    left: 12px;
-                    color: var(--secondary-400);
-                }
-                .search-input-group .form-control {
-                    padding-left: 35px;
-                }
-            </style>
 
             <script>
                 document.getElementById('selectAll').addEventListener('change', function() {

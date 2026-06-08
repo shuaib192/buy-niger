@@ -129,7 +129,7 @@
     </div>
 
     <style>
-        /* ===== Mobile Filter Button ===== */
+        /* Page-specific: Catalog sidebar & filter drawer */
         .mobile-filter-btn {
             display: none;
             align-items: center;
@@ -250,9 +250,6 @@
             font-size: 0.8125rem;
             color: var(--secondary-500);
         }
-
-        .text-warning { color: #fbbf24; }
-        .text-gray { color: var(--secondary-200); }
 
         .shop-toolbar {
             display: flex;

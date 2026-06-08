@@ -242,8 +242,8 @@
     </div>
 </div>
 
+{{-- Finances page CSS is page-specific (fin-hero, fin-metrics, fin-card, fin-modal) --}}
 <style>
-/* ============ FINANCES PAGE ============ */
 .fin-page { max-width:1100px; animation: finFadeIn 0.5s ease; }
 @keyframes finFadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 

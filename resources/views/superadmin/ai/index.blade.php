@@ -259,13 +259,4 @@
     </div>
 </div>
 
-<style>
-    .bg-primary-light { background-color: rgba(79, 70, 229, 0.1); }
-    .bg-purple-light { background-color: rgba(147, 51, 234, 0.1); }
-    .bg-orange-light { background-color: rgba(249, 115, 22, 0.1); }
-    .bg-success-light { background-color: rgba(16, 185, 129, 0.1); }
-    
-    .text-purple { color: #9333ea; }
-    .text-orange { color: #f97316; }
-</style>
 @endsection

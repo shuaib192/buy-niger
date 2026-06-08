@@ -135,7 +135,7 @@
 </div>
 
 <style>
-    .apply-page {
+    /* Page-specific: Vendor application form */
         max-width: 640px;
         margin: 0 auto;
     }
@@ -224,22 +224,6 @@
         margin: 0 0 16px;
         line-height: 1.6;
     }
-    .status-badge {
-        display: inline-block;
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-    }
-    .status-badge.pending {
-        background: #fef3c7;
-        color: #92400e;
-    }
-    .status-badge.rejected {
-        background: #fef2f2;
-        color: #b91c1c;
-    }
-
     .apply-form {
         display: flex;
         flex-direction: column;
@@ -266,12 +250,6 @@
     .form-section h3 i {
         color: var(--primary-500, #3b82f6);
         font-size: 14px;
-    }
-
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
     }
 
     .form-group {
@@ -336,10 +314,6 @@
         text-align: center;
     }
 
-    .btn-full {
-        width: 100%;
-    }
-
     .form-note {
         margin-top: 12px;
         font-size: 12px;
@@ -347,7 +321,6 @@
     }
 
     @media (max-width: 480px) {
-        .form-row { grid-template-columns: 1fr; }
         .form-section { padding: 18px 16px; border-radius: 14px; }
         .apply-header h1 { font-size: 20px; }
     }

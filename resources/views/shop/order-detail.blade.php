@@ -248,21 +248,8 @@
 @endif
 
 <style>
-    .order-detail-header {
+    /* Page-specific: Order detail timeline, items, payment CTA, modal */
         margin-bottom: 32px;
-    }
-
-    .back-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--secondary-500);
-        font-size: 14px;
-        margin-bottom: 8px;
-    }
-
-    .back-link:hover {
-        color: var(--primary-600);
     }
 
     .order-detail-header h1 {
@@ -275,23 +262,6 @@
         grid-template-columns: 1fr 360px;
         gap: 24px;
         align-items: start;
-    }
-
-    .detail-card {
-        background: white;
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 16px;
-        border: 1px solid var(--secondary-100);
-    }
-
-    .detail-card h3 {
-        font-size: 14px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--secondary-500);
-        margin-bottom: 20px;
     }
 
     .status-timeline {
@@ -413,23 +383,6 @@
         color: #d97706;
     }
 
-    .summary-rows .row {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        font-size: 14px;
-        color: var(--secondary-600);
-    }
-
-    .summary-rows .row.total {
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--secondary-900);
-        border-top: 1px solid var(--secondary-100);
-        padding-top: 16px;
-        margin-top: 8px;
-    }
-
     .detail-card p {
         line-height: 1.7;
         color: var(--secondary-700);
@@ -446,9 +399,6 @@
         font-size: 13px;
         color: var(--secondary-500);
     }
-
-    .status-badge.pending { background: #fef3c7; color: #d97706; }
-    .status-badge.paid { background: #d1fae5; color: #059669; }
 
     /* Payment CTA Card */
     .payment-cta-card {

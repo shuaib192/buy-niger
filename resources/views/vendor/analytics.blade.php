@@ -352,6 +352,7 @@
     </div>
 </div>
 
+{{-- Analytics CSS is page-specific (an-kpi-grid, an-chart, an-insights) --}}
 <style>
 /* ============ ANALYTICS PAGE STYLES ============ */
 .an-title { font-size:1.6rem; font-weight:800; color:#1e293b; }

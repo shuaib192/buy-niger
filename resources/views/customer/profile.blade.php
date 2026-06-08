@@ -90,51 +90,5 @@
     </div>
 </div>
 
-<style>
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-    .form-group {
-        margin-bottom: 16px;
-    }
-    .form-group label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 8px;
-        font-size: 14px;
-    }
-    .form-control {
-        width: 100%;
-        padding: 12px 14px;
-        border: 1px solid var(--secondary-200);
-        border-radius: 10px;
-        font-size: 14px;
-    }
-    .form-control:disabled {
-        background: var(--secondary-50);
-        cursor: not-allowed;
-    }
-    .help-text {
-        font-size: 12px;
-        color: var(--secondary-400);
-        margin-top: 4px;
-    }
-    .error-text {
-        font-size: 12px;
-        color: var(--danger);
-        margin-top: 4px;
-    }
-    .alert-success {
-        background: #d1fae5;
-        color: #047857;
-        padding: 12px 16px;
-        border-radius: 10px;
-    }
-    .mb-4 { margin-bottom: 1.5rem; }
-    @media (max-width: 768px) {
-        .form-row { grid-template-columns: 1fr; }
-    }
-</style>
+{{-- CSS classes in dashboard.css (form-row, form-group, form-control, error-text, help-text, etc.) --}}
 @endsection

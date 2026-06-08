@@ -23,8 +23,8 @@
                         @if($item->product->primary_image_url)
                             <img src="{{ $item->product->primary_image_url }}" alt="{{ $item->product->name }}">
                         @else
-                            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#f1f5f9;">
-                                <i class="fas fa-image" style="color:#cbd5e1; font-size:1.5rem;"></i>
+                            <div class="img-placeholder">
+                                <i class="fas fa-image"></i>
                             </div>
                         @endif
                     </div>
@@ -37,19 +37,19 @@
                             @endif
                         </div>
                         <div class="cart-item-price">
-                            @if($item->product->sale_price && $item->product->sale_price < $item->product->price && !$item->variant)
-                                <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.8px; color:#dc2626; font-weight:800; margin-bottom:2px;">🔥 On Sale</div>
-                                <div style="font-size:1rem; font-weight:800; color:var(--primary-600);">
+                                @if($item->product->sale_price && $item->product->sale_price < $item->product->price && !$item->variant)
+                                <div class="on-sale-marker">🔥 On Sale</div>
+                                <div style="font-size:1rem;font-weight:800;color:var(--primary-600);">
                                     You Pay: ₦{{ number_format($item->product->sale_price) }}
                                 </div>
-                                <div style="font-size:0.8rem; color:var(--secondary-400); text-decoration:line-through;">
+                                <div style="font-size:0.8rem;color:var(--secondary-400);text-decoration:line-through;">
                                     Original: ₦{{ number_format($item->product->price) }}
                                 </div>
-                                <div style="display:inline-block; margin-top:3px; font-size:0.7rem; background:#fef2f2; color:#dc2626; padding:2px 8px; border-radius:20px; font-weight:700;">
+                                <span class="sale-badge">
                                     You save ₦{{ number_format($item->product->price - $item->product->sale_price) }}
-                                </div>
+                                </span>
                             @else
-                                <div style="font-size:1rem; font-weight:800; color:var(--secondary-900);">
+                                <div style="font-size:1rem;font-weight:800;color:var(--secondary-900);">
                                     Price: ₦{{ number_format($item->price) }}
                                 </div>
                             @endif
@@ -103,7 +103,7 @@
 </div>
 
 <style>
-    .cart-layout {
+    /* Page-specific: Cart layout & items */
         display: grid;
         grid-template-columns: 1fr 380px;
         gap: 32px;
@@ -229,38 +229,6 @@
         margin-bottom: 20px;
         padding-bottom: 16px;
         border-bottom: 1px solid var(--secondary-100);
-    }
-
-    .summary-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 12px;
-        color: var(--secondary-600);
-        font-size: 14px;
-    }
-
-    .summary-row.total {
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--secondary-900);
-        padding-top: 16px;
-        margin-top: 16px;
-        border-top: 1px solid var(--secondary-100);
-    }
-
-    .btn-outline {
-        border: 2px solid var(--secondary-200);
-        color: var(--secondary-700);
-        background: transparent;
-    }
-
-    .btn-outline:hover {
-        border-color: var(--primary-500);
-        color: var(--primary-600);
-    }
-
-    .btn-full {
-        width: 100%;
     }
 
     .empty-cart {

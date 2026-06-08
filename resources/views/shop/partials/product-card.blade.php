@@ -10,8 +10,8 @@
             @if($product->primary_image_url)
                 <img src="{{ $product->primary_image_url }}" alt="{{ $product->name }}" class="product-image">
             @else
-                <div class="product-image" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f1f5f9, #e2e8f0);">
-                    <i class="fas fa-image" style="font-size: 3rem; color: #cbd5e1;"></i>
+                <div class="product-image img-placeholder">
+                    <i class="fas fa-image"></i>
                 </div>
             @endif
         </a>
@@ -26,12 +26,12 @@
         <a href="{{ route('product.detail', $product->slug) }}" class="product-name">{{ Str::limit($product->name, 40) }}</a>
         <div class="product-price-row">
             @if($product->sale_price && $product->sale_price < $product->price)
-                <div style="display:flex; flex-direction:column; gap:2px;">
-                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <div class="price-col">
+                    <div class="price-row">
                         <span class="product-price">₦{{ number_format($product->sale_price) }}</span>
                         <span class="product-old-price">Was ₦{{ number_format($product->price) }}</span>
                     </div>
-                    <span style="font-size:0.65rem; background:#fef2f2; color:#dc2626; padding:1px 7px; border-radius:20px; font-weight:700; width:fit-content;">
+                    <span class="save-chip">
                         Save ₦{{ number_format($product->price - $product->sale_price) }}
                     </span>
                 </div>
@@ -47,7 +47,7 @@
             <button class="add-to-cart-btn" data-product-id="{{ $product->id }}" title="Add to Cart">
                 <i class="fas fa-plus"></i>
             </button>
-            <button class="wishlist-btn" onclick="addToWishlist({{ $product->id }})" title="Add to Wishlist" style="border:none; background:none; color: var(--secondary-400); margin-left:8px;">
+            <button class="wishlist-btn" onclick="addToWishlist({{ $product->id }})" title="Add to Wishlist">
                 <i class="far fa-heart"></i>
             </button>
         </div>
