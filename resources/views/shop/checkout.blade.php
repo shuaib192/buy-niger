@@ -237,6 +237,7 @@
 
 <style>
     /* Page-specific: Checkout layout, address cards, shipping, coupon */
+    .checkout-layout {
         display: grid;
         grid-template-columns: 1fr 400px;
         gap: 32px;

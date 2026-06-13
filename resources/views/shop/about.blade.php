@@ -117,6 +117,7 @@
 
 <style>
     /* Page-specific: About page stats, cards, features */
+    .about-hero {
         text-align: center;
         padding: 64px 20px;
         background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%);

@@ -125,6 +125,7 @@
 
     <style>
         /* Page-specific: Single store page banner, sidebar, search */
+        .store-header {
             position: relative;
             margin-bottom: 0;
         }

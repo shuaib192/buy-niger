@@ -104,6 +104,7 @@
 
 <style>
     /* Page-specific: Cart layout & items */
+    .cart-layout {
         display: grid;
         grid-template-columns: 1fr 380px;
         gap: 32px;

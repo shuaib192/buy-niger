@@ -249,6 +249,7 @@
 
 <style>
     /* Page-specific: Order detail timeline, items, payment CTA, modal */
+    .order-detail-header {
         margin-bottom: 32px;
     }
 

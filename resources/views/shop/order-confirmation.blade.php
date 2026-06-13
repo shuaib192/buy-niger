@@ -89,6 +89,7 @@
 
 <style>
     /* Page-specific: Order confirmation */
+    .confirmation-wrapper {
         max-width: 700px;
         margin: 0 auto;
     }

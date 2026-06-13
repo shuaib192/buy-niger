@@ -111,6 +111,7 @@
 
 <style>
     /* Page-specific: Contact page form, info cards */
+    .contact-hero {
         text-align: center;
         padding: 56px 20px;
         background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%);

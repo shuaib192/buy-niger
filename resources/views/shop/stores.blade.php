@@ -84,6 +84,7 @@
 
 <style>
     /* Page-specific: Stores listing hero + search */
+    .stores-hero {
         text-align:center; padding:48px 24px; margin-bottom:36px;
         background:linear-gradient(135deg,#0f172a,#1e40af); border-radius:24px; color:white;
     }

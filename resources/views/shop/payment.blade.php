@@ -73,6 +73,7 @@
 
 <style>
     /* Page-specific: Payment page */
+    .payment-wrapper {
         max-width: 500px;
         margin: 0 auto;
     }
